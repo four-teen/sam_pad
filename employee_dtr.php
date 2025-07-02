@@ -240,33 +240,34 @@ elseif ($status === 'c/out') {
       </div>
 
 
-      <!-- DTR Info Section -->
-      <div style="font-size: 10px;margin-top: 4px;">
-        <div style="margin-bottom: 6px;">
-          <strong>School/District:</strong> Bannawag Elementary School / South President Quirino
-        </div>
+<!-- DTR Info Section -->
+<div style="font-size: 10px; margin-top: 4px;">
+  <div style="margin-bottom: 3px;">
+    <strong>School/District:</strong> Bannawag Elementary School / South President Quirino
+  </div>
 
-        <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
-          <div><strong>Employee No.:</strong> <u><?php echo $_GET['id_number'] ?></u></div>
-          <div><strong>Div./Stn. Code:</strong> 018-014</div>
-        </div>
+  <div style="display: flex; justify-content: space-between; margin-bottom: 3px;">
+    <div><strong>Employee No.:</strong> <u><?php echo $_GET['id_number'] ?></u></div>
+    <div><strong>Div./Stn. Code:</strong> 018-014</div>
+  </div>
 
-        <div style="margin-bottom: 6px;">
-          <strong>For the month of:</strong> <u><?php echo date('F Y', strtotime("$yr-$mnt-01")); ?></u>
-        </div>
+  <div style="margin-bottom: 3px;">
+    <strong>For the month of:</strong> <u><?php echo date('F Y', strtotime("$yr-$mnt-01")); ?></u>
+  </div>
 
-        <div style="margin-bottom: 6px;">
-          <strong>Official Hours (Regular):</strong> 07:00 AM – 12:00 PM
-        </div>
+  <div style="margin-bottom: 3px;">
+    <strong>Official Hours (Regular):</strong> 07:00 AM – 12:00 PM
+  </div>
 
-        <div style="margin-bottom: 6px;">
-          <strong>For Arrival & Departure (Days):</strong> 01:00 PM – 04:00 PM
-        </div>
+  <div style="margin-bottom: 3px;">
+    <strong>For Arrival & Departure (Days):</strong> 01:00 PM – 04:00 PM
+  </div>
 
-        <div style="margin-bottom: 6px;">
-          <strong>Saturdays:</strong> (as required)
-        </div>
-      </div>
+  <div style="margin-bottom: 3px;">
+    <strong>Saturdays:</strong> (as required)
+  </div>
+</div>
+
       
       <table>
         <thead>
@@ -306,91 +307,91 @@ elseif ($status === 'c/out') {
                       $pm_shift_end = '17:00';
                   }
 
-                  for ($day = 1; $day <= $lastDay; $day++) {
-                      if (!checkdate($month, $day, $year)) continue;
+for ($day = 1; $day <= $lastDay; $day++) {
+    if (!checkdate($month, $day, $year)) continue;
 
-                      $date = "$year-$month-$day";
-                      $dayName = date('D', strtotime($date));
+    $date = "$year-$month-$day";
+    $dayName = date('D', strtotime($date));
 
-                      $am_in = $structured_logs[$day]['am_in'] ?? '';
-                      $am_out = $structured_logs[$day]['am_out'] ?? '';
-                      $pm_in = $structured_logs[$day]['pm_in'] ?? '';
-                      $pm_out = $structured_logs[$day]['pm_out'] ?? '';
+    $am_in = $structured_logs[$day]['am_in'] ?? '';
+    $am_out = $structured_logs[$day]['am_out'] ?? '';
+    $pm_in = $structured_logs[$day]['pm_in'] ?? '';
+    $pm_out = $structured_logs[$day]['pm_out'] ?? '';
 
-                      $ut_minutes = 0;
+    $am_ut = 0;
+    $pm_ut = 0;
 
-                      $all_empty = empty($am_in) && empty($am_out) && empty($pm_in) && empty($pm_out);
+    $all_empty = empty($am_in) && empty($am_out) && empty($pm_in) && empty($pm_out);
 
-                      if (!$all_empty) {
-                          // AM Range
-                          // $am_start = new DateTime("$date 07:00");
-                          // $am_end = new DateTime("$date 12:00");
-                          $am_start = new DateTime("$date $am_shift_start");
-                          $am_end = new DateTime("$date $am_shift_end");
+    if (!$all_empty) {
+        $am_start = new DateTime("$date $am_shift_start");
+        $am_end = new DateTime("$date $am_shift_end");
 
-                          if ($am_in) {
-                              $actual_am_in = new DateTime("$date $am_in");
-                              if ($actual_am_in > $am_start) {
-                                  $ut_minutes += ($actual_am_in->getTimestamp() - $am_start->getTimestamp()) / 60;
-                              }
-                          } else {
-                              $ut_minutes += 300;
-                          }
+        if ($am_in) {
+            $actual_am_in = new DateTime("$date $am_in");
+            if ($actual_am_in > $am_start) {
+                $am_ut += ($actual_am_in->getTimestamp() - $am_start->getTimestamp()) / 60;
+            }
+        } else {
+            $am_ut += ($am_end->getTimestamp() - $am_start->getTimestamp()) / 60;
+        }
 
-                          if ($am_out) {
-                              $actual_am_out = new DateTime("$date $am_out");
-                              if ($actual_am_out < $am_end) {
-                                  $ut_minutes += ($am_end->getTimestamp() - $actual_am_out->getTimestamp()) / 60;
-                              }
-                          } else {
-                              $ut_minutes += 300;
-                          }
+        if ($am_out) {
+            $actual_am_out = new DateTime("$date $am_out");
+            if ($actual_am_out < $am_end) {
+                $am_ut += ($am_end->getTimestamp() - $actual_am_out->getTimestamp()) / 60;
+            }
+        } else {
+            $am_ut += ($am_end->getTimestamp() - $am_start->getTimestamp()) / 60;
+        }
 
-                          // PM Range
-                          // $pm_start = new DateTime("$date 13:00");
-                          // $pm_end = new DateTime("$date 16:00");
-                          $pm_start = new DateTime("$date $pm_shift_start");
-                          $pm_end = new DateTime("$date $pm_shift_end");
+        $pm_start = new DateTime("$date $pm_shift_start");
+        $pm_end = new DateTime("$date $pm_shift_end");
 
-                          if ($pm_in) {
-                              $actual_pm_in = new DateTime("$date $pm_in");
-                              if ($actual_pm_in > $pm_start) {
-                                  $ut_minutes += ($actual_pm_in->getTimestamp() - $pm_start->getTimestamp()) / 60;
-                              }
-                          } else {
-                              $ut_minutes += 180;
-                          }
+        if (empty($pm_in) && empty($pm_out)) {
+            $pm_ut += ($pm_end->getTimestamp() - $pm_start->getTimestamp()) / 60;
+        } else {
+            if ($pm_in) {
+                $actual_pm_in = new DateTime("$date $pm_in");
+                if ($actual_pm_in > $pm_start) {
+                    $pm_ut += ($actual_pm_in->getTimestamp() - $pm_start->getTimestamp()) / 60;
+                }
+            } else {
+                $pm_ut += ($pm_end->getTimestamp() - $pm_start->getTimestamp()) / 60;
+            }
 
-                          if ($pm_out) {
-                              $actual_pm_out = new DateTime("$date $pm_out");
-                              if ($actual_pm_out < $pm_end) {
-                                  $ut_minutes += ($pm_end->getTimestamp() - $actual_pm_out->getTimestamp()) / 60;
-                              }
-                          } else {
-                              $ut_minutes += 180;
-                          }
+            if ($pm_out) {
+                $actual_pm_out = new DateTime("$date $pm_out");
+                if ($actual_pm_out < $pm_end) {
+                    $pm_ut += ($pm_end->getTimestamp() - $actual_pm_out->getTimestamp()) / 60;
+                }
+            } else {
+                $pm_ut += ($pm_end->getTimestamp() - $pm_start->getTimestamp()) / 60;
+            }
+        }
 
-                          $ut_minutes = round($ut_minutes);
-                          $total_ut_minutes += $ut_minutes;
+        $ut_minutes = round($am_ut + $pm_ut);
+        $total_ut_minutes += $ut_minutes;
 
-                          $ut_display = ($ut_minutes > 0) ? sprintf("%d:%02d", floor($ut_minutes / 60), $ut_minutes % 60) : "";
-                      } else {
-                          $ut_display = "";
-                      }
+        $ut_display = ($ut_minutes > 0) ? sprintf("%d:%02d", floor($ut_minutes / 60), $ut_minutes % 60) : "";
+    } else {
+        $ut_display = "";
+    }
 
-                      echo '<tr>
-                              <td>'.$day.'</td>
-                              <td>'.$am_in.'</td>
-                              <td>'.$am_out.'</td>
-                              <td>'.($pm_in ? date("h:i", strtotime($pm_in)) : '').'</td>
-                              <td>'.($pm_out ? date("h:i", strtotime($pm_out)) : '').'</td>
-                              <td>'.$dayName.'</td>
-                              <td>'.$ut_display.'</td>
-                            </tr>';
-                  }
-
-                  // FINAL TOTAL ROW
-                  $total_ut_display = ($total_ut_minutes > 0) ? sprintf("%d:%02d", floor($total_ut_minutes / 60), $total_ut_minutes % 60) : "";
+    echo '<tr>
+            <td>'.$day.'</td>
+            <td>'.$am_in.'</td>
+            <td>'.$am_out.'</td>
+            <td>'.($pm_in ? date("H:i", strtotime($pm_in)) : '').'</td>
+            <td>'.($pm_out ? date("H:i", strtotime($pm_out)) : '').'</td>
+            <td>'.$dayName.'</td>
+            <td>'.$pm_ut.'</td>
+          </tr>';
+}
+// Final total undertime row
+$total_ut_display = ($total_ut_minutes > 0)
+    ? sprintf("%d:%02d", floor($total_ut_minutes / 60), $total_ut_minutes % 60)
+    : "";
 
                   echo "<tr style='font-weight: bold; background-color: #e0e0e0'>
                           <td colspan='6' class='text-right'>Total Undertime:</td>
@@ -403,6 +404,24 @@ elseif ($status === 'c/out') {
 
         </tbody>
       </table>
+<div style="text-align: center; margin-top: 10px;">
+  <span style="font-size: 11px;">
+    I certify on my honor that the above is a true and correct report of the hours of work performed, record of which was made daily at the time of arrival and departure from office.
+  </span>
+</div>
+<div style="text-align: center; margin-top: 10px;">
+  <div style="border-bottom: 1px solid #000; width: 300px; margin: 0 auto;">
+    <?php echo $rowselect['name']; ?>
+  </div>
+  <div style="font-size: 12px;">Employee</div>
+</div>
+<br>
+<div style="text-align: center; margin-top: 10px;">
+  <div style="border-bottom: 1px solid #000; width: 300px; margin: 0 auto;">
+    <b>DEXTER V. ALBERTO, MAED</b>
+  </div>
+  <div style="font-size: 12px;">School Principal I</div>
+</div>
     </div>
 
     <!-- Second DTR Section -->
@@ -433,33 +452,34 @@ elseif ($status === 'c/out') {
       </div>
 
 
-      <!-- DTR Info Section -->
-      <div style="font-size: 10px;margin-top: 4px;">
-        <div style="margin-bottom: 6px;">
-          <strong>School/District:</strong> Bannawag Elementary School / South President Quirino
-        </div>
+<!-- DTR Info Section -->
+<div style="font-size: 10px; margin-top: 4px;">
+  <div style="margin-bottom: 3px;">
+    <strong>School/District:</strong> Bannawag Elementary School / South President Quirino
+  </div>
 
-        <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
-          <div><strong>Employee No.:</strong> <u><?php echo $_GET['id_number'] ?></u></div>
-          <div><strong>Div./Stn. Code:</strong> 018-014</div>
-        </div>
+  <div style="display: flex; justify-content: space-between; margin-bottom: 3px;">
+    <div><strong>Employee No.:</strong> <u><?php echo $_GET['id_number'] ?></u></div>
+    <div><strong>Div./Stn. Code:</strong> 018-014</div>
+  </div>
 
-        <div style="margin-bottom: 6px;">
-          <strong>For the month of:</strong> <u><?php echo date('F Y', strtotime("$yr-$mnt-01")); ?></u>
-        </div>
+  <div style="margin-bottom: 3px;">
+    <strong>For the month of:</strong> <u><?php echo date('F Y', strtotime("$yr-$mnt-01")); ?></u>
+  </div>
 
-        <div style="margin-bottom: 6px;">
-          <strong>Official Hours (Regular):</strong> 07:00 AM – 12:00 PM
-        </div>
+  <div style="margin-bottom: 3px;">
+    <strong>Official Hours (Regular):</strong> 07:00 AM – 12:00 PM
+  </div>
 
-        <div style="margin-bottom: 6px;">
-          <strong>For Arrival & Departure (Days):</strong> 01:00 PM – 04:00 PM
-        </div>
+  <div style="margin-bottom: 3px;">
+    <strong>For Arrival & Departure (Days):</strong> 01:00 PM – 04:00 PM
+  </div>
 
-        <div style="margin-bottom: 6px;">
-          <strong>Saturdays:</strong> (as required)
-        </div>
-      </div>
+  <div style="margin-bottom: 3px;">
+    <strong>Saturdays:</strong> (as required)
+  </div>
+</div>
+
 
       <table>
         <thead>
@@ -576,6 +596,25 @@ elseif ($status === 'c/out') {
           ?>
         </tbody>
       </table>
+<div style="text-align: center; margin-top: 10px;">
+  <span style="font-size: 11px;">
+    I certify on my honor that the above is a true and correct report of the hours of work performed, record of which was made daily at the time of arrival and departure from office.
+  </span>
+</div>
+<div style="text-align: center; margin-top: 10px;">
+  <div style="border-bottom: 1px solid #000; width: 300px; margin: 0 auto;">
+    <?php echo $rowselect['name']; ?>
+  </div>
+  <div style="font-size: 12px;">Employee</div>
+</div>
+<br>
+<div style="text-align: center; margin-top: 10px;">
+  <div style="border-bottom: 1px solid #000; width: 300px; margin: 0 auto;">
+    <b>DEXTER V. ALBERTO, MAED</b>
+  </div>
+  <div style="font-size: 12px;">School Principal I</div>
+</div>
+     
     </div>
 
   </div>
