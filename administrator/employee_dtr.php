@@ -1,6 +1,6 @@
 <?php 
 ob_start();
-include 'db.php';
+    include '../db.php';
 
 
 
@@ -265,12 +265,12 @@ elseif ($status === 'c/out') {
 <!-- DTR Info Section -->
 <div style="font-size: 10px; margin-top: 4px;">
   <div style="margin-bottom: 3px;">
-    <strong>School/District:</strong> Bannawag Elementary School / South President Quirino
+    <strong>School/District:</strong> <u>Bannawag Elementary School / South President Quirino</u>
   </div>
 
   <div style="display: flex; justify-content: space-between; margin-bottom: 3px;">
     <div><strong>Employee No.:</strong> <u><?php echo $_GET['id_number'] ?></u></div>
-    <div><strong>Div./Stn. Code:</strong> 018-014</div>
+    <div><strong>Div./Stn. Code:</strong> <u>018-014</u></div>
   </div>
 
   <div style="margin-bottom: 3px;">
@@ -404,8 +404,8 @@ for ($day = 1; $day <= $lastDay; $day++) {
     } else {
         $ut_display = "";
     }
-
-    echo '<tr>
+    $row_style = ($dayName === 'Sat' || $dayName === 'Sun') ? 'style="background-color:#f5f5f5"' : '';
+    echo '<tr '.$row_style.'>
             <td>'.$day.'</td>
             <td>'.$am_in.'</td>
             <td>'.$am_out.'</td>
@@ -420,10 +420,10 @@ $total_ut_display = ($total_ut_minutes > 0)
     ? sprintf("%d:%02d", floor($total_ut_minutes / 60), $total_ut_minutes % 60)
     : "";
 
-                  echo "<tr style='font-weight: bold; background-color: #e0e0e0'>
-                          <td colspan='6' class='text-right'>Total Undertime:</td>
-                          <td>$total_ut_display</td>
-                        </tr>";
+echo "<tr style='font-weight: bold; background-color: #f0f0f0'>
+        <td colspan='6' style='text-align: right;'>Total:</td>
+        <td>$total_ut_display</td>
+      </tr>";
 
           ?>
 
@@ -482,12 +482,12 @@ $total_ut_display = ($total_ut_minutes > 0)
 <!-- DTR Info Section -->
 <div style="font-size: 10px; margin-top: 4px;">
   <div style="margin-bottom: 3px;">
-    <strong>School/District:</strong> Bannawag Elementary School / South President Quirino
+    <strong>School/District:</strong><u>Bannawag Elementary School / South President Quirino</u> 
   </div>
 
   <div style="display: flex; justify-content: space-between; margin-bottom: 3px;">
     <div><strong>Employee No.:</strong> <u><?php echo $_GET['id_number'] ?></u></div>
-    <div><strong>Div./Stn. Code:</strong> 018-014</div>
+    <div><strong>Div./Stn. Code:</strong> <u>018-014</u></div>
   </div>
 
   <div style="margin-bottom: 3px;">
@@ -600,8 +600,8 @@ $total_ut_display = ($total_ut_minutes > 0)
                       } else {
                           $ut_display = "";
                       }
-
-                      echo '<tr>
+                      $row_style = ($dayName === 'Sat' || $dayName === 'Sun') ? 'style="background-color:#f5f5f5"' : '';
+                      echo '<tr '.$row_style.'>
                               <td>'.$day.'</td>
                               <td>'.$am_in.'</td>
                               <td>'.$am_out.'</td>
@@ -615,10 +615,10 @@ $total_ut_display = ($total_ut_minutes > 0)
                   // FINAL TOTAL ROW
                   $total_ut_display = ($total_ut_minutes > 0) ? sprintf("%d:%02d", floor($total_ut_minutes / 60), $total_ut_minutes % 60) : "";
 
-                  echo "<tr style='font-weight: bold; background-color: #e0e0e0'>
-                          <td colspan='6' class='text-right'>Total Undertime:</td>
-                          <td>$total_ut_display</td>
-                        </tr>";
+echo "<tr style='font-weight: bold; background-color: #f0f0f0'>
+        <td colspan='6' style='text-align: right;'>Total:</td>
+        <td>$total_ut_display</td>
+      </tr>";
 
           ?>
         </tbody>
@@ -629,7 +629,7 @@ $total_ut_display = ($total_ut_minutes > 0)
 </span>
 </div>
 <div style="text-align: center; margin-top: 20px;">
-  <div style="border-bottom: 1px solid #000; width: 300px; margin: 0 auto;">
+  <div style="border-bottom: 1px solid #000; width: 300px; margin: 0 auto;font-size: 13px">
     <?php echo $rowselect['name']; ?>
   </div>
   <div style="font-size: 12px;">Employee</div>

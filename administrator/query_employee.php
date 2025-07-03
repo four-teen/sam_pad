@@ -1,7 +1,19 @@
 <?php
     ob_start();
-    include 'db.php';
+    include '../db.php';
 
+
+
+if(isset($_POST['save_settings'])){
+    $set_month = $_POST['set_month'];
+    $set_year = $_POST['set_year'];    
+
+    $delete = "DELETE FROM `tblsettings`";
+    $rundelete = mysqli_query($conn, $delete);
+
+    $insert = "INSERT INTO `tblsettings` (`set_month`, `set_year`) VALUES ('$set_month', '$set_year')";
+    $runinsert = mysqli_query($conn, $insert);
+}
 
 if (isset($_POST['save_classed'])) {
     $emp_nums = $_POST['emp_nums'];
@@ -22,9 +34,10 @@ if (isset($_POST['save_classed'])) {
                       <thead>
                         <tr>
                           <th width="1%" style="white-space: nowrap;">#</th>
-                          <th>ID</th>
+                          <th width="1%" class="text-nowrap">EMPLOYEE NUMBER</th>
+                          <th width="1%"></th>
                           <th>EMPLOYEE NAME</th>
-                          <th>CLASS</th>
+                          <th></th>
                           <th></th>
                         </tr>
                       </thead>
@@ -43,9 +56,10 @@ if (isset($_POST['save_classed'])) {
 
                                     echo '
                                         <tr>
-                                            <td>'.++$count.'</td>
-                                            <td>'.$row_rec['id_number'].'</td>
-                                            <td>'.$row_rec['name'].'</td>
+                                            <td class="align-middle">'.++$count.'</td>
+                                            <td class="align-middle">'.$row_rec['id_number'].'</td>
+                                            <td class="align-middle"><img src="blank.png" alt="" style="height: 18px; opacity: 0.2;"></td>                                           
+                                            <td class="align-middle">'.$row_rec['name'].'</td>
                                             <td width="1%" class="text-nowrap">'.
                                               (is_null($rowget_class['fac_class']) ? '
                                                 <div class="btn-group" role="group" aria-label="Basic mixed styles example" onclick="set_class(\''.$emp_no.'\')">
