@@ -4,6 +4,13 @@ include 'db.php';
 
 
 
+    $am_shift_start_1 = '';
+    $am_shift_end_1 = '';
+    $pm_shift_start_1 = '';
+    $pm_shift_end_1 = '';
+
+
+
 
 //get month settings
 $get_month = "SELECT * FROM `tblsettings` LIMIT 1";
@@ -29,6 +36,21 @@ $runget_class = mysqli_query($conn, $get_class);
 $rowget_class = mysqli_fetch_assoc($runget_class);
 
 $get_emp_class = $rowget_class['fac_class']; // 0 for 7 to 4; 1 for 8 to 5
+
+
+ if ($get_emp_class == 0) {
+    $am_shift_start_1 = '07:00 AM';
+    $am_shift_end_1 = '12:00 PM';
+    $pm_shift_start_1 = '01:00 PM';
+    $pm_shift_end_1 = '04:00 PM';
+ }else{
+    $am_shift_start_1 = '08:00 AM';
+    $am_shift_end_1 = '12:00 PM';
+    $pm_shift_start_1 = '01:00 PM';
+    $pm_shift_end_1 = '05:00 PM';
+ }
+
+
 
 
 // ⚠️ Don't fetch the first row here!
@@ -227,13 +249,13 @@ elseif ($status === 'c/out') {
       <div style="line-height: 1.4; margin-top: 5px;">
         <div style="font-size: 14px">Civil Service Form No. 48</div>         
       </div>
-      <div style="text-align: center; line-height: 1.4; margin-top: 5px;"> 
+      <div style="text-align: center; line-height: 1.4; margin-top: 5px;font-size: 14px"> 
         <div>DAILY TIME RECORD</div>           
       </div>
 
       <div style="text-align: center; margin-top: 10px;">
-        <div style="font-size: 14px;">
-          <?php echo $rowselect['name']; ?>
+        <div style="font-size: 15px;">
+          <b><?php echo $rowselect['name']; ?></b>
         </div>
         <div style="border-bottom: 1px solid #000; width: 300px; margin: 2px auto;"></div>
         <div style="font-size: 12px;">(Name)</div>
@@ -256,11 +278,11 @@ elseif ($status === 'c/out') {
   </div>
 
   <div style="margin-bottom: 3px;">
-    <strong>Official Hours (Regular):</strong> 07:00 AM – 12:00 PM
+    <strong>Official Hours (Regular):</strong> <u><?php echo $am_shift_start_1.' - '.$am_shift_end_1 ?></u>
   </div>
 
   <div style="margin-bottom: 3px;">
-    <strong>For Arrival & Departure (Days):</strong> 01:00 PM – 04:00 PM
+    <strong>For Arrival & Departure (Days):</strong> <u><?php echo $pm_shift_start_1.' - '.$pm_shift_end_1 ?></u>
   </div>
 
   <div style="margin-bottom: 3px;">
@@ -304,8 +326,13 @@ elseif ($status === 'c/out') {
                       $am_shift_start = '08:00';
                       $am_shift_end = '12:00';
                       $pm_shift_start = '13:00';
-                      $pm_shift_end = '17:00';
+                      $pm_shift_end = '17:00';                  
                   }
+
+
+    
+
+
 
 for ($day = 1; $day <= $lastDay; $day++) {
     if (!checkdate($month, $day, $year)) continue;
@@ -385,7 +412,7 @@ for ($day = 1; $day <= $lastDay; $day++) {
             <td>'.($pm_in ? date("H:i", strtotime($pm_in)) : '').'</td>
             <td>'.($pm_out ? date("H:i", strtotime($pm_out)) : '').'</td>
             <td>'.$dayName.'</td>
-            <td>'.$pm_ut.'</td>
+            <td>'.$ut_display.'</td>
           </tr>';
 }
 // Final total undertime row
@@ -405,12 +432,12 @@ $total_ut_display = ($total_ut_minutes > 0)
         </tbody>
       </table>
 <div style="text-align: center; margin-top: 10px;">
-  <span style="font-size: 11px;">
-    I certify on my honor that the above is a true and correct report of the hours of work performed, record of which was made daily at the time of arrival and departure from office.
-  </span>
+<span style="font-size: 11px; line-height: 1.1; display: inline-block;">
+  I certify on my honor that the above is a true and correct report of the hours of work performed, record of which was made daily at the time of arrival and departure from office.
+</span>
 </div>
-<div style="text-align: center; margin-top: 10px;">
-  <div style="border-bottom: 1px solid #000; width: 300px; margin: 0 auto;">
+<div style="text-align: center; margin-top: 20px;">
+  <div style="border-bottom: 1px solid #000; width: 300px; margin: 0 auto;font-size: 13px">
     <?php echo $rowselect['name']; ?>
   </div>
   <div style="font-size: 12px;">Employee</div>
@@ -439,13 +466,13 @@ $total_ut_display = ($total_ut_minutes > 0)
       <div style="line-height: 1.4; margin-top: 5px;">
         <div style="font-size: 14px">Civil Service Form No. 48</div>         
       </div>
-      <div style="text-align: center; line-height: 1.4; margin-top: 5px;"> 
+      <div style="text-align: center; line-height: 1.4; margin-top: 5px;font-size: 14px"> 
         <div>DAILY TIME RECORD</div>           
       </div>
 
       <div style="text-align: center; margin-top: 10px;">
-        <div style="font-size: 14px;">
-          <?php echo $rowselect['name']; ?>
+        <div style="font-size: 15px;">
+          <b><?php echo $rowselect['name']; ?></b>
         </div>
         <div style="border-bottom: 1px solid #000; width: 300px; margin: 2px auto;"></div>
         <div style="font-size: 12px;">(Name)</div>
@@ -468,11 +495,11 @@ $total_ut_display = ($total_ut_minutes > 0)
   </div>
 
   <div style="margin-bottom: 3px;">
-    <strong>Official Hours (Regular):</strong> 07:00 AM – 12:00 PM
+    <strong>Official Hours (Regular):</strong> <u><?php echo $am_shift_start_1.' - '.$am_shift_end_1 ?></u>
   </div>
 
   <div style="margin-bottom: 3px;">
-    <strong>For Arrival & Departure (Days):</strong> 01:00 PM – 04:00 PM
+    <strong>For Arrival & Departure (Days):</strong><u><?php echo $pm_shift_start_1.' - '.$pm_shift_end_1 ?></u> 
   </div>
 
   <div style="margin-bottom: 3px;">
@@ -597,11 +624,11 @@ $total_ut_display = ($total_ut_minutes > 0)
         </tbody>
       </table>
 <div style="text-align: center; margin-top: 10px;">
-  <span style="font-size: 11px;">
-    I certify on my honor that the above is a true and correct report of the hours of work performed, record of which was made daily at the time of arrival and departure from office.
-  </span>
+<span style="font-size: 11px; line-height: 1.1; display: inline-block;">
+  I certify on my honor that the above is a true and correct report of the hours of work performed, record of which was made daily at the time of arrival and departure from office.
+</span>
 </div>
-<div style="text-align: center; margin-top: 10px;">
+<div style="text-align: center; margin-top: 20px;">
   <div style="border-bottom: 1px solid #000; width: 300px; margin: 0 auto;">
     <?php echo $rowselect['name']; ?>
   </div>
