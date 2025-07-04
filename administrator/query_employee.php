@@ -87,6 +87,7 @@ if (isset($_POST['save_classed'])) {
                                                 <div class="btn-group" role="group" aria-label="Basic mixed styles example">
                                                     <button type="button" class="btn btn-danger btn-sm"><i class="bx bxs-bookmarks" ></i></button>
                                                     <button type="button" class="btn btn-warning btn-sm" onclick="window.open(\'employee_dtr.php?emp_no='.$emp_no.'&id_number='.$row_rec['id_number'].'\')">Print DTR</button>
+                                                    <button type="button" class="btn btn-info btn-sm" onclick="window.open(\'employee_dtr_edit.php?emp_no='.$emp_no.'&id_number='.$row_rec['id_number'].'\')"><i class="bx bxs-edit-location"></i></button>
                                                 </div>
                                             </td>
                                         </tr>
