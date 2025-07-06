@@ -1,5 +1,6 @@
 <?php 
-ob_start();
+    session_start();
+    ob_start();
     include '../db.php';
 
 
@@ -25,6 +26,9 @@ $select = "SELECT * FROM `tbl_biometric_logs`
            WHERE emp_no='$emp_no' 
            AND YEAR(datetime) = '$yr' 
            AND MONTH(datetime) = '$mnt' 
+           AND accid='$_SESSION[acc_id]'
+           AND curr_month='$mnt'
+           AND curr_year = '$yr'
            ORDER BY datetime ASC";
 $runselect = mysqli_query($conn, $select);
 // $roget_emp_num = mysqli_fetch_assoc($runselect);
@@ -121,6 +125,8 @@ elseif ($status === 'c/out') {
 <head>
   <meta charset="UTF-8">
   <title>Employee DTR</title>
+  <link href="../assets/img/logo.png" rel="icon">
+  <link href="../assets/img/logo.png" rel="apple-touch-icon">
   <style>
     body {
       margin: 0;

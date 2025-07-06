@@ -1,7 +1,16 @@
 <?php
+session_start();
 ob_start();
-require 'db.php'; // your DB connection
-require 'vendor/autoload.php'; // PhpSpreadsheet
+require '../db.php'; // your DB connection
+require '../vendor/autoload.php'; // PhpSpreadsheet
+
+
+//get month settings
+$get_month = "SELECT * FROM `tblsettings` LIMIT 1";
+$runget_month = mysqli_query($conn, $get_month);
+$rowget_month = mysqli_fetch_assoc($runget_month);
+$curr_month = $rowget_month['set_month'];     // 1-12
+$curr_year  = $rowget_month['set_year'];     // 4-digit year 
 
 use PhpOffice\PhpSpreadsheet\IOFactory;
 
@@ -51,7 +60,7 @@ function parse_biometric_datetime($raw) {
 try {
     if ($ext === 'csv') {
 
-        $delete = "DELETE FROM tbl_biometric_logs";
+        $delete = "DELETE FROM tbl_biometric_logs WHERE accid='$_SESSION[acc_id]' AND curr_month = '$curr_month' AND curr_year='$curr_year'";
         $rundelete = mysqli_query($conn, $delete);
 
         if (($handle = fopen($file, "r")) !== false) {
@@ -74,11 +83,29 @@ try {
                     error_log("❌ Invalid datetime: [$datetime_raw]");
                     continue; // skip invalid
                 }
+                $acc_id     = $_SESSION['acc_id'];
+                $currs_month = $curr_month;     // 1-12
+                $currs_year  = $curr_year;     // 4-digit year 
 
                 $stmt = $conn->prepare("INSERT INTO tbl_biometric_logs 
-                    (department, name, emp_no, datetime, status, location_id, id_number, verify_code, card_no) 
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
-                $stmt->bind_param("ssissssss", $department, $name, $emp_no, $datetime, $status, $location_id, $id_number, $verify_code, $card_no);
+                    (department, name, emp_no, datetime, status, location_id, id_number, verify_code, card_no, accid, curr_month, curr_year) 
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+
+                $stmt->bind_param(
+                    "ssisssssssis",  // 12 placeholders
+                    $department,     // s
+                    $name,           // s
+                    $emp_no,         // i
+                    $datetime,       // s
+                    $status,         // s
+                    $location_id,    // s
+                    $id_number,      // s
+                    $verify_code,    // s
+                    $card_no,        // s
+                    $acc_id,         // i
+                    $currs_month,     // i
+                    $currs_year       // s
+                );
                 $stmt->execute();
 
             }

@@ -1,17 +1,23 @@
 <?php
+session_start();
     ob_start();
     include '../db.php';
 
+$get_month = "SELECT * FROM `tblsettings` LIMIT 1";
+$runget_month = mysqli_query($conn, $get_month);
+$rowget_month = mysqli_fetch_assoc($runget_month);
+$curr_month = $rowget_month['set_month'];     // 1-12
+$curr_year  = $rowget_month['set_year'];     // 4-digit year 
 
 
 if(isset($_POST['save_settings'])){
     $set_month = $_POST['set_month'];
     $set_year = $_POST['set_year'];    
 
-    $delete = "DELETE FROM `tblsettings`";
+    $delete = "DELETE FROM `tblsettings` WHERE acc_id='$_SESSION[acc_id]'";
     $rundelete = mysqli_query($conn, $delete);
 
-    $insert = "INSERT INTO `tblsettings` (`set_month`, `set_year`) VALUES ('$set_month', '$set_year')";
+    $insert = "INSERT INTO `tblsettings` (`set_month`, `set_year`, `acc_id`) VALUES ('$set_month', '$set_year', '$_SESSION[acc_id]')";
     $runinsert = mysqli_query($conn, $insert);
 }
 
@@ -43,7 +49,11 @@ if (isset($_POST['save_classed'])) {
                       </thead>
                       <tbody>
                             <?php 
-                                $get_rec = "SELECT DISTINCT id_number, emp_no, name FROM `tbl_biometric_logs`";
+                                $get_rec = "SELECT DISTINCT id_number, emp_no, name FROM `tbl_biometric_logs` 
+                                WHERE 
+                                accid='$_SESSION[acc_id]' AND 
+                                curr_month = '$curr_month' AND 
+                                curr_year='$curr_year'";
                                 $runget_rec = mysqli_query($conn, $get_rec);
                                 $count = 0;
                                 while($row_rec = mysqli_fetch_assoc($runget_rec)){

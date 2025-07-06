@@ -1,8 +1,14 @@
 <?php
+
+    session_start();    
     ob_start();
-    session_start();
+
 
     include '../db.php';
+
+    if($_SESSION['username']==''){
+      header('location:../logout.php');
+    }
 
 
     $getsystemconfig = "SELECT * FROM `tblconfig`";
@@ -11,12 +17,12 @@
     $_SESSION['systemname'] = $rowconfig['systemname'];
     $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
 
-                      $get_month = "SELECT * FROM `tblsettings` LIMIT 1";
-                      $runget_month = mysqli_query($conn, $get_month);
-                      $rowget_month = mysqli_fetch_assoc($runget_month);
+    $get_month = "SELECT * FROM `tblsettings` WHERE acc_id='$_SESSION[acc_id]' LIMIT 1";
+    $runget_month = mysqli_query($conn, $get_month);
+    $rowget_month = mysqli_fetch_assoc($runget_month);
 
-                      $mnt = $rowget_month['set_month'];
-                      $yr = $rowget_month['set_year'];
+    $mnt = $rowget_month['set_month'];
+    $yr = $rowget_month['set_year'];
 
 
 ?>
@@ -122,7 +128,11 @@
                       <h6>
                         <?php 
 
-                        $count = "SELECT distinct emp_no FROM `tbl_biometric_logs`";
+                        $count = "SELECT distinct emp_no FROM `tbl_biometric_logs`
+                        WHERE 
+                        accid='$_SESSION[acc_id]'
+                        AND curr_month='$mnt'
+                        AND curr_year = '$yr'";
                         $getcount = mysqli_query($conn, $count);
                         echo mysqli_num_rows($getcount);
                        ?>
@@ -198,7 +208,11 @@
                             <h6>
                               <?php 
 
-                              $count_all = "SELECT emp_no FROM `tbl_biometric_logs`";
+                              $count_all = "SELECT emp_no FROM `tbl_biometric_logs`
+                              WHERE 
+                              accid='$_SESSION[acc_id]'
+                              AND curr_month='$mnt'
+                              AND curr_year = '$yr'";
                               $getcount_all = mysqli_query($conn, $count_all);
                               echo mysqli_num_rows($getcount_all);
                              ?> 
