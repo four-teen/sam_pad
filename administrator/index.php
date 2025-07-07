@@ -10,6 +10,8 @@
       header('location:../logout.php');
     }
 
+    $mnt = '0';
+    $yr = '0';  
 
     $getsystemconfig = "SELECT * FROM `tblconfig`";
     $runsystemconfig=mysqli_query($conn, $getsystemconfig);
@@ -21,8 +23,13 @@
     $runget_month = mysqli_query($conn, $get_month);
     $rowget_month = mysqli_fetch_assoc($runget_month);
 
-    $mnt = $rowget_month['set_month'];
-    $yr = $rowget_month['set_year'];
+    if(mysqli_num_rows($runget_month)<=0){
+      $mnt = '0';
+      $yr = '0';  
+    }else{
+      $mnt = $rowget_month['set_month'];
+      $yr = $rowget_month['set_year'];    
+    }
 
 
 ?>
@@ -72,7 +79,7 @@
   ======================================================== -->
 </head>
 
-<body onload="get_employees()">
+<body onload="get_employees();loading_settings();">
 
 
 
@@ -168,12 +175,7 @@
                             <i class='bx bxs-cog'></i>
                           </div>
                           <div class="ps-3">
-                            <h6>
-                             <?php 
-                                $readable_month = DateTime::createFromFormat('!m', $mnt)->format('F');
-                                echo $readable_month . ', ' . $yr;
-                             ?> 
-                            </h6>
+                            <h6 id="load_settings"></h6>
                             <span class="text-danger small pt-1 fw-bold"></span> 
                             <span class="text-muted small pt-2 ps-1">Current Setting</span>
                           </div>
@@ -387,23 +389,46 @@
 
   <script>
 
-    function update_settings(){
-      var set_month = $('#set_month').val();
-      var set_year = $('#set_year').val();
+let currentMonth = '<?php echo $mnt ?>';
+let currentYear = '<?php echo $yr ?>';
 
-       $.ajax({
-          type: "POST",
-          url: "query_employee.php",
-          data: {
-            "save_settings": "1",
-            "set_month" : set_month,
-            "set_year" : set_year           
-          },
-          success: function (response) {
-
-          }
-        }); 
+function loading_settings() {
+  $.ajax({
+    type: "POST",
+    url: "query_employee.php",
+    data: {
+      "get_settings": "1",
+      "mnt": currentMonth,
+      "yr": currentYear
+    },
+    success: function (response) {
+      $('#load_settings').html(response);
     }
+  });
+}
+
+function update_settings() {
+  var set_month = $('#set_month').val();
+  var set_year = $('#set_year').val();
+
+  // update globals
+  currentMonth = set_month;
+  currentYear = set_year;
+  $.ajax({
+    type: "POST",
+    url: "query_employee.php",
+    data: {
+      "save_settings": "1",
+      "set_month": set_month,
+      "set_year": set_year
+    },
+    success: function (response) {
+      loading_settings();
+      get_employees();
+    }
+  });
+}
+
 
     function manage_settings(){
       $('#modal_settings').modal('show');

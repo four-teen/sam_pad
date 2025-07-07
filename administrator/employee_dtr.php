@@ -14,7 +14,7 @@
 
 
 //get month settings
-$get_month = "SELECT * FROM `tblsettings` LIMIT 1";
+$get_month = "SELECT * FROM `tblsettings` WHERE acc_id='$_SESSION[acc_id]' LIMIT 1";
 $runget_month = mysqli_query($conn, $get_month);
 $rowget_month = mysqli_fetch_assoc($runget_month);
 
@@ -315,7 +315,7 @@ elseif ($status === 'c/out') {
         </thead>
         <tbody>
           <?php
-                  $month = $mnt; // June
+                  $month = $mnt; 
                   $year = $yr;
 
                   $total_ut_minutes = 0;

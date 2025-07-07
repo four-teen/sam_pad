@@ -3,11 +3,24 @@ session_start();
     ob_start();
     include '../db.php';
 
-$get_month = "SELECT * FROM `tblsettings` LIMIT 1";
+$get_month = "SELECT * FROM `tblsettings` WHERE acc_id='$_SESSION[acc_id]' LIMIT 1";
 $runget_month = mysqli_query($conn, $get_month);
 $rowget_month = mysqli_fetch_assoc($runget_month);
 $curr_month = $rowget_month['set_month'];     // 1-12
 $curr_year  = $rowget_month['set_year'];     // 4-digit year 
+
+
+if (isset($_POST['get_settings'])) {
+    $mnt = (int)$_POST['mnt'];
+    $yr = (int)$_POST['yr'];
+
+    if ($mnt <= 0 || $yr <= 0) {
+        echo '<span class="text-danger">Settings required!</span>';
+    } else {
+        $readable_month = DateTime::createFromFormat('!m', $mnt)->format('F');
+        echo $readable_month . ', ' . $yr;
+    }
+}
 
 
 if(isset($_POST['save_settings'])){
