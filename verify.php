@@ -1,54 +1,51 @@
-<?php 
-  session_start();
-  ob_start();
+<?php
+session_start();
+include 'db.php';
 
-    include 'db.php';
+if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    $username = mysqli_real_escape_string($conn, $_POST['username']);
+    $password = mysqli_real_escape_string($conn, $_POST['password']);
 
-  $login_as = '';
+    // 🔍 Check if account exists and is active
+    $sql = "SELECT * FROM tbl_accounts WHERE acc_username='$username' AND acc_status='Active' LIMIT 1";
+    $query = mysqli_query($conn, $sql);
 
-// Check if username and password are set
-if (isset($_POST['username']) && isset($_POST['password'])) {
+    if (mysqli_num_rows($query) === 1) {
+        $row = mysqli_fetch_assoc($query);
 
-    $username = $_POST['username'];
-    $password = $_POST['password'];
-    $_SESSION['username'] = $username;
+        // ✅ Verify the hashed password
+        if (password_verify($password, $row['acc_password'])) {
+            // 🧩 Set session variables
+            $_SESSION['acc_id']   = $row['acc_id'];
+            $_SESSION['username'] = $row['acc_username'];
+            $_SESSION['fullname'] = $row['acc_fullname'];
+            $_SESSION['role']     = $row['acc_role'];
 
-    // Use prepared statements to prevent SQL injection
-    $check_account = "SELECT * FROM tblaccounts WHERE username = ? AND password = ? LIMIT 1";
-    $stmt = mysqli_prepare($conn, $check_account);
+            // 🕒 Update last login
+            $update = "UPDATE tbl_accounts SET last_login_at = NOW() WHERE acc_id = '".$row['acc_id']."'";
+            mysqli_query($conn, $update);
 
-        if ($stmt) {
-            mysqli_stmt_bind_param($stmt, "ss", $username, $password);
-            mysqli_stmt_execute($stmt);
-            $result = mysqli_stmt_get_result($stmt);
-
-            if ($row = mysqli_fetch_assoc($result)) {
-                // Store important info in session
-                $_SESSION['username'] = $row['username'];
-                $_SESSION['acc_id'] = $row['acc_id']; // 🎯 Set acc_id here
-                $_SESSION['fullname'] = $row['fullname'];
-
-                header("Location: administrator/");
-                exit();
-            } else {
-                $_SESSION['status'] = "Invalid username or password.";
-                header("Location: index.php");
-                exit();
+            // ✅ Redirect to dashboard
+            if($row['acc_role']=='Admin'){
+                header("Location: administrator/index.php");
+                exit;
+            }else if($row['acc_role']=='Records Office'){
+                header("Location: records/index.php");
+                exit;
             }
+
         } else {
-            $_SESSION['status'] = "Query preparation failed.";
+            $_SESSION['status'] = "Incorrect password.";
             header("Location: index.php");
-            exit();
+            exit;
         }
-
-    mysqli_stmt_close($stmt);
-    mysqli_close($conn);
+    } else {
+        $_SESSION['status'] = "Account not found or inactive.";
+        header("Location: index.php");
+        exit;
+    }
 } else {
-    $_SESSION['status'] = "Please fill in both fields.";
     header("Location: index.php");
-    exit();
+    exit;
 }
-
-
 ?>
-

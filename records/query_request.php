@@ -23,6 +23,7 @@ if (isset($_POST['update_request'])) {
     $req_contact_number = mysqli_real_escape_string($conn, $_POST['req_contact_number']);
     $req_due_date = mysqli_real_escape_string($conn, $_POST['req_due_date']);
     $date_processed = mysqli_real_escape_string($conn, $_POST['date_processed']);
+    $prog_assigned_edit = mysqli_real_escape_string($conn, $_POST['prog_assigned_edit']);    
 
     $update = "
         UPDATE tbl_request_info SET
@@ -32,7 +33,8 @@ if (isset($_POST['update_request'])) {
             req_ext = '$req_ext',
             req_contact_number = '$req_contact_number',
             req_due_date = '$req_due_date',
-            date_processed = '$date_processed'
+            date_processed = '$date_processed',
+            prog_assigned = $prog_assigned_edit
         WHERE req_id = '$req_id'
     ";
 
@@ -43,7 +45,9 @@ if (isset($_POST['update_request'])) {
 
 if (isset($_POST['load_edit_drawer'])) {
     $req_id = $_POST['req_id'];
-    $select = "SELECT * FROM tbl_request_info WHERE req_id='$req_id'";
+    $select = "SELECT * FROM tbl_request_info
+    LEFT JOIN tblincharge on tblincharge.inchargeid=tbl_request_info.prog_assigned
+    WHERE req_id='$req_id'";
     $run = mysqli_query($conn, $select);
     $r = mysqli_fetch_assoc($run);
 
@@ -84,6 +88,22 @@ if (isset($_POST['load_edit_drawer'])) {
           <input type="datetime-local" id="edit_date_processed" class="form-control" value="'.date('Y-m-d\TH:i', strtotime($r['date_processed'])).'">
         </div>
 
+        <div class="col-lg-12">
+          <label for="prog_assigned_edit">Select Program Assigned</label>
+          <select id="prog_assigned_edit" class="form-control">
+          <option value="'.$r['inchargeid'].'">'.$r['inchargename'].'</option>
+        '; ?>
+              <?php 
+                $get_ass = "SELECT * FROM `tblincharge`";
+                $runget_ass = mysqli_query($conn, $get_ass);
+                while($row_ass = mysqli_fetch_assoc($runget_ass)){
+                  echo'<option value="'.$row_ass['inchargeid'].'">'.$row_ass['inchargename'].'</option>';
+                }
+              ?>
+        <?php echo'
+          </select>
+        </div>        
+
         <div class="col-12 mt-3">
           <button class="btn btn-success w-100" onclick="update_request('.$req_id.')">
             <i class="bx bx-save"></i> Save Changes
@@ -97,6 +117,15 @@ if (isset($_POST['load_edit_drawer'])) {
 
 
 if(isset($_POST['released_requested'])){
+
+    //insert who is the program chair and remarks
+    $prog_assigned = $_POST['prog_assigned'];
+    $released_remarks = addslashes($_POST['released_remarks']);
+    $req_id = $_POST['req_id'];
+    $insert = "INSERT INTO `tblprogram_chair` (`request_info_id`, `programchairid`, `remarks`, `datetime_commence`) VALUES ('$req_id', '$prog_assigned', '$released_remarks', current_timestamp())";
+    $runinsert = mysqli_query($conn, $insert);
+
+
     $update = "UPDATE `tbl_request_info` SET req_datetime_released='$_POST[date_released]' WHERE req_id='$_POST[req_id]'";
     $runupdate = mysqli_query($conn, $update);
 }
@@ -107,6 +136,7 @@ if (isset($_POST['load_details_drawer'])) {
     $get_request_info = "
         SELECT * FROM tbl_request_info 
         INNER JOIN tblcourse ON tblcourse.courseid = tbl_request_info.req_program
+        LEFT JOIN tblincharge on tblincharge.inchargeid=tbl_request_info.prog_assigned
         WHERE req_id = '$req_id'
     ";
     $run_info = mysqli_query($conn, $get_request_info);
@@ -132,7 +162,8 @@ if (isset($_POST['load_details_drawer'])) {
 
         ?>
         <?php echo'
-     </p>';    
+     </p>'; 
+     echo '<p class="mb-1"><strong><span class="text-info">Program Assigned :</span></strong> '.$info['inchargename'].'</p>';   
     echo '<hr>';
     echo '</div>';
 
@@ -171,14 +202,28 @@ if ($info['req_datetime_released'] != '0000-00-00 00:00:00') {
 }else{
     echo
     '
-        <div class="text-center">
+    <div>
             <hr><br><br>
-            <input type="datetime-local" class="form-control" id="date_released">
+    '; ?>
+
+    <?php echo'    
+        <div class="row">
+            <div class="col-lg-12">
+                <label for="">Set Date and Time of Release</label>    
+                <input type="datetime-local" class="form-control" id="date_released">                
+            </div>
+            <div class="col-lg-12">
+                <label for="released_remarks">Remarks</label>
+                <textarea id="released_remarks" class="form-control"></textarea>
+            </div>
+        </div>
+
+        <div class="row">            
             <div class="py-2">
                 <button onclick="releasing_docs(\''.$req_id.'\')" class="btn btn-danger">Release Document</button>
             </div>
-
         </div>
+    </div>
     ';   
 }
 
@@ -271,6 +316,7 @@ if (isset($_POST['save_request'])) {
     $req_due_date = mysqli_real_escape_string($conn, $_POST['req_due_date']);
     $req_datetime_released = mysqli_real_escape_string($conn, $_POST['req_datetime_released']);
     $date_processed = mysqli_real_escape_string($conn, $_POST['date_processed']);
+    $prog_assigned = mysqli_real_escape_string($conn, $_POST['prog_assigned']);    
 
 
     // ✅ Handle ENUM fallback: if empty, default to 'No'
@@ -295,7 +341,8 @@ if (isset($_POST['save_request'])) {
             req_datetime_request, 
             req_due_date, 
             req_datetime_released,
-            date_processed
+            date_processed,
+            prog_assigned
         ) VALUES (
             '$req_lastname',
             '$req_firstname',
@@ -311,7 +358,8 @@ if (isset($_POST['save_request'])) {
             '$req_datetime_request',
             '$req_due_date',
             '$req_datetime_released',
-            '$date_processed'
+            '$date_processed',
+            '$prog_assigned'
         )
     ";
 
@@ -450,58 +498,63 @@ if (isset($_POST['loading_released_summary'])) {
                         echo '</td>
                               <td class="align-middle">';
                         
-                        // ===================== STATUS WITH WEEKEND EXCLUSION =====================
-                        // ===================== STATUS WITH WEEKEND EXCLUSION (BASED ON CURRENT DATE) =====================
-                        if ($r['req_datetime_released'] == '0000-00-00 00:00:00' || empty($r['req_datetime_released'])) {
 
-                            $today = strtotime(date('Y-m-d'));
-                            $dueDate = strtotime($r['req_due_date']);
+                    // ===================== STATUS WITH WEEKEND EXCLUSION (BASED ON CURRENT DATE) 
+                    if ($r['req_datetime_released'] == '0000-00-00 00:00:00' || empty($r['req_datetime_released'])) {
 
-                            if ($dueDate) {
-                                if ($today <= $dueDate) {
-                                    // Count remaining weekdays from today → due date
-                                    $remainingDays = 0;
-                                    $current = $today;
+                        // Convert to date only (ignore time)
+                        $today = strtotime(date('Y-m-d'));
+                        $dueDate = strtotime(date('Y-m-d', strtotime($r['req_due_date'])));
 
-                                    while ($current < $dueDate) {
-                                        $dayOfWeek = date('N', $current); // 1 (Mon) - 7 (Sun)
-                                        if ($dayOfWeek < 6) {
-                                            $remainingDays++;
-                                        }
-                                        $current = strtotime("+1 day", $current);
-                                    }
+                        if ($dueDate) {
 
-                                    if ($remainingDays > 1) {
-                                        echo '<span class="badge bg-info text-dark px-3 py-2"><i class="bx bx-calendar"></i> '.$remainingDays.' day'.($remainingDays > 1 ? 's' : '').' remaining</span>';
-                                    } elseif ($remainingDays == 1) {
-                                        echo '<span class="badge bg-warning text-dark px-3 py-2"><i class="bx bx-time-five"></i> Due tomorrow</span>';
-                                    } else {
-                                        echo '<span class="badge bg-warning text-dark px-3 py-2"><i class="bx bx-time-five"></i> Due today</span>';
-                                    }
-
-                                } else {
-                                    // Overdue — count weekdays between due date → today
-                                    $overdueDays = 0;
-                                    $current = $dueDate;
-
-                                    while ($current < $today) {
-                                        $dayOfWeek = date('N', $current);
-                                        if ($dayOfWeek < 6) {
-                                            $overdueDays++;
-                                        }
-                                        $current = strtotime("+1 day", $current);
-                                    }
-
-                                    echo '<span class="badge bg-danger px-3 py-2"><i class="bx bx-error"></i> '.$overdueDays.' day'.($overdueDays > 1 ? 's' : '').' overdue</span>';
+                            // ✅ Function: Count only weekdays (Mon–Fri), include due date
+                            function countWeekdaysInclusive($start, $end) {
+                                $count = 0;
+                                $current = strtotime('+1 day', $start);
+                                while ($current <= $end) {
+                                    $day = date('N', $current); // 1=Mon ... 7=Sun
+                                    if ($day < 6) $count++;
+                                    $current = strtotime('+1 day', $current);
                                 }
-                            } else {
-                                echo '<span class="badge bg-secondary px-3 py-2">No date set</span>';
+                                return $count + 1; // ✅ add 1 to include the due date itself
                             }
 
+                            if ($today <= $dueDate) {
+                                $remainingDays = countWeekdaysInclusive($today, $dueDate);
+
+                                if ($remainingDays > 1) {
+                                    echo '<span class="badge bg-info text-dark px-3 py-2">
+                                            <i class="bx bx-calendar"></i> '.$remainingDays.' day'.($remainingDays > 1 ? 's' : '').' remaining
+                                          </span>';
+                                } elseif ($remainingDays == 1) {
+                                    echo '<span class="badge bg-warning text-dark px-3 py-2">
+                                            <i class="bx bx-time-five"></i> Due tomorrow
+                                          </span>';
+                                } else {
+                                    echo '<span class="badge bg-warning text-dark px-3 py-2">
+                                            <i class="bx bx-time-five"></i> Due today
+                                          </span>';
+                                }
+
+                            } else {
+                                // ✅ Overdue calculation (exclude weekends)
+                                $overdueDays = countWeekdaysInclusive($dueDate, $today);
+                                echo '<span class="badge bg-danger px-3 py-2">
+                                        <i class="bx bx-error"></i> '.$overdueDays.' day'.($overdueDays > 1 ? 's' : '').' overdue
+                                      </span>';
+                            }
                         } else {
-                            // Already released
-                            echo '<span class="badge bg-success"><i class="bx bx-check"></i> Released</span>';
+                            echo '<span class="badge bg-secondary px-3 py-2">No date set</span>';
                         }
+
+                    } else {
+                        echo '<span class="badge bg-success"><i class="bx bx-check"></i> Released</span>';
+                    }
+
+
+
+
 
                         // =====================================================
 
@@ -544,6 +597,18 @@ if (isset($_POST['loading_employee'])) {
                     $ruselect = mysqli_query($conn, $select);
                     $count = 0;
 
+                    // ✅ Function to count weekdays between two dates (Mon–Fri), includes due date
+                    function countWeekdaysInclusive($start, $end) {
+                        $count = 0;
+                        $current = strtotime('+1 day', $start);
+                        while ($current <= $end) {
+                            $day = date('N', $current); // 1=Mon ... 7=Sun
+                            if ($day < 6) $count++;
+                            $current = strtotime('+1 day', $current);
+                        }
+                        return $count; // ✅ include due date
+                    }
+
                     while ($r = mysqli_fetch_assoc($ruselect)) {
                         $fullname = strtoupper($r['req_lastname']).', '.strtoupper($r['req_firstname']).' '.strtoupper($r['req_middlename']);
 
@@ -567,49 +632,37 @@ if (isset($_POST['loading_employee'])) {
                         echo '</td>
                               <td class="align-middle">';
                         
-                        // ===================== STATUS WITH WEEKEND EXCLUSION =====================
-                        // ===================== STATUS WITH WEEKEND EXCLUSION (BASED ON CURRENT DATE) =====================
+                        // ===================== STATUS (Excludes Weekends + Adds +1 Day) =====================
                         if ($r['req_datetime_released'] == '0000-00-00 00:00:00' || empty($r['req_datetime_released'])) {
 
                             $today = strtotime(date('Y-m-d'));
-                            $dueDate = strtotime($r['req_due_date']);
+                            $dueDate = strtotime(date('Y-m-d', strtotime($r['req_due_date'])));
 
                             if ($dueDate) {
                                 if ($today <= $dueDate) {
-                                    // Count remaining weekdays from today → due date
-                                    $remainingDays = 0;
-                                    $current = $today;
-
-                                    while ($current < $dueDate) {
-                                        $dayOfWeek = date('N', $current); // 1 (Mon) - 7 (Sun)
-                                        if ($dayOfWeek < 6) {
-                                            $remainingDays++;
-                                        }
-                                        $current = strtotime("+1 day", $current);
-                                    }
+                                    // Remaining weekdays excluding weekends
+                                    $remainingDays = countWeekdaysInclusive($today, $dueDate);
 
                                     if ($remainingDays > 1) {
-                                        echo '<span class="badge bg-info text-dark px-3 py-2"><i class="bx bx-calendar"></i> '.$remainingDays.' day'.($remainingDays > 1 ? 's' : '').' remaining</span>';
+                                        echo '<span class="badge bg-info text-dark px-3 py-2">
+                                                <i class="bx bx-calendar"></i> '.$remainingDays.' day'.($remainingDays > 1 ? 's' : '').' remaining
+                                              </span>';
                                     } elseif ($remainingDays == 1) {
-                                        echo '<span class="badge bg-warning text-dark px-3 py-2"><i class="bx bx-time-five"></i> Due tomorrow</span>';
+                                        echo '<span class="badge bg-warning text-dark px-3 py-2">
+                                                <i class="bx bx-time-five"></i> Due tomorrow
+                                              </span>';
                                     } else {
-                                        echo '<span class="badge bg-warning text-dark px-3 py-2"><i class="bx bx-time-five"></i> Due today</span>';
+                                        echo '<span class="badge bg-warning text-dark px-3 py-2">
+                                                <i class="bx bx-time-five"></i> Due today
+                                              </span>';
                                     }
 
                                 } else {
-                                    // Overdue — count weekdays between due date → today
-                                    $overdueDays = 0;
-                                    $current = $dueDate;
-
-                                    while ($current < $today) {
-                                        $dayOfWeek = date('N', $current);
-                                        if ($dayOfWeek < 6) {
-                                            $overdueDays++;
-                                        }
-                                        $current = strtotime("+1 day", $current);
-                                    }
-
-                                    echo '<span class="badge bg-danger px-3 py-2"><i class="bx bx-error"></i> '.$overdueDays.' day'.($overdueDays > 1 ? 's' : '').' overdue</span>';
+                                    // Overdue weekdays excluding weekends
+                                    $overdueDays = countWeekdaysInclusive($dueDate, $today);
+                                    echo '<span class="badge bg-danger px-3 py-2">
+                                            <i class="bx bx-error"></i> '.$overdueDays.' day'.($overdueDays > 1 ? 's' : '').' overdue
+                                          </span>';
                                 }
                             } else {
                                 echo '<span class="badge bg-secondary px-3 py-2">No date set</span>';
@@ -619,17 +672,13 @@ if (isset($_POST['loading_employee'])) {
                             // Already released
                             echo '<span class="badge bg-success"><i class="bx bx-check"></i> Released</span>';
                         }
-
                         // =====================================================
 
                         echo '</td>
                               <td width="1%" class="text-nowrap">
                                   <div class="btn-group" role="group" aria-label="Basic mixed styles example">
                                     <button onclick="showDetailsDrawer(\''.$r['req_id'].'\')" type="button" class="btn btn-primary btn-sm">Details</button>
-                                    <button onclick="editRequestDrawer(\''.$r['req_id'].'\')" type="button" class="btn btn-success btn-sm">Edit</button>
-
-                            ';
-
+                                    <button onclick="editRequestDrawer(\''.$r['req_id'].'\')" type="button" class="btn btn-success btn-sm">Edit</button>';
 
                         // Buttons for non-released requests
                         if ($r['req_datetime_released'] == '0000-00-00 00:00:00' || empty($r['req_datetime_released'])) {
@@ -647,6 +696,7 @@ if (isset($_POST['loading_employee'])) {
         </table>
     <?php echo '';
 }
+
 
 
  ?>
