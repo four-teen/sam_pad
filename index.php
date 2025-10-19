@@ -11,7 +11,7 @@
   <meta charset="utf-8">
   <meta content="width=device-width, initial-scale=1.0" name="viewport">
 
-  <title>TouchTime</title>
+  <title>RRMS</title>
   <meta content="" name="description">
   <meta content="" name="keywords">
 
@@ -48,7 +48,7 @@
               <div class="d-flex justify-content-center py-4">
                 <a href="index.php" class="logo d-flex align-items-center w-auto">
                   <img src="assets/img/logo.png" alt="">
-                  <span class="d-none d-lg-block">TouchTime</span>
+                  <span class="d-none d-lg-block">Smart Access Management</span>
                 </a>
               </div><!-- End Logo -->
 
@@ -113,10 +113,10 @@
               <div class="credits text-center">
 
     <div class="copyright">
-      &copy; Copyright <strong><span>TouchTime</span></strong> SKSU-CCS Extension Project. All Rights Reserved
+      &copy; Copyright <strong><span>SAM</span></strong> : All Rights Reserved
     </div>
     <div class="credits">
-      Manage by <a href="#">EOA</a>
+      Manage by <a href="https://www.facebook.com/breeve.antonio/">EOA</a>
     </div>
 
               </div>

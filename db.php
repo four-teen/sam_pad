@@ -2,14 +2,14 @@
 
 $servername = "localhost";
 $username = "root";
-$password = "vertrigo";
-$dbase = "bio_db";
+$password = "";
+$dbase = "rrms_db";
 
 
-$conn = mysqli_connect($servername, $username, $password,$dbase);
+$conn = mysqli_connect($servername, $username, $password, $dbase);
 
 if (!$conn) {
-    die("Connection failed: ask me" . $conn->connect_error);
+    die('Connection failed: ' . mysqli_connect_error());
 }
 
 

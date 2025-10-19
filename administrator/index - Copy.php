@@ -406,7 +406,7 @@
                   <label for="req_year_attendance">Last Year of Attendance</label>
                   <select id="req_year_attendance" class="form-control">
                     <option value="">Select</option>
-                    <?php for ($i = date("Y"); $i >= 1990; $i--) echo "<option value='$i'>$i</option>"; ?>
+                    <?php for ($i = date("Y"); $i >= 2000; $i--) echo "<option value='$i'>$i</option>"; ?>
                   </select>
                 </div>
 
@@ -475,18 +475,6 @@
                 <div class="col-lg-4" style="display: none;">
                   <label for="req_datetime_released">Date & Time of Release</label>
                   <input type="datetime-local" class="form-control" id="req_datetime_released">
-                </div>
-                <div class="col-lg-4">
-                  <label for="prog_assigned">Select Program Assigned</label>
-                  <select id="prog_assigned" class="form-control">
-                      <?php 
-                        $get_ass = "SELECT * FROM `tblincharge`";
-                        $runget_ass = mysqli_query($conn, $get_ass);
-                        while($row_ass = mysqli_fetch_assoc($runget_ass)){
-                          echo'<option value="'.$row_ass['inchargeid'].'">'.$row_ass['inchargename'].'</option>';
-                        }
-                      ?>
-                  </select>
                 </div>
               </div>
             </div>
@@ -681,8 +669,7 @@ function update_request(req_id) {
     req_ext: $('#edit_req_ext').val().trim(),
     req_contact_number: $('#edit_req_contact_number').val().trim(),
     req_due_date: $('#edit_req_due_date').val(),
-    date_processed: $('#edit_date_processed').val(),
-    prog_assigned_edit: $('#prog_assigned_edit').val()    
+    date_processed: $('#edit_date_processed').val()
   };
 
   $.ajax({
@@ -721,9 +708,6 @@ function update_request(req_id) {
 
       var date_released = $('#date_released').val();
 
-      var prog_assigned = '999';
-      var released_remarks = $('#released_remarks').val();      
-
       if(date_released==''){
         Swal.fire({
           title: "Date and Time!",
@@ -747,19 +731,10 @@ function update_request(req_id) {
               data: {
                 "released_requested": "1",
                 "date_released" : date_released,
-                "req_id": req_id,
-                "prog_assigned": prog_assigned,
-                "released_remarks": released_remarks
+                "req_id": req_id
               },
               success: function (response) {
                 get_req();
-
-                // ✅ Close the drawer smoothly
-                setTimeout(() => {
-                  const drawer = bootstrap.Offcanvas.getInstance(document.getElementById('detailsDrawer'));
-                  if (drawer) drawer.hide();
-                }, 600);
-                            
               }
             });
           }
@@ -953,7 +928,6 @@ function saving_req() {
   var req_due_date = $('#req_due_date').val();
   var req_datetime_released = $('#req_datetime_released').val();
   var date_processed = $('#date_processed').val();
-  var prog_assigned = $('#prog_assigned').val();  
 
 
   // 🧩 Validation
@@ -967,8 +941,7 @@ function saving_req() {
     req_program === "" ||
     req_contact_number === "" ||
     req_datetime_request === "" ||
-    req_due_date === "" ||
-    prog_assigned === ""
+    req_due_date === ""
   ) {
     Swal.fire({
       title: "Please check",
@@ -1009,8 +982,7 @@ function saving_req() {
       req_datetime_request: req_datetime_request,
       req_due_date: req_due_date,
       req_datetime_released: req_datetime_released,
-      date_processed: date_processed,
-      prog_assigned: prog_assigned
+      date_processed: date_processed
     },
     success: function (response) {
       get_req();

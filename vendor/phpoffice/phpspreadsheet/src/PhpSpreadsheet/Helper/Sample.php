@@ -69,8 +69,11 @@ class Sample
 
     /**
      * Returns an array of all known samples.
-     *
-     * @return string[] [$name => $path]
+    *
+    * Returns an array keyed by category. Each category contains an associative
+    * array mapping sample display name to sample file path.
+    *
+    * @return array<string, array<string, string>> [$category => [$name => $path]]
      */
     public function getSamples()
     {

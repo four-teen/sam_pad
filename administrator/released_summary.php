@@ -72,31 +72,10 @@
 
     <!-- DataTables CSS (Bootstrap 5 Integration) -->
     <link href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 
 
   <!-- Template Main CSS File -->
   <link href="../assets/css/style.css" rel="stylesheet">
-  <style>
-  /* 🔧 Adjust Select2 height to match Bootstrap 5 input fields */
-  .select2-container .select2-selection--single {
-    height: 38px !important;              /* same as .form-control */
-    border: 1px solid #ced4da !important; /* consistent border */
-    border-radius: 0.375rem !important;   /* rounded corners */
-    padding: 4px 8px !important;
-  }
-
-  .select2-container--default .select2-selection--single .select2-selection__rendered {
-    line-height: 28px !important;         /* vertically center text */
-    font-size: 0.95rem !important;
-    color: #495057 !important;
-  }
-
-  .select2-container--default .select2-selection--single .select2-selection__arrow {
-    height: 36px !important;              /* aligns arrow perfectly */
-    right: 8px !important;
-  }  
-  </style>
 
 </head>
 
@@ -116,7 +95,7 @@
       <nav>
         <ol class="breadcrumb">
           <li class="breadcrumb-item"><a href="index.php">Home</a></li>
-          <li class="breadcrumb-item active">Dashboard</li>
+          <li class="breadcrumb-item active">Summary</li>
         </ol>
       </nav>
     </div><!-- End Page Title -->
@@ -129,64 +108,9 @@
         <!-- Left side columns -->
         <div class="col-lg-12">
           <div class="row">
-            <!-- Manage Request Card -->
-            <div class="col-lg-3">
-              <div class="card info-card bg-light border-0 shadow-sm" onclick="show_request_entry()">
-                <div class="card-body">
-                  <h5 class="card-title">Manage Request <span class="text-muted">| Requests</span></h5>
-                  <div class="d-flex align-items-center">
-                    <div class="card-icon rounded-circle d-flex align-items-center justify-content-center bg-primary text-white me-3" style="width:48px;height:48px;">
-                      <i class='bx bx-file'></i>
-                    </div>
-                    <div>
-                      <h3 id="load_requests" class="mb-0">
-                       <?php 
-                          $get_req = "SELECT count(req_id) as req_count FROM `tbl_request_info` WHERE req_datetime_released = '0000-00-00 00:00:00'";
-                          $runget_req = mysqli_query($conn, $get_req);
-                          if($runget_req){
-                            $r_req = mysqli_fetch_assoc($runget_req);
-                            echo $r_req['req_count'];
-                          }
-                        ?>
-                      </h3>
-                      <small class="text-muted">pending / processed</small>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Manage Document Type Card -->
-            <div class="col-lg-3">
-              <div class="card info-card bg-light border-0 shadow-sm" onclick="manage_doc_types()" style="cursor:pointer;">
-                <div class="card-body">
-                  <h5 class="card-title">Manage Document Type <span class="text-muted">| Documents</span></h5>
-                  <div class="d-flex align-items-center">
-                    <div class="card-icon rounded-circle d-flex align-items-center justify-content-center bg-success text-white me-3" style="width:48px;height:48px;">
-                      <i class='bx bx-book'></i>
-                    </div>
-                    <div>
-                      <h3 id="load_doc_types" class="mb-0">
-                        <?php 
-
-                        $select = "SELECT count(id) as doc_counts FROM `tbldoctypes`";
-                        $runselect = mysqli_query($conn, $select);
-                        if($runselect){
-                          $rowcount = mysqli_fetch_assoc($runselect);
-                          echo $rowcount['doc_counts'];
-                        }
-                         ?>                        
-                      </h3>
-                      <small class="text-muted">document types available</small>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
             <!-- Summary Card -->
-            <div class="col-lg-3" style="cursor: pointer;">
-              <div class="card info-card bg-light border-0 shadow-sm" onclick="released_summary()">
+            <div class="col-lg-3">
+              <div class="card info-card bg-light border-0 shadow-sm">
                 <div class="card-body">
                   <h5 class="card-title">Summary <span class="text-muted">| Released</span></h5>
                   <div class="d-flex align-items-center">
@@ -213,8 +137,8 @@
             </div>
 
             <!-- Summary Card -->
-            <div class="col-lg-3" style="cursor: pointer;">
-              <div class="card info-card bg-light border-0 shadow-sm" onclick="statistics_summary()">
+            <div class="col-lg-3">
+              <div class="card info-card bg-light border-0 shadow-sm">
                 <div class="card-body">
                   <h5 class="card-title">Statistics <span class="text-muted">| Documents</span></h5>
                   <div class="d-flex align-items-center">
@@ -406,7 +330,7 @@
                   <label for="req_year_attendance">Last Year of Attendance</label>
                   <select id="req_year_attendance" class="form-control">
                     <option value="">Select</option>
-                    <?php for ($i = date("Y"); $i >= 1990; $i--) echo "<option value='$i'>$i</option>"; ?>
+                    <?php for ($i = date("Y"); $i >= 2000; $i--) echo "<option value='$i'>$i</option>"; ?>
                   </select>
                 </div>
 
@@ -416,7 +340,6 @@
                     <option value="1st Semester">1st Semester</option>
                     <option value="2nd Semester">2nd Semester</option>
                     <option value="Midyear">Midyear</option>
-                    <option value="Summer">Summer</option>
                   </select>
                 </div>
 
@@ -435,24 +358,25 @@
                   </select>
                 </div>
 
-
                 <div class="col-lg-12">
                   <label for="req_program">Degree / Program</label>
-                  <select  class="js-example-basic-single" name="state" id="req_program">
+                  <select class="form-control" id="req_program">
                     <?php 
-                      $get_course = "SELECT * FROM `tblcourse` order by coursecode ASC";
+                      $get_course = "SELECT * FROM `tblcourse`";
                       $runget_course = mysqli_query($conn, $get_course);
                       while($r_course = mysqli_fetch_assoc($runget_course)){
-                        echo '<option value="'.$r_course['courseid'].'">'.$r_course['coursecode'].' - '.$r_course['coursedescription'].' ('.$r_course['coursemajor'].')</option>';
+                        echo '<option value="'.$r_course['courseid'].'">'.$r_course['coursecode'].' - '.$r_course['coursedescription'].'</option>';
                       }
                     ?>
                   </select>
                 </div>
+              </div>
+
+              <div class="row mt-2">
                 <div class="col-lg-6">
                   <label for="req_contact_number">Contact Number</label>
                   <input type="text" class="form-control" id="req_contact_number" placeholder="e.g. 09XXXXXXXXX">
                 </div>
-
               </div>
             </div>
           </div>
@@ -475,18 +399,6 @@
                 <div class="col-lg-4" style="display: none;">
                   <label for="req_datetime_released">Date & Time of Release</label>
                   <input type="datetime-local" class="form-control" id="req_datetime_released">
-                </div>
-                <div class="col-lg-4">
-                  <label for="prog_assigned">Select Program Assigned</label>
-                  <select id="prog_assigned" class="form-control">
-                      <?php 
-                        $get_ass = "SELECT * FROM `tblincharge`";
-                        $runget_ass = mysqli_query($conn, $get_ass);
-                        while($row_ass = mysqli_fetch_assoc($runget_ass)){
-                          echo'<option value="'.$row_ass['inchargeid'].'">'.$row_ass['inchargename'].'</option>';
-                        }
-                      ?>
-                  </select>
                 </div>
               </div>
             </div>
@@ -608,167 +520,12 @@
   <!-- DataTables JS -->
   <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
   <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
   <!-- Template Main JS File -->
   <script src="../assets/js/main.js"></script>
   <script src="../assets/sweetalert2.js"></script>
 
   <script>
-
-// ✅ Initialize Select2 safely after DOM and Bootstrap are ready
-$(document).ready(function () {
-  // Normal Select2 init
-  $('.js-example-basic-single').select2({
-    width: '100%',
-    placeholder: 'Select Program',
-    allowClear: true,
-    dropdownParent: $('#addRequestModal') // ensures it appears above modal backdrop
-  });
-
-  // Reinitialize Select2 every time the modal is shown
-  $('#addRequestModal').on('shown.bs.modal', function () {
-    $('.js-example-basic-single').select2({
-      width: '100%',
-      placeholder: 'Select Program',
-      allowClear: true,
-      dropdownParent: $('#addRequestModal')
-    });
-  });
-});
-
-function statistics_summary(){
-  window.location='statistics_summary.php';
-}
-
-function released_summary(){
-  window.location='released_summary.php';
-}
-
-function editRequestDrawer(req_id) {
-  var drawer = new bootstrap.Offcanvas(document.getElementById('detailsDrawer'));
-  drawer.show();
-
-  $('#drawerContent').html(`
-    <div class="text-center py-5 text-muted">
-      <div class="spinner-border text-primary mb-3"></div>
-      <p>Loading edit form...</p>
-    </div>
-  `);
-
-  $.ajax({
-    type: "POST",
-    url: "query_request.php",
-    data: { "load_edit_drawer": "1", "req_id": req_id },
-    success: function (response) {
-      $('#drawerContent').html(response);
-    },
-    error: function () {
-      $('#drawerContent').html(`<p class="text-danger text-center mt-3">Error loading edit form.</p>`);
-    }
-  });
-}
-
-
-// ✅ Function to save updated request
-function update_request(req_id) {
-  var formData = {
-    update_request: 1,
-    req_id: req_id,
-    req_lastname: $('#edit_req_lastname').val().trim(),
-    req_firstname: $('#edit_req_firstname').val().trim(),
-    req_middlename: $('#edit_req_middlename').val().trim(),
-    req_ext: $('#edit_req_ext').val().trim(),
-    req_contact_number: $('#edit_req_contact_number').val().trim(),
-    req_due_date: $('#edit_req_due_date').val(),
-    date_processed: $('#edit_date_processed').val(),
-    prog_assigned_edit: $('#prog_assigned_edit').val()    
-  };
-
-  $.ajax({
-    type: "POST",
-    url: "query_request.php",
-    data: formData,
-    success: function (response) {
-      if (response.trim() === "success") {
-        Swal.fire({
-          icon: "success",
-          title: "Updated!",
-          text: "Request information updated successfully.",
-          timer: 1500,
-          showConfirmButton: false
-        });
-        get_req();
-        var drawer = bootstrap.Offcanvas.getInstance(document.getElementById('detailsDrawer'));
-        drawer.hide();
-      } else {
-        Swal.fire({
-          icon: "error",
-          title: "Error",
-          text: "Update failed: " + response
-        });
-      }
-    }
-  });
-}
-
-
-    function refresh_request(){
-      get_req();
-    }
-
-    function releasing_docs(req_id){
-
-      var date_released = $('#date_released').val();
-
-      var prog_assigned = '999';
-      var released_remarks = $('#released_remarks').val();      
-
-      if(date_released==''){
-        Swal.fire({
-          title: "Date and Time!",
-          text: "You must select date and time first!",
-          icon: "info"
-        });
-      }else{
-        Swal.fire({
-          title: "Release the docs?",
-          text: "You are about to release all related documents here!",
-          icon: "info",
-          showCancelButton: true,
-          confirmButtonColor: "#3085d6",
-          cancelButtonColor: "#d33",
-          confirmButtonText: "Yes, released it!"
-        }).then((result) => {
-          if (result.isConfirmed) {
-            $.ajax({
-              type: "POST",
-              url: "query_request.php",
-              data: {
-                "released_requested": "1",
-                "date_released" : date_released,
-                "req_id": req_id,
-                "prog_assigned": prog_assigned,
-                "released_remarks": released_remarks
-              },
-              success: function (response) {
-                get_req();
-
-                // ✅ Close the drawer smoothly
-                setTimeout(() => {
-                  const drawer = bootstrap.Offcanvas.getInstance(document.getElementById('detailsDrawer'));
-                  if (drawer) drawer.hide();
-                }, 600);
-                            
-              }
-            });
-          }
-        });        
-      }
-
-
-    }
-
 
 function showDetailsDrawer(req_id) {
   // Show the drawer
@@ -796,365 +553,6 @@ function showDetailsDrawer(req_id) {
     }
   });
 }
-
-
-    function remove_requested_doc(reqbyid){
-      var the_requestor = $('#the_requestor').val();
-      Swal.fire({
-        title: "Are you sure?",
-        text: "You won't be able to revert this!",
-        icon: "warning",
-        showCancelButton: true,
-        confirmButtonColor: "#3085d6",
-        cancelButtonColor: "#d33",
-        confirmButtonText: "Yes, delete it!"
-      }).then((result) => {
-        if (result.isConfirmed) {
-          $.ajax({
-            type: "POST",
-            url: "query_request.php",
-            data: {
-              "delete_the_requestor_requested": "1",
-              "reqbyid": reqbyid
-            },
-            success: function (response) {
-              get_requested(the_requestor);
-            }
-          });
-        }
-      }); 
-    }
-
-    function saving_requested(){
-      var get_doc_id = $('#get_doc_id').val();
-      var the_requestor = $('#the_requestor').val();
-      $.ajax({
-        type: "POST",
-        url: "query_request.php",
-        data: {
-          "save_doc_type_requestor": "1",
-          "get_doc_id": get_doc_id,
-          "the_requestor" : the_requestor
-        },
-        success: function (response) {
-          get_requested(the_requestor);
-        }
-      });
-    }
-
-
-    function get_requested(req_id){
-      let progress = 0;
-      let interval;
-
-      // Insert the stylish striped progress bar
-      $('#requestor_req').html(`
-          <div style="padding: 1rem;">
-              <div class="progress" style="height: 6px; background-color: #e9ecef;">
-                  <div id="progress-bar" class="progress-bar progress-bar-striped progress-bar-animated" 
-                       role="progressbar"
-                       style="width: 0%; background: linear-gradient(90deg, #17a2b8, #0dcaf0);">
-                  </div>
-              </div>
-              <div id="progress-label" style="font-size: 11px; margin-top: 6px; color: #6c757d;">
-                  Loading biometric logs... 0%
-              </div>
-          </div>
-      `);
-
-      // Animate progress bar up to 90%
-      interval = setInterval(() => {
-          if (progress < 90) {
-              progress++;
-              $('#progress-bar').css('width', progress + '%');
-              $('#progress-label').text(`Loading biometric logs... ${progress}%`);
-          }
-      }, 20);
-
-      // AJAX load employee data
-      $.ajax({
-          type: "POST",
-          url: "query_request.php",
-          data: { 
-            "loding_req_req": "1", 
-            "req_id" : req_id 
-          },
-          success: function (response) {
-              clearInterval(interval);
-              $('#progress-bar').css('width', '100%');
-              $('#progress-label').html(`<i class="bx bx-check-circle text-success"></i> Load complete!`);
-
-              // Fade out the loader then show table
-              setTimeout(() => {
-                  $('#requestor_req').html(response);
-                  $('#requestorTable').DataTable({
-                      paging: true,
-                      pageLength: 10,
-                      lengthChange: true,
-                      searching: true,
-                      ordering: true,
-                      info: true,
-                      autoWidth: false
-                  });
-              }, 600);
-          }
-      });
-
-
-
-    }
-
-    function request_docs(req_id, fullname){
-      $('#the_requestor').val(req_id);
-      $('#get_fullname').html(fullname);
-      get_requested(req_id);
-      $('#modal_request_doc').modal('show');
-    }
-
-    function remove_requestor(id){
-      Swal.fire({
-        title: "Are you sure?",
-        text: "You won't be able to revert this!",
-        icon: "warning",
-        showCancelButton: true,
-        confirmButtonColor: "#3085d6",
-        cancelButtonColor: "#d33",
-        confirmButtonText: "Yes, delete it!"
-      }).then((result) => {
-        if (result.isConfirmed) {
-          $.ajax({
-            type: "POST",
-            url: "query_request.php",
-            data: {
-              "delete_the_requestor": "1",
-              "id": id
-            },
-            success: function (response) {
-              get_req();
-            }
-          });
-        }
-      });
-    }
-
-function saving_req() {
-  var req_lastname = $('#req_lastname').val().trim();
-  var req_firstname = $('#req_firstname').val().trim();
-  var req_ext = $('#req_ext').val().trim();
-  var req_middlename = $('#req_middlename').val().trim();
-  var req_namechange = $("input[name='req_namechange']:checked").val();
-  var req_formername = $('#req_formername').val().trim();
-  var req_year_attendance = $('#req_year_attendance').val();
-  var req_sem_midyear = $('#req_sem_midyear').val().trim();
-  var req_acad_year = $('#req_acad_year').val();
-  var req_program = $('#req_program').val();
-  var req_contact_number = $('#req_contact_number').val().trim();
-  var req_datetime_request = $('#req_datetime_request').val();
-  var req_due_date = $('#req_due_date').val();
-  var req_datetime_released = $('#req_datetime_released').val();
-  var date_processed = $('#date_processed').val();
-  var prog_assigned = $('#prog_assigned').val();  
-
-
-  // 🧩 Validation
-  if (
-    req_lastname === "" ||
-    req_firstname === "" ||
-    req_middlename === "" ||
-    req_year_attendance === "" ||
-    req_sem_midyear === "" ||
-    req_acad_year === "" ||
-    req_program === "" ||
-    req_contact_number === "" ||
-    req_datetime_request === "" ||
-    req_due_date === "" ||
-    prog_assigned === ""
-  ) {
-    Swal.fire({
-      title: "Please check",
-      text: "Missing Information, Please fill out all required fields before saving.",
-      icon: "warning"
-    });
-    return;
-  }
-
-  // ✅ Contact number format check
-  var contactPattern = /^09\d{9}$/;
-  if (!contactPattern.test(req_contact_number)) {
-    Swal.fire({
-      title: "Please check",
-      text: "Invalid Contact Number, Please enter a valid Philippine mobile number (e.g. 09XXXXXXXXX).",
-      icon: "warning"
-    });
-    return;
-  }
-
-  // ✅ AJAX Submission
-  $.ajax({
-    type: "POST",
-    url: "query_request.php",
-    data: {
-      save_request: 1,
-      req_lastname: req_lastname,
-      req_firstname: req_firstname,
-      req_ext: req_ext,
-      req_middlename: req_middlename,
-      req_namechange: req_namechange,
-      req_formername: req_formername,
-      req_year_attendance: req_year_attendance,
-      req_sem_midyear: req_sem_midyear,
-      req_acad_year: req_acad_year,
-      req_program: req_program,
-      req_contact_number: req_contact_number,
-      req_datetime_request: req_datetime_request,
-      req_due_date: req_due_date,
-      req_datetime_released: req_datetime_released,
-      date_processed: date_processed,
-      prog_assigned: prog_assigned
-    },
-    success: function (response) {
-      get_req();
-    }
-
-  });
-}
-
-
-
-    function show_request_entry(){
-      $('#addRequestModal').modal('show');
-    }
-
-function remove_doc(id) {
-  var the_requestor = $('#the_requestor').val();
-  Swal.fire({
-    title: "Are you sure?",
-    text: "You won't be able to revert this!",
-    icon: "warning",
-    showCancelButton: true,
-    confirmButtonColor: "#3085d6",
-    cancelButtonColor: "#d33",
-    confirmButtonText: "Yes, delete it!"
-  }).then((result) => {
-    if (result.isConfirmed) {
-      $.ajax({
-        type: "POST",
-        url: "query_request.php",
-        dataType: "json", // expect JSON
-        data: {
-          "delete_doc_type": "1",
-          "id": id
-        },
-        success: function (response) {
-          if (response.status === 'success') {
-            Swal.fire({
-              icon: "success",
-              title: "Deleted!",
-              text: response.message,
-              timer: 1500,
-              showConfirmButton: false
-            });
-            get_doctypes(the_requestor);
-          } else {
-            Swal.fire({
-              icon: "error",
-              title: "Cannot Delete",
-              text: response.message
-            });
-          }
-        },
-        error: function () {
-          Swal.fire({
-            icon: "error",
-            title: "Error",
-            text: "Something went wrong while processing your request."
-          });
-        }
-      });
-    }
-  });
-}
-
-
-    function save_doc_type(){
-      var doc_cat = $('#doc_cat').val();
-      var doc_desc = $('#doc_desc').val();
-
-      $.ajax({
-        type: "POST",
-        url: "query_request.php",
-        data: {
-          "save_doc_type": "1",
-          "doc_cat": doc_cat,
-          "doc_desc": doc_desc
-        },
-        success: function (response) {
-          get_doctypes();
-        }
-      });
-
-    }
-
-    function manage_doc_types(){
-      get_doctypes();
-      $('#modal_doc_types').modal('show');
-    }
-
-
-  function get_doctypes() {
-      let progress = 0;
-      let interval;
-
-      // Insert the stylish striped progress bar
-      $('#doc_types_list').html(`
-          <div style="padding: 1rem;">
-              <div class="progress" style="height: 6px; background-color: #e9ecef;">
-                  <div id="progress-bar" class="progress-bar progress-bar-striped progress-bar-animated" 
-                       role="progressbar"
-                       style="width: 0%; background: linear-gradient(90deg, #17a2b8, #0dcaf0);">
-                  </div>
-              </div>
-              <div id="progress-label" style="font-size: 11px; margin-top: 6px; color: #6c757d;">
-                  Loading biometric logs... 0%
-              </div>
-          </div>
-      `);
-
-      // Animate progress bar up to 90%
-      interval = setInterval(() => {
-          if (progress < 90) {
-              progress++;
-              $('#progress-bar').css('width', progress + '%');
-              $('#progress-label').text(`Loading biometric logs... ${progress}%`);
-          }
-      }, 20);
-
-      // AJAX load employee data
-      $.ajax({
-          type: "POST",
-          url: "query_request.php",
-          data: { "loading_doc_type": "1" },
-          success: function (response) {
-              clearInterval(interval);
-              $('#progress-bar').css('width', '100%');
-              $('#progress-label').html(`<i class="bx bx-check-circle text-success"></i> Load complete!`);
-
-              // Fade out the loader then show table
-              setTimeout(() => {
-                  $('#doc_types_list').html(response);
-                  $('#docttypeTable').DataTable({
-                      paging: true,
-                      pageLength: 10,
-                      lengthChange: true,
-                      searching: true,
-                      ordering: true,
-                      info: true,
-                      autoWidth: false
-                  });
-              }, 600);
-          }
-      });
-  }
 
   function get_req() {
       let progress = 0;
@@ -1188,7 +586,7 @@ function remove_doc(id) {
       $.ajax({
           type: "POST",
           url: "query_request.php",
-          data: { "loading_employee": "1" },
+          data: { "loading_released_summary": "1" },
           success: function (response) {
               clearInterval(interval);
               $('#progress-bar').css('width', '100%');
