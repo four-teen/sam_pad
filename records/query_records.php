@@ -20,25 +20,24 @@ if (isset($_POST['loading_users'])) {
         <tbody>
     ';
 
-    $sql = "SELECT * FROM tbl_accounts ORDER BY acc_id DESC";
+    $sql = "SELECT * FROM `tbl_documents_registry`";
     $run = mysqli_query($conn, $sql);
     $count = 1;
 
     while ($r = mysqli_fetch_assoc($run)) {
-        $statusColor = ($r['acc_status'] == 'Active') ? 'success' : 'secondary';
         $output .= '
           <tr>
             <td width="1%" class="text-end">'.$count++.'.</td>
-            <td>'.$r['acc_fullname'].'</td>
-            <td>'.$r['acc_username'].'</td>
-            <td>'.$r['acc_role'].'</td>
-            <td><span class="badge bg-'.$statusColor.'">'.$r['acc_status'].'</span></td>
-            <td>'.date("Y-m-d H:i", strtotime($r['created_at'])).'</td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></span></td>
+            <td></td>
             <td class="text-center">
-              <button class="btn btn-warning btn-sm" onclick="edit_user('.$r['acc_id'].')">
+              <button class="btn btn-warning btn-sm" onclick="edit_user()">
                 <i class="bx bx-edit"></i>
               </button>
-              <button class="btn btn-danger btn-sm" onclick="delete_user('.$r['acc_id'].')">
+              <button class="btn btn-danger btn-sm" onclick="delete_user()">
                 <i class="bx bx-trash"></i>
               </button>
             </td>

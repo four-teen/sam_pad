@@ -139,7 +139,7 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
   </style>
 </head>
 
-<body onload="get_req();">
+<body onload="get_records();">
 
   <?php include 'header.php'; ?>
   <?php include 'sidebar.php'; ?>
@@ -162,16 +162,16 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
 
   <!-- Manage Request -->
   <div class="col-lg-3 col-md-6">
-    <div class="card info-card border-0 shadow-sm" style="--start-color:#007bff;--end-color:#17a2b8;" onclick="show_request_entry()">
+    <div class="card info-card border-0 shadow-sm" style="--start-color:#007bff;--end-color:#17a2b8;" id="manageRecordsCard">
       <div class="card-body">
-        <h5 class="card-title">Manage Request <span class="text-muted">| Requests</span></h5>
+        <h5 class="card-title">Manage Records <span class="text-muted">| List</span></h5>
         <div class="d-flex align-items-center">
           <div class="card-icon">
             <i class="bx bx-file"></i>
           </div>
           <div>
             <h3 id="load_requests" class="mb-0">0</h3>
-            <small class="text-muted">pending / processed</small>
+            <small class="text-muted">processed</small>
           </div>
         </div>
       </div>
@@ -248,6 +248,68 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
     </section>
   </main>
 
+<div class="modal fade" id="recordModal" tabindex="-1" aria-labelledby="recordModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title" id="recordModalLabel">Add New Document Record</h5>
+        <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form id="form_add_record">
+          <div class="row">
+            <div class="col-md-4 mb-2">
+              <label>Date Received</label>
+              <input type="date" class="form-control" name="date_received" required>
+            </div>
+            <div class="col-md-4 mb-2">
+              <label>Received By</label>
+              <input type="text" class="form-control" name="received_by" required>
+            </div>
+            <div class="col-md-4 mb-2">
+              <label>File Code</label>
+              <input type="text" class="form-control" name="file_code" required>
+            </div>
+
+            <div class="col-md-6 mb-2">
+              <label>Office / Division</label>
+              <select class="form-control" name="divisionid" id="divisionid" required>
+                <option value="">Select Division</option>
+              </select>
+            </div>
+            <div class="col-md-6 mb-2">
+              <label>Type of Document</label>
+              <select class="form-control" name="doctypeid" id="doctypeid" required>
+                <option value="">Select Type</option>
+              </select>
+            </div>
+
+            <div class="col-md-12 mb-2">
+              <label>Particular</label>
+              <textarea class="form-control" name="particular" rows="2" required></textarea>
+            </div>
+
+            <div class="col-md-6 mb-2">
+              <label>Date Received from OP</label>
+              <input type="date" class="form-control" name="date_received_op">
+            </div>
+            <div class="col-md-6 mb-2">
+              <label>Action Taken</label>
+              <input type="text" class="form-control" name="action_taken">
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-success" id="btn_save_record">Save Record</button>
+      </div>
+    </div>
+  </div>
+</div>
+
   <!-- ======= Footer ======= -->
   <footer id="footer" class="footer">
     <div class="copyright">
@@ -273,6 +335,48 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
 
   <script>
 
+$(document).ready(function() {
+  // open modal
+  $("#manageRecordsCard").click(function() {
+    $("#recordModal").modal("show");
+    loadDropdowns();
+  });
+
+  // load dropdowns
+  function loadDropdowns() {
+    $.ajax({
+      url: "query_records.php",
+      type: "POST",
+      data: { load_dropdowns: 1 },
+      success: function(response) {
+        const data = JSON.parse(response);
+        $("#divisionid").html(data.divisions);
+        $("#doctypeid").html(data.doctypes);
+      }
+    });
+  }
+
+  // save record
+  $("#btn_save_record").click(function() {
+    const formData = $("#form_add_record").serialize() + "&add_record=1";
+    $.ajax({
+      url: "query_records.php",
+      type: "POST",
+      data: formData,
+      success: function(response) {
+        if(response == "success"){
+          Swal.fire("Saved!", "Document record successfully added!", "success");
+          $("#recordModal").modal("hide");
+          $("#form_add_record")[0].reset();
+        } else {
+          Swal.fire("Error", "Something went wrong. Try again.", "error");
+        }
+      }
+    });
+  });
+});
+
+
 function animateValue(id, start, end, duration) {
   const el = document.getElementById(id);
   if (!el) return; // prevent errors if element not found
@@ -286,7 +390,7 @@ function animateValue(id, start, end, duration) {
   requestAnimationFrame(frame);
 }
 
-    function get_req() {
+    function get_records() {
       let progress = 0;
       let interval;
 
@@ -311,7 +415,7 @@ function animateValue(id, start, end, duration) {
 
       $.ajax({
         type: "POST",
-        url: "query_user_account.php",
+        url: "query_records.php",
         data: { "loading_users": "1" },
         success: function(response) {
           clearInterval(interval);
