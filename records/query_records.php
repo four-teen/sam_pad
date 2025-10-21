@@ -2,6 +2,28 @@
 include '../db.php';
 session_start();
 
+if(isset($_POST['get_outgoing_counter'])){
+    $check = "SELECT count(action_type) as outgoing_count FROM tbl_document_actions 
+              WHERE action_type='Outgoing'";
+    $runcheck = mysqli_query($conn, $check);
+    if($runcheck){
+        $r = mysqli_fetch_assoc($runcheck);
+        echo $r['outgoing_count'];
+    }
+}
+
+if(isset($_POST['saving_take_actions'])){
+
+    $to_office_id = $_POST['to_office_id'];
+    $action_type = $_POST['action_type'];
+    $take_action_doc_id = $_POST['take_action_doc_id'];
+    $action_type_remarks = $_POST['action_type_remarks'];
+    $user_office_id = $_SESSION['acc_id'];
+
+    $insert = "INSERT INTO `tbl_document_actions` (`doc_id`, `from_office_id`, `to_office_id`, `action_type`, `action_remarks`, `action_date`) VALUES ('$take_action_doc_id', '$user_office_id', '$to_office_id', '$action_type', '$action_type_remarks', current_timestamp())";
+    $runinsert = mysqli_query($conn, $insert);
+}
+
 
 if (isset($_POST['take_action'])) {
     $doc_id = $_POST['doc_id'];
@@ -248,6 +270,7 @@ if (isset($_POST['delete_record'])) {
 
 /* 🚀 SERVER-SIDE DATATABLES PROCESSING */
 if (isset($_POST['server_table'])) {
+   
     $columns = ['date_received', 'received_by', 'file_code', 'office_division', 'type_of_documents', 'particular', 'created_at'];
 
     $start = intval($_POST['start']);
@@ -294,33 +317,47 @@ if (isset($_POST['server_table'])) {
     $result = mysqli_query($conn, $query);
 
     $data = [];
-    while ($r = mysqli_fetch_assoc($result)) {
+    //how to echo the d.doc_id id here
+while ($r = mysqli_fetch_assoc($result)) {
 
-    // 🕓 Format the datetime nicely
-    if (!empty($r['date_received'])) {
-        $r['date_received'] = strtoupper(date("M d, Y h:i A", strtotime($r['date_received'])));
-    } else {
-        $r['date_received'] = "";
-    }
+    // check if record already has outgoing action
+    $check = "SELECT * FROM tbl_document_actions 
+              WHERE doc_id = '{$r['doc_id']}' 
+              AND from_office_id = '{$_SESSION['acc_id']}' 
+              LIMIT 1";
+    $runcheck = mysqli_query($conn, $check);
 
-$r['actions'] = "
-  <div class='d-grid gap-1' style='grid-template-columns: repeat(2, 1fr); display: grid;'>
-    <button class='btn btn-info btn-sm' onclick='upload_image_record({$r['doc_id']})' title='Upload Image'>
-      <i class='bx bx-image'></i>
-    </button>
-    <button class='btn btn-primary btn-sm' onclick='take_action({$r['doc_id']})' title='Take Action'>
-      <i class='bx bx-cog'></i>
-    </button>
-    <button class='btn btn-warning btn-sm' onclick='edit_record({$r['doc_id']})' title='Edit Record'>
-      <i class='bx bx-edit'></i>
-    </button>
-    <button class='btn btn-danger btn-sm' onclick='delete_record({$r['doc_id']})' title='Delete Record'>
-      <i class='bx bx-trash'></i>
-    </button>
-  </div>
-";
+    if (mysqli_num_rows($runcheck) <= 0) {
+        // format date
+        if (!empty($r['date_received'])) {
+            $r['date_received'] = strtoupper(date("M d, Y h:i A", strtotime($r['date_received'])));
+        } else {
+            $r['date_received'] = "";
+        }
+
+        // buttons
+        $r['actions'] = "
+          <div class='d-grid gap-1' style='grid-template-columns: repeat(2, 1fr); display: grid;'>
+            <button class='btn btn-info btn-sm' onclick='upload_image_record({$r['doc_id']})' title='Upload Image'>
+              <i class='bx bx-image'></i>
+            </button>
+            <button class='btn btn-primary btn-sm' onclick='take_action({$r['doc_id']})' title='Take Action'>
+              <i class='bx bx-cog'></i>
+            </button>
+            <button class='btn btn-warning btn-sm' onclick='edit_record({$r['doc_id']})' title='Edit Record'>
+              <i class='bx bx-edit'></i>
+            </button>
+            <button class='btn btn-danger btn-sm' onclick='delete_record({$r['doc_id']})' title='Delete Record'>
+              <i class='bx bx-trash'></i>
+            </button>
+          </div>
+        ";
+
+        // ✅ only include this record if it has no outgoing action
         $data[] = $r;
     }
+}
+
 
     echo json_encode([
         "draw" => intval($_POST['draw']),

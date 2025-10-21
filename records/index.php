@@ -282,13 +282,13 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
   <div class="col-lg-3 col-md-6">
     <div class="card info-card border-0 shadow-sm" style="--start-color:#198754;--end-color:#20c997;" onclick="manage_doc_types()">
       <div class="card-body">
-        <h5 class="card-title">To Received <span class="text-muted">| Documents</span></h5>
+        <h5 class="card-title">Outgoing <span class="text-muted">| Documents</span></h5>
         <div class="d-flex align-items-center">
           <div class="card-icon">
-            <i class="bx bx-book"></i>
+            <i class='bx bx-archive-out'></i>
           </div>
           <div>
-            <h3 id="load_doc_types" class="mb-0">0</h3>
+            <h3 id="load_outgoing_count" class="mb-0">0</h3>
             <small class="text-muted">Need Actions</small>
           </div>
         </div>
@@ -515,11 +515,12 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
       </div>
 
       <div class="modal-body">
-        <input type="hidden" id="upload_doc_id_id">
+        <input type="hidden" id="take_action_doc_id">
         
         <div class="mb-3">
           <label class="form-label fw-semibold" for="to_office_id">Select Office</label>
           <select id="to_office_id" class="form-control">
+            <option value="">Select Office</option>
             <?php 
               $get_office = "SELECT * FROM `tbl_office_heads`";
               $runget_office = mysqli_query($conn, $get_office);
@@ -534,27 +535,24 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
           <select id="action_type" class="form-control">
             <option value="">Select Action</option>
             <option value="OUTGOING">OUTGOING</option>
-            <option value="INCOMING">INCOMING</option>
-            <option value="RECEIVED">RECEIVED</option>
-            <option value="RETURNED">RETURNED</option>
             <option value="ARCHIEVED">ARCHIEVED</option>
           </select>
         </div>
 
+        <div class="mb-3">
+          <label class="form-label fw-semibold" for="action_type_remarks">Add Remarks</label>
+          <textarea id="action_type_remarks" rows="5" class="form-control"></textarea>
+        </div>
 
 
-
-        <hr class="my-3">
-
-fads
       </div>
 
       <div class="modal-footer bg-white border-0">
         <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
           <i class="bi bi-x-circle me-1"></i> Close
         </button>
-        <button type="button" class="btn btn-info" id="btn_upload_images">
-          <i class="bi bi-cloud-upload me-1"></i> Upload Selected
+        <button type="button" class="btn btn-info" onclick="save_set_actions()" data-bs-dismiss="modal">
+          <i class="bi bi-cloud-upload me-1"></i> Set Action
         </button>
       </div>
     </div>
@@ -587,7 +585,48 @@ fads
 
 <script>
 
-function take_action(){
+function get_count_outgoing(){
+  $.ajax({
+    url: "query_records.php",
+    type: "POST",
+    data: { 
+      get_outgoing_counter: 1 
+    },
+    success: function(response) {
+      $('#load_outgoing_count').html(response);
+    }
+  });  
+}
+
+function save_set_actions(){
+  var to_office_id = $('#to_office_id').val();
+  var action_type = $('#action_type').val();
+  var take_action_doc_id = $('#take_action_doc_id').val();
+  var action_type_remarks = $('#action_type_remarks').val();
+
+  $.ajax({
+    url: "query_records.php",
+    type: "POST",
+    data: { 
+      saving_take_actions: 1,
+      "to_office_id": to_office_id,
+      "action_type": action_type,
+      "take_action_doc_id": take_action_doc_id,
+      "action_type_remarks": action_type_remarks, 
+    },
+    success: function() {
+      loadTable();
+      get_doc_count();
+      get_count_outgoing();
+      Swal.fire("Success!", "Record is set for outgoing.", "info");
+    }
+  });
+
+
+}
+
+function take_action(id){
+  $('#take_action_doc_id').val(id);
   $('#takeActionModal').modal('show');
 }
 
@@ -832,6 +871,7 @@ const recordModal = new bootstrap.Modal(document.getElementById('recordModal'));
 window.onload = function() {
   loadTable();
   get_doc_count(); // ✅ add this here
+  get_count_outgoing();
 };
 
 // When Manage Records card is clicked
