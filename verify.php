@@ -26,13 +26,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             mysqli_query($conn, $update);
 
             // ✅ Redirect to dashboard
-            if($row['acc_role']=='Admin'){
+            if($row['acc_role']=='66'){ //ADMINISTRATOR
                 header("Location: administrator/index.php");
                 exit;
-            }else if($row['acc_role']=='Records Office'){
+            }else if($row['acc_role']=='67'){ //CENTRAL RECORDS UNIT
                 header("Location: records/index.php");
                 exit;
-            }else if($row['acc_role']=='PAD Staff'){
+            }else if($row['acc_role']=='68'){ //PAD OFFICE
                 header("Location: pad/index.php");
                 exit;
             }

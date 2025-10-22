@@ -530,7 +530,7 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
         
         <div class="mb-3">
           <label class="form-label fw-semibold" for="to_office_id">Select Office</label>
-          <select id="to_office_id" class="form-control">
+          <select class="js-example-basic-single" name="to_office_id" id="to_office_id" class="form-control">
             <option value="">Select Office</option>
             <?php 
               $get_office = "SELECT * FROM `tbl_office_heads`";
@@ -596,6 +596,24 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
   <script src="functioned.js"></script>
 <script>
 
+
+$(document).ready(function() {
+  $('#takeActionModal').on('show.bs.modal', function () {
+    // Prevent double initialization
+    if ($.fn.select2 && $('#to_office_id').data('select2')) {
+      $('#to_office_id').select2('destroy');
+    }
+
+    // Initialize before modal transition
+    $('#to_office_id').select2({
+      theme: 'bootstrap4',
+      placeholder: 'Select Office / Division',
+      width: '100%',
+      allowClear: true,
+      dropdownParent: $('#takeActionModal')
+    });
+  });
+});
 
 document.getElementById("btnAddRecord").addEventListener("click", function() {
   document.getElementById("form_add_record").reset();

@@ -44,24 +44,36 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
   <link href="../assets/css/style.css" rel="stylesheet">
 
   <style>
-    /* Match Select2 styling with Bootstrap 5 */
-    .select2-container .select2-selection--single {
-      height: 38px !important;
-      border: 1px solid #ced4da !important;
-      border-radius: 0.375rem !important;
-      padding: 4px 8px !important;
-    }
+      /* --- Select2 Alignment Fix (Bootstrap 5 Friendly) --- */
+      .select2-container {
+        width: 100% !important;
+      }
 
-    .select2-container--default .select2-selection__rendered {
-      line-height: 28px !important;
-      font-size: 0.95rem !important;
-      color: #495057 !important;
-    }
+      .select2-container--bootstrap4 .select2-selection--single {
+        height: calc(2.35rem + 2px) !important; /* Match Bootstrap form height */
+        border: 1px solid #ced4da !important;
+        border-radius: 0.375rem !important;
+        padding: 0.375rem 0.75rem !important;
+        display: flex !important;
+        align-items: center !important;
+      }
 
-    .select2-container--default .select2-selection__arrow {
-      height: 36px !important;
-      right: 8px !important;
-    }
+      .select2-container--bootstrap4 .select2-selection__rendered {
+        font-size: 0.95rem !important;
+        color: #495057 !important;
+        line-height: normal !important;
+      }
+
+      .select2-container--bootstrap4 .select2-selection__arrow {
+        height: 100% !important;
+        top: 0 !important;
+        right: 0.75rem !important;
+      }
+
+      /* Placeholder color consistency */
+      .select2-selection__placeholder {
+        color: #6c757d !important;
+      }
   </style>
 </head>
 
@@ -137,13 +149,16 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
             </div>
             <div class="form-group mb-2">
               <label>Role</label>
-              <select id="acc_role" class="form-control form-control-sm" required>
+              <select class="js-example-basic-single" id="acc_role" name="acc_role" class="form-control form-control-sm" required>
                 <option value="">Select Role</option>
-                <option>President</option>
-                <option>PAD Staff</option>
-                <option>Office Staff</option>
-                <option>Admin</option>
-                <option>Records Office</option>
+                <?php 
+                  $roles = "SELECT * FROM `tbl_office_heads`";
+                  $runroles = mysqli_query($conn, $roles);
+                  while($r=mysqli_fetch_assoc($runroles)){
+                    echo'<option value="'.$r['office_id'].'">'.$r['office_name'].'</option>';
+                  }
+                ?>
+                
               </select>
             </div>
             <div class="form-group mb-2">
@@ -189,6 +204,29 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
   <script src="../assets/js/main.js"></script>
 
   <script>
+
+
+
+$(document).ready(function() {
+  $('#userModal').on('show.bs.modal', function () {
+    // Prevent double initialization
+    if ($.fn.select2 && $('#acc_role').data('select2')) {
+      $('#acc_role').select2('destroy');
+    }
+
+    // Initialize before modal transition
+    $('#acc_role').select2({
+      theme: 'bootstrap4',
+      placeholder: 'Select Office / Division',
+      width: '100%',
+      allowClear: true,
+      dropdownParent: $('#userModal')
+    });
+  });
+});
+
+
+
     // 🔹 Load all user accounts (already used by onload)
     function get_req() {
       let progress = 0;
