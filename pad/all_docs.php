@@ -260,11 +260,29 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
 <!-- Improved Dashboard Cards -->
 <div class="row g-2">
 
+  <!-- Manage Document Types -->
+  <div class="col-lg-3 col-md-6">
+    <div class="card info-card border-0 shadow-sm" style="--start-color:#198754;--end-color:#20c997;" onclick="manage_doc_incoming()">
+      <div class="card-body">
+        <h5 class="card-title">All Documents <span class="text-muted">| Received</span></h5>
+        <div class="d-flex align-items-center">
+          <div class="card-icon">
+            <i class='bx bx-archive-out'></i>
+          </div>
+          <div>
+            <h3 id="load_outgoing_count" class="mb-0">0</h3>
+            <small class="text-muted">Need Actions</small>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Manage Request -->
   <div class="col-lg-3 col-md-6">
-    <div class="card info-card border-0 shadow-sm" style="--start-color:#007bff;--end-color:#17a2b8;"  onclick="manage_records()">
+    <div class="card info-card border-0 shadow-sm" style="--start-color:#007bff;--end-color:#17a2b8;">
       <div class="card-body">
-        <h5 class="card-title">Manage Records <span class="text-muted">| List</span></h5>
+        <h5 class="card-title">Records Section <span class="text-muted">| List</span></h5>
         <div class="d-flex align-items-center">
           <div class="card-icon">
             <i class="bx bx-file"></i>
@@ -278,23 +296,6 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
     </div>
   </div>
 
-  <!-- Manage Document Types -->
-  <div class="col-lg-3 col-md-6">
-    <div class="card info-card border-0 shadow-sm" style="--start-color:#198754;--end-color:#20c997;" onclick="manage_doc_outgoing()">
-      <div class="card-body">
-        <h5 class="card-title">Outgoing <span class="text-muted">| Documents</span></h5>
-        <div class="d-flex align-items-center">
-          <div class="card-icon">
-            <i class='bx bx-archive-out'></i>
-          </div>
-          <div>
-            <h3 id="load_outgoing_count" class="mb-0">0</h3>
-            <small class="text-muted">Need Actions</small>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
 
   <!-- Released Summary -->
   <div class="col-lg-3 col-md-6">
@@ -343,9 +344,7 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
         <h5 class="card-title mb-0">
           Received Documents <span class="text-muted">/ Processing...</span>
         </h5>
-        <button id="btnAddRecord" class="btn btn-primary btn-sm shadow-sm">
-          <i class="bx bx-plus"></i> Add New Record
-        </button>
+
       </div>
 
       <div id="main_data"></div>
@@ -597,12 +596,6 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
 <script>
 
 
-document.getElementById("btnAddRecord").addEventListener("click", function() {
-  document.getElementById("form_add_record").reset();
-  recordModal.show();
-  loadDropdowns();
-  generateFileCode();
-});
 
 function get_count_outgoing(){
   $.ajax({
@@ -669,208 +662,7 @@ $(document).ready(function() {
   });
 });
 
-//==========================================================
-// Bootstrap modal instance
-const uploadModal = new bootstrap.Modal(document.getElementById('uploadImagesModal'));
 
-// Keep selected files in memory (for upload)
-let selectedFiles = [];
-
-// Open modal & load images for this record
-function upload_image_record(doc_id) {
-  selectedFiles = [];
-  $("#upload_doc_id").val(doc_id);
-  $("#image_files").val("");
-  $("#preview_grid").html("");
-  $("#uploaded_grid").html(`<div class='text-muted'>Loading...</div>`);
-  $("#uploaded_count").text("");
-
-  load_existing_images(doc_id);
-  uploadModal.show();
-}
-
-// Live preview when selecting files
-document.getElementById("image_files").addEventListener("change", function() {
-  const files = Array.from(this.files);
-  selectedFiles = []; // reset
-  $("#preview_grid").html("");
-
-  const allowed = ["image/jpeg", "image/jpg", "image/png", "image/gif", "image/webp"];
-  const maxSize = 5 * 1024 * 1024;
-
-  files.forEach((f, idx) => {
-    if (!allowed.includes(f.type)) return;
-    if (f.size > maxSize) {
-      Swal.fire("Too big", `${f.name} exceeds 5MB.`, "warning");
-      return;
-    }
-    selectedFiles.push(f);
-
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const col = document.createElement("div");
-      col.className = "col-6 col-md-3";
-      col.innerHTML = `
-        <div class="thumb">
-          <img src="${e.target.result}" alt="">
-          <div class="thumb-actions">
-            <button type="button" class="btn btn-sm btn-outline-danger" title="Remove" onclick="remove_selected(${idx})">
-              <i class="bi bi-x-lg"></i>
-            </button>
-          </div>
-        </div>`;
-      document.getElementById("preview_grid").appendChild(col);
-    };
-    reader.readAsDataURL(f);
-  });
-});
-
-// Remove a selected file from the preview list
-function remove_selected(idx) {
-  // Remove by index in current selectedFiles
-  selectedFiles.splice(idx, 1);
-  // Rebuild preview
-  $("#preview_grid").html("");
-  selectedFiles.forEach((f, i) => {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const col = document.createElement("div");
-      col.className = "col-6 col-md-3";
-      col.innerHTML = `
-        <div class="thumb">
-          <img src="${e.target.result}" alt="">
-          <div class="thumb-actions">
-            <button type="button" class="btn btn-sm btn-outline-danger" title="Remove" onclick="remove_selected(${i})">
-              <i class="bi bi-x-lg"></i>
-            </button>
-          </div>
-        </div>`;
-      document.getElementById("preview_grid").appendChild(col);
-    };
-    reader.readAsDataURL(f);
-  });
-}
-
-// Upload selected files
-document.getElementById("btn_upload_images").addEventListener("click", function() {
-  const doc_id = $("#upload_doc_id").val();
-  if (!doc_id) {
-    Swal.fire("Missing", "No record selected.", "warning");
-    return;
-  }
-  if (selectedFiles.length === 0) {
-    Swal.fire("No files", "Please select images first.", "info");
-    return;
-  }
-
-  const fd = new FormData();
-  fd.append("upload_images", 1);
-  fd.append("doc_id", doc_id);
-  selectedFiles.forEach((f) => fd.append("images[]", f));
-
-  $.ajax({
-    url: "query_records.php",
-    type: "POST",
-    data: fd,
-    contentType: false,
-    processData: false,
-    success: function(resp) {
-      try {
-        const data = JSON.parse(resp);
-        if (data.status === "ok") {
-          Swal.fire({ icon: "success", title: "Uploaded!", timer: 1200, showConfirmButton: false });
-          // reset selected
-          selectedFiles = [];
-          $("#image_files").val("");
-          $("#preview_grid").html("");
-          load_existing_images(doc_id);
-        } else {
-          Swal.fire("Error", data.message || "Upload failed", "error");
-        }
-      } catch (e) {
-        Swal.fire("Error", "Unexpected server response.", "error");
-      }
-    },
-    error: function() {
-      Swal.fire("Error", "Cannot upload right now.", "error");
-    }
-  });
-});
-
-// Load already uploaded images
-function load_existing_images(doc_id) {
-  $.ajax({
-    url: "query_records.php",
-    type: "POST",
-    data: { load_images: 1, doc_id: doc_id },
-    success: function(resp) {
-      try {
-        const data = JSON.parse(resp);
-        const list = data.images || [];
-        $("#uploaded_grid").html("");
-        $("#uploaded_count").text(`${list.length} image(s)`);
-
-        if (list.length === 0) {
-          $("#uploaded_grid").html(`<div class='text-muted'>No images yet.</div>`);
-          return;
-        }
-
-        list.forEach(img => {
-          const col = document.createElement("div");
-          col.className = "col-6 col-md-3";
-          col.innerHTML = `
-            <div class="thumb">
-              <img src="${img.url}" alt="">
-              <div class="thumb-actions">
-                <a class="btn btn-sm btn-outline-secondary" href="${img.url}" target="_blank" title="Open">
-                  <i class="bi bi-box-arrow-up-right"></i>
-                </a>
-                <button type="button" class="btn btn-sm btn-outline-danger" title="Delete" onclick="delete_uploaded_image(${img.img_id}, ${doc_id})">
-                  <i class="bi bi-trash"></i>
-                </button>
-              </div>
-            </div>`;
-          document.getElementById("uploaded_grid").appendChild(col);
-        });
-      } catch (e) {
-        $("#uploaded_grid").html("<div class='text-danger'>Failed to load images.</div>");
-      }
-    },
-    error: function() {
-      $("#uploaded_grid").html("<div class='text-danger'>Failed to load images.</div>");
-    }
-  });
-}
-
-// Delete an uploaded image
-function delete_uploaded_image(img_id, doc_id) {
-  Swal.fire({
-    title: "Delete image?",
-    icon: "warning",
-    showCancelButton: true,
-    confirmButtonText: "Delete",
-    confirmButtonColor: "#d33"
-  }).then(res => {
-    if (!res.isConfirmed) return;
-    $.ajax({
-      url: "query_records.php",
-      type: "POST",
-      data: { delete_image: 1, img_id: img_id },
-      success: function(r) {
-        if (r.trim() === "deleted") {
-          load_existing_images(doc_id);
-        } else {
-          Swal.fire("Error", "Could not delete image.", "error");
-        }
-      },
-      error: function() {
-        Swal.fire("Error", "Server not reachable.", "error");
-      }
-    });
-  });
-}  
-
-// =========================================================
 function get_doc_count(){
   $.ajax({
     url: "query_records.php",
@@ -884,7 +676,7 @@ function get_doc_count(){
   });  
 }
 
-const recordModal = new bootstrap.Modal(document.getElementById('recordModal'));
+
 
 // Load data when page opens
 window.onload = function() {
@@ -893,92 +685,9 @@ window.onload = function() {
   get_count_outgoing();
 };
 
-// When Manage Records card is clicked
-// document.getElementById("manageRecordsCard").addEventListener("click", function() {
-//   document.getElementById("form_add_record").reset();
-//   recordModal.show();
-//   loadDropdowns();
-//   generateFileCode();
-// });
+;
 
-// Load dropdowns
-function loadDropdowns() {
-  $.ajax({
-    url: "query_records.php",
-    type: "POST",
-    data: { load_dropdowns: 1 },
-    success: function(response) {
-      const data = JSON.parse(response);
-      $("#divisionid").html(data.divisions);
-      $("#doctypeid").html(data.doctypes);
-    },
-    error: function() {
-      Swal.fire("Error", "Failed to load dropdown data.", "error");
-    }
-  });
-}
 
-// Generate File Code
-function generateFileCode() {
-  $.ajax({
-    url: "query_records.php",
-    type: "POST",
-    data: { generate_file_code: 1 },
-    success: function(response) {
-      $("#file_code").val(response.trim());
-    },
-    error: function() {
-      Swal.fire("Error", "Failed to generate file code.", "error");
-    }
-  });
-}
-
-// Save Record
-document.getElementById("btn_save_record").addEventListener("click", function() {
-  const date_received = $("input[name='date_received']").val();
-  const file_code = $("#file_code").val();
-  const divisionid = $("#divisionid").val();
-  const doctypeid = $("#doctypeid").val();
-  const particular = $("textarea[name='particular']").val();
-
-  if (!date_received || !divisionid || !doctypeid || !particular) {
-    Swal.fire("Missing Data", "Please fill out all required fields.", "warning");
-    return;
-  }
-
-  $.ajax({
-    url: "query_records.php",
-    type: "POST",
-    data: {
-      add_record: 1,
-      date_received: date_received,
-      file_code: file_code,
-      divisionid: divisionid,
-      doctypeid: doctypeid,
-      particular: particular
-    },
-    success: function(response) {
-      if (response.trim() === "success") {
-        Swal.fire({
-          icon: "success",
-          title: "Saved!",
-          text: "Document successfully added.",
-          timer: 1500,
-          showConfirmButton: false
-        });
-        recordModal.hide();
-        $("#form_add_record")[0].reset();
-        loadTable();
-        get_doc_count();
-      } else {
-        Swal.fire("Error", "Something went wrong while saving.", "error");
-      }
-    },
-    error: function() {
-      Swal.fire("Error", "Failed to communicate with server.", "error");
-    }
-  });
-});
 
 // 🚀 Optimized: Server-side DataTables for large datasets
 function loadTable() {
@@ -999,7 +708,7 @@ function loadTable() {
             <th>DIVISION</th>
             <th>TYPE</th>
             <th>PARTICULAR</th>
-            <th class="text-center">Actions</th>
+            <th class="text-center">STATUS</th>
           </tr>
         </thead>
       </table>
@@ -1147,13 +856,11 @@ document.getElementById("btn_update_record").addEventListener("click", function(
 });
 
 //LINKS
-  function manage_doc_outgoing(){
-    window.location = 'records_outgoing.php';
-  }
-
-  function manage_records(){
+  function manage_doc_incoming(){
     window.location = 'index.php';
   }
+
+
 
 </script>
 

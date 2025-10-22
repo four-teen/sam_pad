@@ -337,19 +337,8 @@ while ($r = mysqli_fetch_assoc($result)) {
 
         // buttons
         $r['actions'] = "
-          <div class='d-grid gap-1' style='grid-template-columns: repeat(2, 1fr); display: grid;'>
-            <button class='btn btn-info btn-sm' onclick='upload_image_record({$r['doc_id']})' title='Upload Image'>
-              <i class='bx bx-image'></i>
-            </button>
-            <button class='btn btn-primary btn-sm' onclick='take_action({$r['doc_id']})' title='Take Action'>
-              <i class='bx bx-cog'></i>
-            </button>
-            <button class='btn btn-warning btn-sm' onclick='edit_record({$r['doc_id']})' title='Edit Record'>
-              <i class='bx bx-edit'></i>
-            </button>
-            <button class='btn btn-danger btn-sm' onclick='delete_record({$r['doc_id']})' title='Delete Record'>
-              <i class='bx bx-trash'></i>
-            </button>
+          <div class='d-grid gap-1' style='grid-template-columns: repeat(1, 1fr); display: grid;'>
+
           </div>
         ";
 

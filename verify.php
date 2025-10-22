@@ -32,6 +32,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             }else if($row['acc_role']=='Records Office'){
                 header("Location: records/index.php");
                 exit;
+            }else if($row['acc_role']=='PAD Staff'){
+                header("Location: pad/index.php");
+                exit;
             }
 
         } else {

@@ -31,7 +31,14 @@
   <link href="assets/vendor/quill/quill.bubble.css" rel="stylesheet">
   <link href="assets/vendor/simple-datatables/style.css" rel="stylesheet">
   <link href="assets/css/style.css" rel="stylesheet">
-
+<style>
+  .logo img {
+    transition: transform 0.3s ease;
+  }
+  .logo img:hover {
+    transform: scale(1.05);
+  }
+</style>
 
 </head>
 
@@ -45,12 +52,17 @@
           <div class="row justify-content-center">
             <div class="col-lg-4 col-md-6 d-flex flex-column align-items-center justify-content-center">
 
-              <div class="d-flex justify-content-center py-4">
-                <a href="index.php" class="logo d-flex align-items-center w-auto">
-                  <img src="assets/img/logo.png" alt="">
-                  <span class="d-none d-lg-block">Secured Access Management</span>
-                </a>
-              </div><!-- End Logo -->
+<div class="text-center py-4">
+  <a href="index.php" class="logo text-center d-block" style="text-decoration:none;">
+    <img src="assets/img/logo.png" alt="SAM Logo"
+         style="display:block; margin:0 auto; ">
+    <h3 class="mt-3 fw-bold" 
+        style="color:#0d6efd; white-space:nowrap; font-size:1.35rem; letter-spacing:0.5px;">
+        Secured Access Management
+    </h3>
+    <span style="color:#0d6efd; font-weight:600;">(SAM)</span>
+  </a>
+</div>
 
               <div class="card mb-3">
 
