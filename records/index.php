@@ -570,7 +570,41 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
   </div>
 </div>
 
+<div class="modal fade" id="officedivisionModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="uploadImagesLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable modal-dialog-centered">
+    <div class="modal-content shadow-lg border-0 rounded-3">
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title fw-semibold" id="uploadImagesLabel">
+          <i class="bi bi-images me-2"></i> Add Office/Division
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
 
+      <div class="modal-body">
+        <input type="hidden" id="divisions_id">
+        
+        <div class="mb-3">
+          <label class="form-label fw-semibold" for="officename">Add Remarks</label>
+          <input type="text" class="form-control" id="officename">
+        </div>
+        <div class="mb-3 py-2">
+            <button type="button" class="btn btn-info" onclick="saving_divisions()">
+          <i class="bi bi-save2"></i> Save
+        </button>
+        </div>        
+        <div class="mb-3">
+          <div id="load_division">loading divisions</div>
+        </div>
+      </div>
+
+      <div class="modal-footer bg-white border-0">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+          <i class="bi bi-x-circle me-1"></i> Close
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
   <!-- ======= Footer ======= -->
   <footer id="footer" class="footer">
     <div class="copyright">
@@ -597,6 +631,79 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
 <script>
 
 
+function delete_office(divisionid){
+Swal.fire({
+  title: "Are you sure?",
+  text: "You won't be able to revert this!",
+  icon: "warning",
+  showCancelButton: true,
+  confirmButtonColor: "#3085d6",
+  cancelButtonColor: "#d33",
+  confirmButtonText: "Yes, delete it!"
+}).then((result) => {
+  if (result.isConfirmed) {
+    $.ajax({
+      url: "query_records.php",
+      type: "POST",
+      data: { 
+        removing_office: 1,
+        "divisionid" : divisionid 
+      },
+      success: function(response) {
+         loading_divisions();
+      }
+    });
+
+  }
+});  
+}
+
+
+function saving_divisions(){
+  var officename = $('#officename').val();
+  $.ajax({
+    url: "query_records.php",
+    type: "POST",
+    data: { 
+      saving_new_office: 1,
+      "officename" : officename 
+    },
+    success: function(response) {
+       loading_divisions();
+       $('#officename').val('');
+       $('#officename').focus();
+    }
+  });  
+}
+
+function loading_divisions(){
+  $.ajax({
+    url: "query_records.php",
+    type: "POST",
+    data: { 
+      loading_office: 1
+    },
+    success: function(response) {
+      $('#load_division').html(response);
+              setTimeout(() => {
+                  $('#officeTable').DataTable({
+                      paging: true,
+                      pageLength: 10,
+                      searching: true,
+                      ordering: true,
+                      info: true,
+                      autoWidth: false
+                  });
+              }, 600);
+    }
+  });  
+}
+
+function manage_division(){
+  loading_divisions();
+  $('#officedivisionModal').modal('show');
+}
+
 $(document).ready(function() {
   $('#takeActionModal').on('show.bs.modal', function () {
     // Prevent double initialization
@@ -620,6 +727,7 @@ document.getElementById("btnAddRecord").addEventListener("click", function() {
   recordModal.show();
   loadDropdowns();
   generateFileCode();
+
 });
 
 function get_count_outgoing(){

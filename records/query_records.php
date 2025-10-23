@@ -2,6 +2,58 @@
 include '../db.php';
 session_start();
 
+if(isset($_POST['divisionid'])){
+    $delete = "DELETE FROM `tbldivisions` WHERE divisionid='$_POST[divisionid]'";
+    $rundelete = mysqli_query($conn, $delete);
+}
+
+if (isset($_POST['loading_office'])) {
+    echo
+    ''; ?>
+      <table id="officeTable" class="table table-hover table-sm">
+        <thead class="table-light">
+          <tr>
+            <th>#</th>
+            <th>OFFICE / DIVISION</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+            <?php 
+                $sql = "SELECT * FROM `tbldivisions`";
+                $run = mysqli_query($conn, $sql);
+                $count = 1;
+
+                while ($r = mysqli_fetch_assoc($run)) {
+                    
+                    echo'
+                      <tr>
+                        <td width="1%" class="text-end">'.$count++.'.</td>
+                        <td>'.$r['division_desc'].'</td>
+                        <td width="1%" class="text-center">
+                          <button class="btn btn-warning btn-sm" onclick="delete_office(\''.$r['divisionid'].'\')">
+                            <i class="bi bi-trash"></i>
+                          </button>
+
+                        </td>
+                      </tr>
+                    ';
+                }
+
+            ?>
+        </tbody>
+    <?php echo'';
+
+    exit;
+}
+
+
+if(isset($_POST['saving_new_office'])){
+    $officename = strtoupper(addslashes($_POST['officename']));
+    $insert = "INSERT INTO `tbldivisions` (`division_desc`) VALUES ('$officename')";
+    $runinsert = mysqli_query($conn, $insert);
+}
+
 if(isset($_POST['get_outgoing_counter'])){
     $check = "SELECT count(action_type) as outgoing_count FROM tbl_document_actions 
               WHERE action_type='Outgoing'";

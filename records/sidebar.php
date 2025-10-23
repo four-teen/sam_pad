@@ -14,9 +14,9 @@
       <a class="nav-link collapsed" data-bs-target="#management-nav" data-bs-toggle="collapse" href="#">
         <i class="bi bi-people"></i><span>Management</span><i class="bi bi-chevron-down ms-auto"></i>
       </a>
-<!--       <ul id="management-nav" class="nav-content collapse" data-bs-parent="#sidebar-nav">
-        <li><a href="manage_user_account.php"><i class="bi bi-person-gear"></i><span>Manage User Accounts</span></a></li>
-      </ul> -->
+      <ul onclick="manage_division()" id="management-nav" class="nav-content collapse" data-bs-parent="#sidebar-nav">
+        <li><a href="#"><i class="bx bx-building fs-5"></i><span>Add Office/Division</span></a></li>
+      </ul>
     </li>
 
     <li class="nav-item">
