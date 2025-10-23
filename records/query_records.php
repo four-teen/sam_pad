@@ -2,6 +2,61 @@
 include '../db.php';
 session_start();
 
+
+if(isset($_POST['removing_doc_type'])){
+    $delete = "DELETE FROM `tbltypeofdocuments` WHERE docid='$_POST[docid]'";
+    $rundelete = mysqli_query($conn, $delete);
+}
+
+if(isset($_POST['saving_new_document'])){
+    $doc_name = strtoupper(addslashes($_POST['doc_name']));
+    $insert = "INSERT INTO `tbltypeofdocuments` (`doctype_desc`) VALUES ('$doc_name')";
+    $runinsert = mysqli_query($conn, $insert);
+}
+
+
+if (isset($_POST['loading_document_type'])) {
+    echo
+    ''; ?>
+      <table id="docTable" class="table table-hover table-sm">
+        <thead class="table-light">
+          <tr>
+            <th>#</th>
+            <th>DOCUMENT TYPE</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+            <?php 
+                $sql = "SELECT * FROM `tbltypeofdocuments`";
+                $run = mysqli_query($conn, $sql);
+                $count = 1;
+
+                while ($r = mysqli_fetch_assoc($run)) {
+                    
+                    echo'
+                      <tr>
+                        <td width="1%" class="text-end">'.$count++.'.</td>
+                        <td>'.$r['doctype_desc'].'</td>
+                        <td width="1%" class="text-center">
+                          <button class="btn btn-warning btn-sm" onclick="delete_doctype(\''.$r['docid'].'\')">
+                            <i class="bi bi-trash"></i>
+                          </button>
+
+                        </td>
+                      </tr>
+                    ';
+                }
+
+            ?>
+        </tbody>
+    <?php echo'';
+
+    exit;
+}
+
+
+
 if(isset($_POST['divisionid'])){
     $delete = "DELETE FROM `tbldivisions` WHERE divisionid='$_POST[divisionid]'";
     $rundelete = mysqli_query($conn, $delete);

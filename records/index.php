@@ -343,8 +343,8 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
         <h5 class="card-title mb-0">
           Received Documents <span class="text-muted">/ Processing...</span>
         </h5>
-        <button id="btnAddRecord" class="btn btn-primary btn-sm shadow-sm">
-          <i class="bx bx-plus"></i> Add New Record
+        <button id="btnAddRecord" class="btn btn-primary shadow-sm">
+          <i class="bi bi-file-earmark-plus"></i> Add New Record
         </button>
       </div>
 
@@ -605,6 +605,43 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
     </div>
   </div>
 </div>
+
+<div class="modal fade" id="typeofDocumentModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="uploadImagesLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable modal-dialog-centered">
+    <div class="modal-content shadow-lg border-0 rounded-3">
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title fw-semibold" id="uploadImagesLabel">
+          <i class="bi bi-images me-2"></i> Add new Document Type
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+
+      <div class="modal-body">
+        <input type="hidden" id="divisions_id">
+        
+        <div class="mb-3">
+          <label class="form-label fw-semibold" for="doc_name">New Document</label>
+          <input type="text" class="form-control" id="doc_name">
+        </div>
+        <div class="mb-3 py-2">
+            <button type="button" class="btn btn-info" onclick="saving_doc_type()">
+          <i class="bi bi-save2"></i> Save
+        </button>
+        </div>        
+        <div class="mb-3">
+          <div id="load_doc_type">loading document types</div>
+        </div>
+      </div>
+
+      <div class="modal-footer bg-white border-0">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+          <i class="bi bi-x-circle me-1"></i> Close
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
   <!-- ======= Footer ======= -->
   <footer id="footer" class="footer">
     <div class="copyright">
@@ -630,6 +667,78 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
   <script src="functioned.js"></script>
 <script>
 
+function delete_doctype(docid){
+Swal.fire({
+  title: "Are you sure?",
+  text: "You won't be able to revert this!",
+  icon: "warning",
+  showCancelButton: true,
+  confirmButtonColor: "#3085d6",
+  cancelButtonColor: "#d33",
+  confirmButtonText: "Yes, delete it!"
+}).then((result) => {
+  if (result.isConfirmed) {
+    $.ajax({
+      url: "query_records.php",
+      type: "POST",
+      data: { 
+        removing_doc_type: 1,
+        "docid" : docid 
+      },
+      success: function(response) {
+         loading_doc_type();
+      }
+    });
+
+  }
+});  
+}
+
+function saving_doc_type(){
+  var doc_name = $('#doc_name').val();
+  $.ajax({
+    url: "query_records.php",
+    type: "POST",
+    data: { 
+      saving_new_document: 1,
+      "doc_name" : doc_name 
+    },
+    success: function(response) {
+       loading_doc_type();
+       $('#doc_name').val('');
+       $('#doc_name').focus();
+    }
+  });  
+}
+
+function loading_doc_type(){
+  $.ajax({
+    url: "query_records.php",
+    type: "POST",
+    data: { 
+      loading_document_type: 1
+    },
+    success: function(response) {
+      $('#load_doc_type').html(response);
+              setTimeout(() => {
+                  $('#docTable').DataTable({
+                      paging: true,
+                      pageLength: 10,
+                      searching: true,
+                      ordering: true,
+                      info: true,
+                      autoWidth: false
+                  });
+              }, 600);
+    }
+  });  
+}
+
+
+function manage_type_doc(){
+  loading_doc_type();
+  $('#typeofDocumentModal').modal('show');
+}
 
 function delete_office(divisionid){
 Swal.fire({

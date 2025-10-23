@@ -17,6 +17,10 @@
       <ul onclick="manage_division()" id="management-nav" class="nav-content collapse" data-bs-parent="#sidebar-nav">
         <li><a href="#"><i class="bx bx-building fs-5"></i><span>Add Office/Division</span></a></li>
       </ul>
+      <ul onclick="manage_type_doc()" id="management-nav" class="nav-content collapse" data-bs-parent="#sidebar-nav">
+        <li><a href="#"><i class="bi bi-folder-plus fs-5"></i></i><span>Add Type of Document</span></a></li>
+      </ul>
+
     </li>
 
     <li class="nav-item">
