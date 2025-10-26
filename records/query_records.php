@@ -3,6 +3,15 @@ include '../db.php';
 session_start();
 
 
+/* 🧩 Check if record has uploaded images */
+if (isset($_POST['check_images'])) {
+    $doc_id = intval($_POST['doc_id']);
+    $query = mysqli_query($conn, "SELECT COUNT(*) AS total FROM tbl_document_images WHERE doc_id = '$doc_id'");
+    $row = mysqli_fetch_assoc($query);
+    echo $row['total'];
+    exit;
+}
+
 if(isset($_POST['removing_doc_type'])){
     $delete = "DELETE FROM `tbltypeofdocuments` WHERE docid='$_POST[docid]'";
     $rundelete = mysqli_query($conn, $delete);
@@ -125,7 +134,7 @@ if(isset($_POST['saving_take_actions'])){
     $action_type = $_POST['action_type'];
     $take_action_doc_id = $_POST['take_action_doc_id'];
     $action_type_remarks = $_POST['action_type_remarks'];
-    $user_office_id = $_SESSION['acc_id'];
+    $user_office_id = $_SESSION['officeid'];
 
     $insert = "INSERT INTO `tbl_document_actions` (`doc_id`, `from_office_id`, `to_office_id`, `action_type`, `action_remarks`, `action_date`) VALUES ('$take_action_doc_id', '$user_office_id', '$to_office_id', '$action_type', '$action_type_remarks', current_timestamp())";
     $runinsert = mysqli_query($conn, $insert);
@@ -444,7 +453,7 @@ while ($r = mysqli_fetch_assoc($result)) {
 
         // buttons
         $r['actions'] = "
-          <div class='d-grid gap-1' style='grid-template-columns: repeat(2, 1fr); display: grid;'>
+          <div class='d-grid gap-1' style='grid-template-columns: repeat(3, 1fr); display: grid;'>
             <button class='btn btn-info btn-sm' onclick='upload_image_record({$r['doc_id']})' title='Upload Image'>
               <i class='bx bx-image'></i>
             </button>
@@ -456,6 +465,9 @@ while ($r = mysqli_fetch_assoc($result)) {
             </button>
             <button class='btn btn-danger btn-sm' onclick='delete_record({$r['doc_id']})' title='Delete Record'>
               <i class='bx bx-trash'></i>
+            </button>
+            <button class='btn btn-success btn-sm' onclick='trace_record({$r['doc_id']})' title='Delete Record'>
+              <i class='bi bi-alarm'></i>
             </button>
           </div>
         ";

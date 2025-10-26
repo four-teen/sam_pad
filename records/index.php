@@ -236,6 +236,10 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
       .select2-selection__placeholder {
         color: #6c757d !important;
       }
+
+
+
+
   </style>
 </head>
 
@@ -313,6 +317,8 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
       </div>
     </div>
   </div>
+
+  
 
   <!-- Statistics -->
   <div class="col-lg-3 col-md-6">
@@ -852,37 +858,102 @@ function get_count_outgoing(){
   });  
 }
 
-function save_set_actions(){
-  var to_office_id = $('#to_office_id').val();
-  var action_type = $('#action_type').val();
-  var take_action_doc_id = $('#take_action_doc_id').val();
-  var action_type_remarks = $('#action_type_remarks').val();
+function save_set_actions() {
+  const to_office_id = $('#to_office_id').val();
+  const action_type = $('#action_type').val();
+  const take_action_doc_id = $('#take_action_doc_id').val();
+  const action_type_remarks = $('#action_type_remarks').val();
 
+  // ⚠️ Validate required fields first
+  if (to_office_id === '' || action_type === '') {
+    Swal.fire({
+      title: "Incomplete Fields!",
+      text: "Please select both Office and Action Type before saving.",
+      icon: "warning",
+      confirmButtonColor: "#f0ad4e",
+      allowOutsideClick: false,   // prevent clicking outside to close
+      allowEscapeKey: false,      // prevent ESC key
+      didClose: () => {
+        // Keep the modal open
+        $('#takeActionModal').modal('show');
+      }
+    });
+    return; // stop function here
+  }
+
+  // ✅ Proceed to AJAX only if valid
   $.ajax({
     url: "query_records.php",
     type: "POST",
-    data: { 
+    data: {
       saving_take_actions: 1,
-      "to_office_id": to_office_id,
-      "action_type": action_type,
-      "take_action_doc_id": take_action_doc_id,
-      "action_type_remarks": action_type_remarks, 
+      to_office_id,
+      action_type,
+      take_action_doc_id,
+      action_type_remarks
     },
-    success: function() {
+    success: function () {
       loadTable();
       get_doc_count();
       get_count_outgoing();
-      Swal.fire("Success!", "Record is set for outgoing.", "info");
+      Swal.fire({
+        title: "Success!",
+        text: "Record is set for outgoing.",
+        icon: "success",
+        confirmButtonColor: "#28a745"
+      }).then(() => {
+        $('#takeActionModal').modal('hide'); // close modal only after success
+      });
     }
   });
-
-
 }
 
-function take_action(id){
-  $('#take_action_doc_id').val(id);
-  $('#takeActionModal').modal('show');
+
+// function take_action(id){
+//   $('#take_action_doc_id').val(id);
+//   $('#takeActionModal').modal('show');
+// }
+
+function take_action(doc_id) {
+  // 🔍 Check if there are uploaded images for this record first
+  $.ajax({
+    url: "query_records.php",
+    type: "POST",
+    data: { check_images: 1, doc_id: doc_id },
+    success: function(response) {
+      const count = parseInt(response.trim());
+      if (count > 0) {
+        // ✅ Proceed if at least 1 image found
+        $('#take_action_doc_id').val(doc_id);
+        $('#takeActionModal').modal('show');
+      } else {
+        // ⚠️ No image found → show dual button SweetAlert
+        Swal.fire({
+          icon: 'warning',
+          title: 'Upload Required',
+          text: 'Please upload at least one image before taking action.',
+          showCancelButton: true,
+          confirmButtonText: 'Upload Now',
+          cancelButtonText: 'Not Now',
+          confirmButtonColor: '#0d6efd',
+          cancelButtonColor: '#6c757d',
+          reverseButtons: true
+        }).then((result) => {
+          if (result.isConfirmed) {
+            upload_image_record(doc_id); // 🔁 Open upload modal
+          }
+          // 💤 If Not Now → just close SweetAlert (no action)
+        });
+      }
+    },
+    error: function() {
+      Swal.fire("Error", "Could not verify uploaded images.", "error");
+    }
+  });
 }
+
+
+
 
 
 $(document).ready(function() {

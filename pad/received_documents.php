@@ -278,10 +278,9 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
 <!-- Improved Dashboard Cards -->
 <div class="row g-2">
 
-<div id="test">test</div>
   <!-- Manage Document Types -->
   <div class="col-lg-3 col-md-6">
-    <div class="card info-card border-0 shadow-sm" style="--start-color:#198754;--end-color:#20c997;" onclick="manage_doc_types()">
+    <div class="card info-card border-0 shadow-sm" style="--start-color:#198754;--end-color:#20c997;" onclick="incoming_docs()">
       <div class="card-body">
         <h5 class="card-title">Incoming/Outgoing <span class="text-muted">| Documents</span></h5>
         <div class="d-flex align-items-center">
@@ -304,11 +303,11 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
         <h5 class="card-title">RECEIVED <span class="text-muted">| Documents</span></h5>
         <div class="d-flex align-items-center">
           <div class="card-icon">
-            <i class="bi bi-bootstrap-reboot"></i>
+            <i class="bi bi-suitcase"></i>
           </div>
           <div>
-            <h3 id="load_received_count" class="mb-0">0</h3>
-            <small class="text-muted">need actions</small>
+            <h3 id="load_received_count" class="mb-0"></h3>
+            <small class="text-muted">total transactions</small>
           </div>
         </div>
       </div>
@@ -427,6 +426,66 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
 
 <script>
 
+//RETURN BUTTON=================
+
+function confirmReturnDocument(doc_id) {
+  Swal.fire({
+    title: "Return Document?",
+    text: "Please provide a reason for returning this document.",
+    icon: "warning",
+    input: "textarea",
+    inputPlaceholder: "Enter return reason...",
+    inputAttributes: {
+      'aria-label': 'Return reason'
+    },
+    showCancelButton: true,
+    confirmButtonColor: "#d33",
+    cancelButtonColor: "#6c757d",
+    confirmButtonText: "Return Document",
+    cancelButtonText: "Cancel",
+    reverseButtons: true,
+    preConfirm: (reason) => {
+      if (!reason) {
+        Swal.showValidationMessage("Reason is required before returning.");
+      }
+      return reason;
+    }
+  }).then((result) => {
+    if (result.isConfirmed) {
+      $.ajax({
+        url: "query_incoming_records.php",
+        type: "POST",
+        data: { 
+          return_document_action: 1,
+          doc_id: doc_id,
+          reason: result.value
+        },
+        success: function(response) {
+          if (response.trim() === "success") {
+            Swal.fire({
+              title: "Document Returned!",
+              text: "The document has been successfully returned to the previous sender.",
+              icon: "success",
+              timer: 1500,
+              showConfirmButton: false
+            });
+            loadTable();
+          } else {
+            Swal.fire("Error", "Failed to record return action.", "error");
+          }
+        },
+        error: function() {
+          Swal.fire("Error", "Server not reachable.", "error");
+        }
+      });
+    }
+  });
+}
+
+
+
+//END OF RETURN BUTTON =========
+
 
 function view_uploaded_images(doc_id) {
   // Open modal and show spinner first
@@ -502,64 +561,6 @@ function enlargeImage(src) {
 }
 
 
-
-
-
-function confirmDocumentReceipt(doc_id, received_by, office_division) {
-  Swal.fire({
-    title: "Confirm Document Receipt?",
-    text: "Before proceeding, please verify that you have the physical document in your possession.",
-    icon: "info",
-    showCancelButton: true,
-    confirmButtonColor: "#28a745", // Green confirm
-    cancelButtonColor: "#6c757d",  // Grey cancel
-    confirmButtonText: "Yes, I have received it",
-    cancelButtonText: "Close",
-    reverseButtons: true
-  }).then((result) => {
-    if (result.isConfirmed) {
-
-      $.ajax({
-        url: "query_incoming_records.php",
-        type: "POST",
-        data: { 
-          take_action_received: 1,
-          doc_id: doc_id,
-          received_by: received_by,
-          office_division: office_division
-        },
-        success: function(response) {
-          $('#test').html(response);
-          if (response.trim() === "success") {
-            Swal.fire({
-              title: "Receipt Confirmed!",
-              text: "The document receipt has been successfully logged.",
-              icon: "success",
-              timer: 1500,
-              showConfirmButton: false
-            });
-            loadTable(); // Refresh table
-            get_count_received();
-            get_doc_count();
-
-          } else {
-            Swal.fire({
-              title: "Error",
-              text: "Unable to log document receipt.",
-              icon: "error"
-            });
-          }
-        },
-        error: function() {
-          Swal.fire("Error", "Server not reachable.", "error");
-        }
-      });
-
-    }
-  });
-}
-
-
     // Load data when page opens
     window.onload = function() {
       loadTable();
@@ -593,8 +594,8 @@ function confirmDocumentReceipt(doc_id, received_by, office_division) {
 
       $.ajax({
         type: "POST",
-        url: "query_incoming_records.php",
-        data: { "load_table": "1" },
+        url: "query_received_documents.php",
+        data: { "load_table_received": "1" },
         success: function(response) {
           clearInterval(interval);
           $('#progress-bar').css('width', '100%');
@@ -662,12 +663,8 @@ function get_doc_count(){
     window.location = 'records_outgoing.php';
   }
 
-  function incoming_documents(){
-    window.location = 'all_docs.php';
-  }
-
-  function received_documents(){
-    window.location = 'received_documents.php';
+  function incoming_docs(){
+    window.location = 'index.php';
   }  
 
 </script>

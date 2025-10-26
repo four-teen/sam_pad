@@ -5,45 +5,6 @@ session_start();
 
 // ==========================================
 
-//RETURN RECORDS=======================
-if (isset($_POST['return_document_action'])) {
-    $doc_id = intval($_POST['doc_id']);
-    $reason = mysqli_real_escape_string($conn, $_POST['reason']);
-    $current_user = $_SESSION['fullname'] ?? 'Unknown User';
-
-    $get = "SELECT * FROM tbl_document_actions 
-            WHERE doc_id='$doc_id' 
-            ORDER BY action_id DESC LIMIT 1";
-    $run = mysqli_query($conn, $get);
-
-    if (mysqli_num_rows($run) > 0) {
-        $row = mysqli_fetch_assoc($run);
-
-        $from_office = $row['to_office_id'];  // current receiver
-        $to_office   = $row['from_office_id']; // previous sender
-
-        $remarks = "Document returned by $current_user. Reason: $reason";
-
-        $insert = "INSERT INTO tbl_document_actions 
-                    (doc_id, from_office_id, to_office_id, action_type, action_remarks, action_date)
-                    VALUES ('$doc_id', '$from_office', '$to_office', 'Returned', '$remarks', NOW())";
-
-        $runinsert = mysqli_query($conn, $insert);
-
-        echo $runinsert ? "success" : "failed";
-    } else {
-        echo "no_record_found";
-    }
-
-    exit;
-}
-
-
-
-//END OF RETURN RECORDS===============
-
-
-
 if (isset($_POST['load_images_for_view'])) {
     $doc_id = intval($_POST['doc_id']);
 
@@ -87,29 +48,33 @@ if (isset($_POST['take_action_received'])) {
     $receiver_name = $_SESSION['fullname'] ?? 'Unknown Receiver';
 
     // Get the latest outgoing record
-    $check = "SELECT * FROM tbl_document_actions 
+    $check = mysqli_query($conn, "
+        SELECT action_id FROM tbl_document_actions 
         WHERE doc_id='$doc_id' 
-        ORDER BY action_id DESC LIMIT 1";
-    $runcheck = mysqli_query($conn, $check);
-    $rowcheck = mysqli_fetch_assoc($runcheck);
+        ORDER BY action_id DESC LIMIT 1
+    ");
 
-    $from_office = $rowcheck['from_office_id'];
-    $to_office = $rowcheck['to_office_id'];
-
-    $insert = "INSERT INTO tbl_document_actions 
-        (doc_id, from_office_id, to_office_id, action_type, action_remarks, action_date)
-        VALUES ('$doc_id', '$from_office', '$to_office', 'Received', 'Received by $receiver_name.', NOW())";
-    $runinsert = mysqli_query($conn, $insert);
-
-    if ($runinsert) {
-        echo "success";
+    if (mysqli_num_rows($check) > 0) {
+        // Update latest action to Received
+        $update = mysqli_query($conn, "
+            UPDATE tbl_document_actions 
+            SET action_type='Received',
+                action_remarks='Received by $receiver_name from $office_division',
+                action_date=NOW()
+            WHERE doc_id='$doc_id'
+            ORDER BY action_id DESC LIMIT 1
+        ");
     } else {
-        echo "failed";
+        // No previous record — insert a new one
+        $update = mysqli_query($conn, "
+            INSERT INTO tbl_document_actions (doc_id, from_office_id, to_office_id, action_type, action_remarks, action_date)
+            VALUES ('$doc_id', NULL, '$office_division', 'Received', 'Received by $receiver_name.', NOW())
+        ");
     }
 
+    echo $update ? "success" : "failed";
     exit;
 }
-
 
 
 /* 🔹 LOAD TABLE */
@@ -132,34 +97,33 @@ if (isset($_POST['load_table'])) {
 
     $sql = "
         SELECT d.*, 
-           v.division_desc, 
-           t.doctype_desc,
-           a.to_office_id,
-           a.action_id,
-           a.action_type
-    FROM tbl_documents_registry d
-    LEFT JOIN tbldivisions v ON d.office_division = v.divisionid
-    LEFT JOIN tbltypeofdocuments t ON d.type_of_documents = t.docid
-    INNER JOIN (
-        SELECT doc_id, MAX(action_id) AS latest_action
-        FROM tbl_document_actions
-        GROUP BY doc_id
-    ) latest ON d.doc_id = latest.doc_id
-    INNER JOIN tbl_document_actions a ON a.action_id = latest.latest_action
-    WHERE a.action_type = 'Outgoing'
-      AND a.to_office_id = '68'
-    ORDER BY d.doc_id DESC
+               v.division_desc, 
+               t.doctype_desc,
+               tbl_document_actions.to_office_id
+        FROM tbl_documents_registry d
+        LEFT JOIN tbldivisions v ON d.office_division = v.divisionid
+        LEFT JOIN tbltypeofdocuments t ON d.type_of_documents = t.docid
+        INNER JOIN tbl_document_actions ON tbl_document_actions.doc_id = d.doc_id
+        WHERE to_office_id='68' AND action_type='Outgoing'
+        ORDER BY d.doc_id DESC
     ";
     $run = mysqli_query($conn, $sql);
     $count = 1;
 
     while ($r = mysqli_fetch_assoc($run)) {
 
-        $check = "SELECT doc_id, MAX(action_id) AS latest_action
-        FROM tbl_document_actions
-        GROUP BY doc_id";
+        $check = "SELECT * FROM tbl_document_actions 
+                  WHERE doc_id = '{$r['doc_id']}' 
+
+                  ORDER BY action_id DESC
+                  LIMIT 1";
         $runcheck = mysqli_query($conn, $check);
         $get_stat = '';
+
+        // ✅ get latest action type
+        while($rowcheck = mysqli_fetch_assoc($runcheck)){
+            $get_stat = $rowcheck['action_type'];
+        }
 
         if (mysqli_num_rows($runcheck) >= 1) {
             $output .= '
@@ -171,7 +135,9 @@ if (isset($_POST['load_table'])) {
                 <td>'.$r['doctype_desc'].'</td>
                 <td>'.$r['particular'].'</td>
                 <td class="text-nowrap" width="1%">';
-
+            
+            // ✅ Move button logic inside the same echo flow
+            if($get_stat === 'Outgoing'){
                 $output .= '
                     <button class="btn btn-info" title="View Images" onclick="view_uploaded_images(\''.$r['doc_id'].'\')">
                       <i class="bi bi-images"></i>
@@ -181,7 +147,17 @@ if (isset($_POST['load_table'])) {
                     </button>
 
                 ';
-          
+            } elseif($get_stat === 'Received'){
+                $output .= '
+                  <button class="btn btn-info" title="View Images" onclick="view_uploaded_images(\''.$r['doc_id'].'\')">
+                      <i class="bi bi-images"></i>
+                  </button>
+                    <button class="btn btn-success" title="Received">
+                      <i class="bi bi-check-circle"></i>
+                    </button>
+
+                ';
+            }
 
             $output .= '</td></tr>';
         }

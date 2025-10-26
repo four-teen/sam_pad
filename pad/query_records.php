@@ -2,15 +2,48 @@
 include '../db.php';
 session_start();
 
+
+if(isset($_POST['get_received_counter'])){
+    $sql = "
+        SELECT COUNT(*) AS receive_count
+        FROM (
+            SELECT doc_id
+            FROM tbl_document_actions
+            WHERE to_office_id = '68'
+            GROUP BY doc_id
+            HAVING MAX(action_id) = MAX(CASE WHEN action_type = 'Received' THEN action_id ELSE 0 END)
+        ) AS latest_received;
+    ";
+
+    $run = mysqli_query($conn, $sql);
+    if($run){
+        $row_count = mysqli_fetch_assoc($run);
+        echo $row_count['receive_count'];
+    }
+}
+
+
+
+
 if(isset($_POST['get_outgoing_counter'])){
-    $check = "SELECT count(action_type) as outgoing_count FROM tbl_document_actions 
-              WHERE action_type='Outgoing'";
+    $check = "
+        SELECT COUNT(*) AS outgoing_count
+        FROM (
+            SELECT doc_id
+            FROM tbl_document_actions
+            WHERE to_office_id='68'
+            GROUP BY doc_id
+            HAVING MAX(CASE WHEN action_type='Outgoing' THEN action_id ELSE 0 END) = MAX(action_id)
+        ) AS latest_outgoing
+    ";
+
     $runcheck = mysqli_query($conn, $check);
     if($runcheck){
         $r = mysqli_fetch_assoc($runcheck);
         echo $r['outgoing_count'];
     }
 }
+
 
 if(isset($_POST['saving_take_actions'])){
 
@@ -268,94 +301,7 @@ if (isset($_POST['delete_record'])) {
     exit;
 }
 
-/* 🚀 SERVER-SIDE DATATABLES PROCESSING */
-if (isset($_POST['server_table'])) {
-   
-    $columns = ['date_received', 'received_by', 'file_code', 'office_division', 'type_of_documents', 'particular', 'created_at'];
 
-    $start = intval($_POST['start']);
-    $length = intval($_POST['length']);
-    $searchValue = mysqli_real_escape_string($conn, $_POST['search']['value']);
-
-    $where = "";
-    if (!empty($searchValue)) {
-        $where = "WHERE 
-            d.file_code LIKE '%$searchValue%' OR 
-            d.received_by LIKE '%$searchValue%' OR 
-            v.division_desc LIKE '%$searchValue%' OR 
-            t.doctype_desc LIKE '%$searchValue%' OR 
-            d.particular LIKE '%$searchValue%'";
-    }
-
-    // Total count
-    $totalQuery = mysqli_query($conn, "SELECT COUNT(*) AS total FROM tbl_documents_registry");
-    $totalData = mysqli_fetch_assoc($totalQuery)['total'];
-
-    // Filtered count
-    $queryFiltered = mysqli_query($conn, "
-        SELECT COUNT(*) AS total 
-        FROM tbl_documents_registry d
-        LEFT JOIN tbldivisions v ON d.office_division = v.divisionid
-        LEFT JOIN tbltypeofdocuments t ON d.type_of_documents = t.docid
-        $where
-    ");
-    $totalFiltered = mysqli_fetch_assoc($queryFiltered)['total'];
-
-    // Fetch paginated data
-    $query = "
-        SELECT d.doc_id, d.date_received, d.received_by, d.file_code, 
-               v.division_desc AS office_division, 
-               t.doctype_desc AS type_of_documents, 
-               d.particular, d.created_at
-        FROM tbl_documents_registry d
-        LEFT JOIN tbldivisions v ON d.office_division = v.divisionid
-        LEFT JOIN tbltypeofdocuments t ON d.type_of_documents = t.docid
-        $where
-        ORDER BY d.doc_id DESC
-        LIMIT $start, $length
-    ";
-    $result = mysqli_query($conn, $query);
-
-    $data = [];
-    //how to echo the d.doc_id id here
-while ($r = mysqli_fetch_assoc($result)) {
-
-    // check if record already has outgoing action
-    $check = "SELECT * FROM tbl_document_actions 
-              WHERE doc_id = '{$r['doc_id']}' 
-              AND from_office_id = '{$_SESSION['acc_id']}' 
-              LIMIT 1";
-    $runcheck = mysqli_query($conn, $check);
-
-    if (mysqli_num_rows($runcheck) <= 0) {
-        // format date
-        if (!empty($r['date_received'])) {
-            $r['date_received'] = strtoupper(date("M d, Y h:i A", strtotime($r['date_received'])));
-        } else {
-            $r['date_received'] = "";
-        }
-
-        // buttons
-        $r['actions'] = "
-          <div class='d-grid gap-1' style='grid-template-columns: repeat(1, 1fr); display: grid;'>
-
-          </div>
-        ";
-
-        // ✅ only include this record if it has no outgoing action
-        $data[] = $r;
-    }
-}
-
-
-    echo json_encode([
-        "draw" => intval($_POST['draw']),
-        "recordsTotal" => $totalData,
-        "recordsFiltered" => $totalFiltered,
-        "data" => $data
-    ]);
-    exit;
-}
 
 
 ?>

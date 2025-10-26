@@ -432,6 +432,87 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
   <script src="../assets/js/main.js"></script>
 
 <script>
+
+function resendReturnedDocument(doc_id) {
+  Swal.fire({
+    title: "Re-Send Document?",
+    text: "Are you sure you want to send this document back to PAD?",
+    icon: "question",
+    showCancelButton: true,
+    confirmButtonColor: "#198754",
+    cancelButtonColor: "#6c757d",
+    confirmButtonText: "Yes, Send Again",
+    cancelButtonText: "Cancel"
+  }).then((result) => {
+    if (result.isConfirmed) {
+      $.ajax({
+        url: "query_outgoing_records.php",
+        type: "POST",
+        data: { resend_returned_doc: 1, doc_id: doc_id },
+        success: function(response) {
+          if (response.trim() === "success") {
+            Swal.fire({
+              title: "Document Sent!",
+              text: "The returned document has been re-sent successfully.",
+              icon: "success",
+              timer: 1500,
+              showConfirmButton: false
+            });
+            loadTable();
+          } else {
+            Swal.fire("Error", "Unable to re-send document.", "error");
+          }
+        },
+        error: function() {
+          Swal.fire("Error", "Server not reachable.", "error");
+        }
+      });
+    }
+  });
+}
+
+
+function viewReturnRemarks(doc_id) {
+  $.ajax({
+    url: "query_outgoing_records.php",
+    type: "POST",
+    data: { get_return_remarks: 1, doc_id: doc_id },
+    success: function(response) {
+      try {
+        const data = JSON.parse(response);
+        if (data.status === "success") {
+          Swal.fire({
+            title: "Returned Document",
+            html: `
+              <p class="text-start"><strong>Remarks:</strong></p>
+              <p class="text-muted text-start" style="white-space: pre-line;">${data.remarks}</p>
+            `,
+            icon: "info",
+            showCancelButton: true,
+            confirmButtonText: "Re-Send to PAD",
+            cancelButtonText: "Close",
+            confirmButtonColor: "#0d6efd",
+            cancelButtonColor: "#6c757d"
+          }).then((result) => {
+            if (result.isConfirmed) {
+              resendReturnedDocument(doc_id);
+            }
+          });
+        } else {
+          Swal.fire("No Remarks Found", "This returned document has no recorded remarks.", "info");
+        }
+      } catch (e) {
+        Swal.fire("Error", "Unexpected response from server.", "error");
+      }
+    },
+    error: function() {
+      Swal.fire("Error", "Server not reachable.", "error");
+    }
+  });
+}
+
+
+
     // Load data when page opens
     window.onload = function() {
       loadTable();

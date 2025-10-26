@@ -31,7 +31,7 @@
 
           <a class="nav-link nav-profile d-flex align-items-center pe-0" href="#" data-bs-toggle="dropdown">
             <img src="../assets/img/profile.png" alt="Profile" class="rounded-circle">
-            <span class="d-none d-md-block ps-2"><?php echo '('.$_SESSION['acc_id'].') '.ucfirst($_SESSION['username']) ?></span>
+            <span class="d-none d-md-block ps-2"><?php echo '(OFFICE ID: '.$_SESSION['officeid'].') '.ucfirst($_SESSION['fullname']) ?></span>
           </a><!-- End Profile Iamge Icon -->
 
         </li><!-- End Profile Nav -->

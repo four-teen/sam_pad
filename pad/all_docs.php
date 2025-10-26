@@ -236,6 +236,61 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
       .select2-selection__placeholder {
         color: #6c757d !important;
       }
+
+/* ====== Smooth Connected Timeline ====== */
+.timeline {
+  position: relative;
+  margin-left: 28px; /* spacing from icons */
+  padding-left: 20px;
+}
+
+.timeline::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 2px; /* aligns exactly with badge centers */
+  width: 3px;
+  height: 100%;
+  background: linear-gradient(to bottom, #f0f0f0, #ddd);
+  border-radius: 2px;
+}
+
+/* each timeline item */
+.timeline-item {
+  position: relative;
+  margin-bottom: 1.8rem;
+  padding-left: 10px;
+}
+
+/* the round icons */
+.timeline-item .timeline-icon {
+  position: absolute;
+  left: -28px;
+  top: 0;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 12px;
+  z-index: 2;
+}
+
+/* small connector between points */
+.timeline-item:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  left: -18px;
+  top: 22px;
+  width: 3px;
+  height: calc(100% - 22px);
+  background: #ddd;
+  border-radius: 2px;
+  z-index: 1;
+}
+
   </style>
 </head>
 
@@ -260,11 +315,10 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
 <!-- Improved Dashboard Cards -->
 <div class="row g-2">
 
-  <!-- Manage Document Types -->
   <div class="col-lg-3 col-md-6">
-    <div class="card info-card border-0 shadow-sm" style="--start-color:#198754;--end-color:#20c997;" onclick="manage_doc_incoming()">
+    <div class="card info-card border-0 shadow-sm" style="--start-color:#198754;--end-color:#20c997;" onclick="incoming_docs()">
       <div class="card-body">
-        <h5 class="card-title">All Documents <span class="text-muted">| Received</span></h5>
+        <h5 class="card-title">Incoming/Outgoing <span class="text-muted">| Documents</span></h5>
         <div class="d-flex align-items-center">
           <div class="card-icon">
             <i class='bx bx-archive-out'></i>
@@ -278,9 +332,27 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
     </div>
   </div>
 
+  <!-- RECEIVED -->
+  <div class="col-lg-3 col-md-6">
+    <div class="card info-card border-0 shadow-sm" style="--start-color:#dc3545;--end-color:#fd7e14;" onclick="received_documents()">
+      <div class="card-body">
+        <h5 class="card-title">RECEIVED <span class="text-muted">| Documents</span></h5>
+        <div class="d-flex align-items-center">
+          <div class="card-icon">
+            <i class="bi bi-suitcase"></i>
+          </div>
+          <div>
+            <h3 id="load_received_count" class="mb-0"></h3>
+            <small class="text-muted">total transactions</small>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>  
+
   <!-- Manage Request -->
   <div class="col-lg-3 col-md-6">
-    <div class="card info-card border-0 shadow-sm" style="--start-color:#007bff;--end-color:#17a2b8;">
+    <div class="card info-card border-0 shadow-sm" style="--start-color:#007bff;--end-color:#17a2b8;" onclick="incoming_documents()">
       <div class="card-body">
         <h5 class="card-title">Records Section <span class="text-muted">| List</span></h5>
         <div class="d-flex align-items-center">
@@ -296,7 +368,6 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
     </div>
   </div>
 
-
   <!-- Released Summary -->
   <div class="col-lg-3 col-md-6">
     <div class="card info-card border-0 shadow-sm" style="--start-color:#ffc107;--end-color:#ffb347;" onclick="released_summary()">
@@ -309,24 +380,6 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
           <div>
             <h3 id="load_summary" class="mb-0">0</h3>
             <small class="text-muted">transactions this period</small>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Statistics -->
-  <div class="col-lg-3 col-md-6">
-    <div class="card info-card border-0 shadow-sm" style="--start-color:#dc3545;--end-color:#fd7e14;" onclick="statistics_summary()">
-      <div class="card-body">
-        <h5 class="card-title">Statistics <span class="text-muted">| Documents</span></h5>
-        <div class="d-flex align-items-center">
-          <div class="card-icon">
-            <i class="bx bx-bar-chart-alt-2"></i>
-          </div>
-          <div>
-            <h3 id="load_statistics" class="mb-0">0</h3>
-            <small class="text-muted">total transactions</small>
           </div>
         </div>
       </div>
@@ -570,6 +623,23 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
 </div>
 
 
+<!-- 🔹 Timeline Drawer -->
+<div class="offcanvas offcanvas-end shadow-lg" tabindex="-1" id="timelineDrawer" aria-labelledby="timelineDrawerLabel">
+  <div class="offcanvas-header bg-primary text-white">
+    <h5 class="offcanvas-title" id="timelineDrawerLabel">
+      <i class="bi bi-clock-history me-2"></i> Document Activity Timeline
+    </h5>
+    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+  </div>
+  <div class="offcanvas-body" id="timelineContent" style="max-height:80vh; overflow-y:auto;">
+    <div class="text-center text-muted mt-5">
+      <i class="bi bi-arrow-clockwise fs-2 d-block mb-2"></i>
+      <p>Loading timeline...</p>
+    </div>
+  </div>
+</div>
+
+
   <!-- ======= Footer ======= -->
   <footer id="footer" class="footer">
     <div class="copyright">
@@ -595,6 +665,37 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
   <script src="functioned.js"></script>
 <script>
 
+function viewTimeline(doc_id) {
+  // Open the offcanvas drawer
+  const drawer = new bootstrap.Offcanvas(document.getElementById('timelineDrawer'));
+  drawer.show();
+
+  // Show loading state
+  $('#timelineContent').html(`
+    <div class="text-center text-muted mt-5">
+      <i class="bi bi-arrow-clockwise fs-2 d-block mb-2"></i>
+      <p>Loading timeline...</p>
+    </div>
+  `);
+
+  // Fetch the timeline data
+  $.ajax({
+    url: "query_all_docs.php",
+    type: "POST",
+    data: { load_timeline: 1, doc_id: doc_id },
+    success: function(response) {
+      $('#timelineContent').html(response);
+    },
+    error: function() {
+      $('#timelineContent').html(`
+        <div class="alert alert-danger text-center mt-5">
+          <i class="bi bi-exclamation-triangle me-2"></i>
+          Failed to load timeline.
+        </div>
+      `);
+    }
+  });
+}
 
 
 function get_count_outgoing(){
@@ -663,6 +764,32 @@ $(document).ready(function() {
 });
 
 
+function get_count_outgoing(){
+  $.ajax({
+    url: "query_records.php",
+    type: "POST",
+    data: { 
+      get_outgoing_counter: 1 
+    },
+    success: function(response) {
+      $('#load_outgoing_count').html(response);
+    }
+  });  
+}
+
+function get_count_received(){
+  $.ajax({
+    url: "query_records.php",
+    type: "POST",
+    data: { 
+      get_received_counter: 1 
+    },
+    success: function(response) {
+      $('#load_received_count').html(response);
+    }
+  });  
+}
+
 function get_doc_count(){
   $.ajax({
     url: "query_records.php",
@@ -683,10 +810,10 @@ window.onload = function() {
   loadTable();
   get_doc_count(); // ✅ add this here
   get_count_outgoing();
+  get_count_received();
 };
 
 ;
-
 
 
 // 🚀 Optimized: Server-side DataTables for large datasets
@@ -718,7 +845,7 @@ function loadTable() {
       processing: true,
       serverSide: true,
       ajax: {
-        url: "query_records.php",
+        url: "query_all_docs.php",
         type: "POST",
         data: { server_table: 1 }
       },
