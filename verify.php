@@ -1,55 +1,101 @@
 <?php
+ob_start();
 session_start();
 include 'db.php';
 
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $username = mysqli_real_escape_string($conn, $_POST['username']);
-    $password = mysqli_real_escape_string($conn, $_POST['password']);
+// 🧠 Define log file path
+$logFile = __DIR__ . '/login_log.txt';
+if (!file_exists($logFile)) {
+    file_put_contents($logFile, "=== Login Log File Created at " . date('Y-m-d H:i:s') . " ===\n");
+}
 
-    // 🔍 Check if account exists and is active
+// 🪵 Write to log (compact style)
+function writeLog($message) {
+    global $logFile;
+    $timestamp = date('Y-m-d H:i:s');
+    file_put_contents($logFile, "[$timestamp] $message" . PHP_EOL, FILE_APPEND);
+}
+
+// --- START ---
+if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+
+    $username = trim(mysqli_real_escape_string($conn, $_POST['username']));
+    $password = trim(mysqli_real_escape_string($conn, $_POST['password']));
+
     $sql = "SELECT * FROM tbl_accounts WHERE acc_username='$username' AND acc_status='Active' LIMIT 1";
     $query = mysqli_query($conn, $sql);
 
-    if (mysqli_num_rows($query) === 1) {
+    if ($query && mysqli_num_rows($query) === 1) {
         $row = mysqli_fetch_assoc($query);
 
-        // ✅ Verify the hashed password
         if (password_verify($password, $row['acc_password'])) {
-            // 🧩 Set session variables
-            $_SESSION['acc_id']   = $row['acc_id'];
-            $_SESSION['username'] = $row['acc_username'];
-            $_SESSION['fullname'] = $row['acc_fullname'];
-            $_SESSION['role']     = $row['acc_role'];
-            $_SESSION['officeid']     = $row['acc_role'];
+
+            // 🧩 Set sessions
+            $_SESSION['acc_id']     = $row['acc_id'];
+            $_SESSION['username']   = $row['acc_username'];
+            $_SESSION['fullname']   = $row['acc_fullname'];
+            $_SESSION['role']       = $row['acc_role'];
+            $_SESSION['officeid']   = $row['acc_officeid'] ?? null;
 
             // 🕒 Update last login
-            $update = "UPDATE tbl_accounts SET last_login_at = NOW() WHERE acc_id = '".$row['acc_id']."'";
-            mysqli_query($conn, $update);
+            mysqli_query($conn, "UPDATE tbl_accounts SET last_login_at = NOW() WHERE acc_id = '{$row['acc_id']}'");
 
-            // ✅ Redirect to dashboard
-            if($row['acc_role']=='66'){ //ADMINISTRATOR
-                header("Location: administrator/index.php");
-                exit;
-            }else if($row['acc_role']=='67'){ //CENTRAL RECORDS UNIT
-                header("Location: records/index.php");
-                exit;
-            }else if($row['acc_role']=='68'){ //PAD OFFICE
-                header("Location: pad/index.php");
-                exit;
+            // 🌐 Device fingerprint
+            $ip         = $_SERVER['REMOTE_ADDR'] ?? 'Unknown IP';
+            $agent      = $_SERVER['HTTP_USER_AGENT'] ?? 'Unknown Agent';
+            $acceptLang = $_SERVER['HTTP_ACCEPT_LANGUAGE'] ?? 'Unknown';
+            $deviceType = (preg_match('/mobile/i', $agent)) ? 'Mobile' : ((preg_match('/tablet/i', $agent)) ? 'Tablet' : 'Desktop');
+            $fingerprintHash = hash('sha256', $ip . '|' . $agent . '|' . $acceptLang);
+
+            // 🧾 Write summarized log
+            writeLog("---- Login attempt started | Request method: POST detected | Username received: $username, Account found: ID={$row['acc_id']} Role={$row['acc_role']} ----");
+            writeLog("✅ Login successful | IP: $ip | Device: $deviceType | Lang: $acceptLang");
+            writeLog("🧩 Browser: $agent");
+            writeLog("🔐 Fingerprint Hash: $fingerprintHash");
+
+            // ✅ Redirect logic
+            switch ($row['acc_role']) {
+                case '66':
+                    writeLog("Redirecting to administrator dashboard...");
+                    $redirect = "administrator/index.php";
+                    break;
+                case '67':
+                    writeLog("Redirecting to records dashboard...");
+                    $redirect = "records/index.php";
+                    break;
+                case '68':
+                    writeLog("Redirecting to PAD dashboard...");
+                    $redirect = "pad/index.php";
+                    break;
+                default:
+                    $_SESSION['status'] = "Unknown role.";
+                    $redirect = "index.php";
+                    break;
+            }
+
+            // 🚀 Redirect safely
+            if (!headers_sent()) {
+                header("Location: $redirect");
+                exit();
+            } else {
+                echo "<script>window.location.href='$redirect';</script>";
+                exit();
             }
 
         } else {
             $_SESSION['status'] = "Incorrect password.";
             header("Location: index.php");
-            exit;
+            exit();
         }
     } else {
         $_SESSION['status'] = "Account not found or inactive.";
         header("Location: index.php");
-        exit;
+        exit();
     }
 } else {
     header("Location: index.php");
-    exit;
+    exit();
 }
+
+ob_end_flush();
 ?>
