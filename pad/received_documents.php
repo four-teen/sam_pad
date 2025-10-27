@@ -280,7 +280,7 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
 
   <!-- Manage Document Types -->
   <div class="col-lg-3 col-md-6">
-    <div class="card info-card border-0 shadow-sm" style="--start-color:#198754;--end-color:#20c997;" onclick="incoming_docs()">
+    <div class="card info-card border-0 shadow-sm" style="--start-color:#198754;--end-color:#20c997;" onclick="card_one()">
       <div class="card-body">
         <h5 class="card-title">Incoming/Outgoing <span class="text-muted">| Documents</span></h5>
         <div class="d-flex align-items-center">
@@ -298,7 +298,7 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
 
   <!-- RECEIVED -->
   <div class="col-lg-3 col-md-6">
-    <div class="card info-card border-0 shadow-sm" style="--start-color:#dc3545;--end-color:#fd7e14;" onclick="received_documents()">
+    <div class="card info-card border-0 shadow-sm" style="--start-color:#dc3545;--end-color:#fd7e14;" onclick="card_two()">
       <div class="card-body">
         <h5 class="card-title">RECEIVED <span class="text-muted">| Documents</span></h5>
         <div class="d-flex align-items-center">
@@ -316,7 +316,7 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
 
   <!-- Manage Request -->
   <div class="col-lg-3 col-md-6">
-    <div class="card info-card border-0 shadow-sm" style="--start-color:#007bff;--end-color:#17a2b8;" onclick="incoming_documents()">
+    <div class="card info-card border-0 shadow-sm" style="--start-color:#007bff;--end-color:#17a2b8;" onclick="card_three()">
       <div class="card-body">
         <h5 class="card-title">Records Section <span class="text-muted">| List</span></h5>
         <div class="d-flex align-items-center">
@@ -659,13 +659,18 @@ function get_doc_count(){
 }
 
 //LINKS
-  function manage_doc_outgoing(){
-    window.location = 'records_outgoing.php';
+  function card_one(){
+    window.location = 'index.php';
   }
 
-  function incoming_docs(){
-    window.location = 'index.php';
-  }  
+  function card_two(){
+    window.location = 'received_documents.php';
+  }
+
+  function card_three(){
+    window.location = 'all_docs.php';
+  }
+
 
 </script>
 

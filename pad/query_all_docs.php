@@ -1,6 +1,8 @@
 <?php
-include '../db.php';
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
 session_start();
+include '../db.php';
 
 /* 🔹 Load timeline for a specific document */
 if (isset($_POST['load_timeline'])) {
@@ -17,38 +19,47 @@ if (isset($_POST['load_timeline'])) {
     $run = mysqli_query($conn, $query);
 
     if (mysqli_num_rows($run) > 0) {
-		echo '<div class="timeline">';
-		while ($r = mysqli_fetch_assoc($run)) {
-		    $color = match($r['action_type']) {
-		        'Outgoing' => 'warning',
-		        'Received' => 'success',
-		        'Returned' => 'danger',
-		        'Archived' => 'secondary',
-		        default => 'info'
-		    };
+        echo '<div class="timeline">';
+        while ($r = mysqli_fetch_assoc($run)) {
+            // ✅ Replace match() with switch (works on PHP 7+)
+            switch ($r['action_type']) {
+                case 'Outgoing':
+                    $color = 'warning';
+                    $icon = 'bi-send';
+                    break;
+                case 'Received':
+                    $color = 'success';
+                    $icon = 'bi-check-circle';
+                    break;
+                case 'Returned':
+                    $color = 'danger';
+                    $icon = 'bi-arrow-counterclockwise';
+                    break;
+                case 'Archived':
+                    $color = 'secondary';
+                    $icon = 'bi-archive';
+                    break;
+                default:
+                    $color = 'info';
+                    $icon = 'bi-archive';
+                    break;
+            }
 
-		    $icon = match($r['action_type']) {
-		        'Outgoing' => 'bi-send',
-		        'Received' => 'bi-check-circle',
-		        'Returned' => 'bi-arrow-counterclockwise',
-		        default => 'bi-archive'
-		    };
-
-		    echo '
-		    <div class="timeline-item">
-		      <div class="timeline-icon bg-'.$color.'">
-		        <i class="bi '.$icon.'"></i>
-		      </div>
-		      <div class="ms-3">
-		        <h6 class="fw-bold text-'.$color.' mb-0">'.$r['action_type'].'</h6>
-		        <small class="text-muted d-block">'.date("F d, Y h:i A", strtotime($r['action_date'])).'</small>
-		        <p class="mb-1 text-secondary">'.$r['action_remarks'].'</p>
-		        <span class="badge bg-light text-dark">From: '.$r['from_office'].' → To: '.$r['to_office'].'</span>
-		      </div>
-		    </div>
-		    ';
-		}
-		echo '</div>';
+            echo '
+            <div class="timeline-item">
+              <div class="timeline-icon bg-' . $color . '">
+                <i class="bi ' . $icon . '"></i>
+              </div>
+              <div class="ms-3">
+                <h6 class="fw-bold text-' . $color . ' mb-0">' . htmlspecialchars($r['action_type']) . '</h6>
+                <small class="text-muted d-block">' . date("F d, Y h:i A", strtotime($r['action_date'])) . '</small>
+                <p class="mb-1 text-secondary">' . htmlspecialchars($r['action_remarks']) . '</p>
+                <span class="badge bg-light text-dark">From: ' . htmlspecialchars($r['from_office']) . ' → To: ' . htmlspecialchars($r['to_office']) . '</span>
+              </div>
+            </div>
+            ';
+        }
+        echo '</div>';
     } else {
         echo '
         <div class="alert alert-info text-center mt-4">
@@ -58,7 +69,6 @@ if (isset($_POST['load_timeline'])) {
 
     exit;
 }
-
 
 /* 🚀 SERVER-SIDE DATATABLES PROCESSING */
 if (isset($_POST['server_table'])) {
@@ -126,23 +136,18 @@ if (isset($_POST['server_table'])) {
                 $r['date_received'] = "";
             }
 
-            // 🟢 Add buttons here — Timeline + Take Action
+            // 🟢 Action buttons (View Timeline + Take Action)
             $r['actions'] = "
               <div class='d-grid gap-1' style='grid-template-columns: repeat(2, 1fr); display: grid;'>
-                <button class='btn btn-outline-primary btn-sm' 
-                        title='View Timeline' 
-                        onclick='viewTimeline({$r['doc_id']})'>
+                <button class='btn btn-outline-primary btn-sm' title='View Timeline' onclick='viewTimeline({$r['doc_id']})'>
                   <i class=\"bi bi-clock-history\"></i>
                 </button>
-                <button class='btn btn-outline-success btn-sm' 
-                        title='Take Action' 
-                        onclick='take_action({$r['doc_id']})'>
+                <button class='btn btn-outline-success btn-sm' title='Take Action' onclick='take_action({$r['doc_id']})'>
                   <i class=\"bi bi-send\"></i>
                 </button>
               </div>
             ";
 
-            // ✅ only include this record if it has no outgoing action
             $data[] = $r;
         }
     }
@@ -155,9 +160,4 @@ if (isset($_POST['server_table'])) {
     ]);
     exit;
 }
-
-
-
-
-
 ?>
