@@ -300,14 +300,14 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
   <div class="col-lg-3 col-md-6">
     <div class="card info-card border-0 shadow-sm" style="--start-color:#ffc107;--end-color:#ffb347;" onclick="card_three()">
       <div class="card-body">
-        <h5 class="card-title">Summary <span class="text-muted">| Released</span></h5>
+        <h5 class="card-title">Returned <span class="text-muted">| Documents</span></h5>
         <div class="d-flex align-items-center">
           <div class="card-icon">
-            <i class="bx bxs-objects-vertical-top"></i>
+            <i class="bi bi-arrow-90deg-down"></i>
           </div>
           <div>
             <h3 id="load_returned_count" class="mb-0">0</h3>
-            <small class="text-muted">records</small>
+            <small class="text-muted">transactions this period</small>
           </div>
         </div>
       </div>
@@ -464,6 +464,47 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
 
 <script>
 
+function confirmDocumentReturn(docId, receivedBy, officeDivision){
+  $.post('query_returned.php', { get_returned_remarks: 1, doc_id: docId }, function(resp){
+    let info = {};
+    try { info = JSON.parse(resp); } catch(e) { info = { remarks: resp }; }
+
+    const safe = (s)=> (s||'—')
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+      .replace(/\n/g,'<br>');
+
+    Swal.fire({
+      title: 'Returned Remarks',
+      html: `
+        <div class="text-start small">
+          <div><strong>From:</strong> ${safe(info.from_office)}</div>
+          <div><strong>Date:</strong> ${safe(info.action_date)}</div>
+          <div class="mt-2"><strong>Remarks:</strong><br>${safe(info.remarks)}</div>
+        </div>`,
+      icon: 'info',
+      showCancelButton: true,
+      confirmButtonText: 'Send back to PAD',
+      cancelButtonText: 'Close',
+      reverseButtons: true,
+      allowOutsideClick: false
+    }).then((res)=>{
+      if(res.isConfirmed){
+        $.post('query_returned.php', { set_outgoing_to_pad: 1, doc_id: docId }, function(r){
+          if(r === 'OK'){
+            Swal.fire('Sent!', 'Document set to Outgoing back to PAD.', 'success')
+              .then(()=> {
+                if (typeof get_count_returned === 'function') get_count_returned();
+                if (typeof load_table === 'function') load_table();
+              });
+          } else {
+            Swal.fire('Error', r || 'Failed to update.', 'error');
+          }
+        });
+      }
+    });
+  });
+}
+
 function view_uploaded_images(doc_id) {
   // Open modal and show spinner first
   $("#viewImagesModal").modal("show");
@@ -509,92 +550,12 @@ function view_uploaded_images(doc_id) {
   });
 }
 
-
-function resendReturnedDocument(doc_id) {
-  Swal.fire({
-    title: "Re-Send Document?",
-    text: "Are you sure you want to send this document back to PAD?",
-    icon: "question",
-    showCancelButton: true,
-    confirmButtonColor: "#198754",
-    cancelButtonColor: "#6c757d",
-    confirmButtonText: "Yes, Send Again",
-    cancelButtonText: "Cancel"
-  }).then((result) => {
-    if (result.isConfirmed) {
-      $.ajax({
-        url: "query_outgoing_records.php",
-        type: "POST",
-        data: { resend_returned_doc: 1, doc_id: doc_id },
-        success: function(response) {
-          if (response.trim() === "success") {
-            Swal.fire({
-              title: "Document Sent!",
-              text: "The returned document has been re-sent successfully.",
-              icon: "success",
-              timer: 1500,
-              showConfirmButton: false
-            });
-            loadTable();
-          } else {
-            Swal.fire("Error", "Unable to re-send document.", "error");
-          }
-        },
-        error: function() {
-          Swal.fire("Error", "Server not reachable.", "error");
-        }
-      });
-    }
-  });
-}
-
-
-function viewReturnRemarks(doc_id) {
-  $.ajax({
-    url: "query_outgoing_records.php",
-    type: "POST",
-    data: { get_return_remarks: 1, doc_id: doc_id },
-    success: function(response) {
-      try {
-        const data = JSON.parse(response);
-        if (data.status === "success") {
-          Swal.fire({
-            title: "Returned Document",
-            html: `
-              <p class="text-start"><strong>Remarks:</strong></p>
-              <p class="text-muted text-start" style="white-space: pre-line;">${data.remarks}</p>
-            `,
-            icon: "info",
-            showCancelButton: true,
-            confirmButtonText: "Re-Send to PAD",
-            cancelButtonText: "Close",
-            confirmButtonColor: "#0d6efd",
-            cancelButtonColor: "#6c757d"
-          }).then((result) => {
-            if (result.isConfirmed) {
-              resendReturnedDocument(doc_id);
-            }
-          });
-        } else {
-          Swal.fire("No Remarks Found", "This returned document has no recorded remarks.", "info");
-        }
-      } catch (e) {
-        Swal.fire("Error", "Unexpected response from server.", "error");
-      }
-    },
-    error: function() {
-      Swal.fire("Error", "Server not reachable.", "error");
-    }
-  });
-}
-
-
-
     // Load data when page opens
     window.onload = function() {
       loadTable();
       get_doc_count(); // ✅ add this here
       get_count_outgoing();
+      get_count_returned();
     };
 
     function loadTable() {
@@ -622,7 +583,7 @@ function viewReturnRemarks(doc_id) {
 
       $.ajax({
         type: "POST",
-        url: "query_outgoing_records.php",
+        url: "query_returned.php",
         data: { "load_table": "1" },
         success: function(response) {
           clearInterval(interval);
@@ -646,6 +607,18 @@ function viewReturnRemarks(doc_id) {
     }
 
 
+function get_count_returned(){
+  $.ajax({
+    url: "query_returned.php",
+    type: "POST",
+    data: { 
+      get_returned_counter: 1 
+    },
+    success: function(response) {
+      $('#load_returned_count').html(response);
+    }
+  });  
+}
 
 function get_count_outgoing(){
   $.ajax({
@@ -674,6 +647,7 @@ function get_doc_count(){
 }
 
 //LINKS
+
   function card_one(){
     window.location = 'index.php';
   }
@@ -685,6 +659,7 @@ function get_doc_count(){
   function card_three(){
     window.location = 'records_returned.php';
   }
+
 
 </script>
 

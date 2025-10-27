@@ -266,7 +266,7 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
 
   <!-- Manage Request -->
   <div class="col-lg-3 col-md-6">
-    <div class="card info-card border-0 shadow-sm" style="--start-color:#007bff;--end-color:#17a2b8;"  onclick="manage_records()">
+    <div class="card info-card border-0 shadow-sm" style="--start-color:#007bff;--end-color:#17a2b8;"  onclick="card_one()">
       <div class="card-body">
         <h5 class="card-title">Manage Records <span class="text-muted">| List</span></h5>
         <div class="d-flex align-items-center">
@@ -284,7 +284,7 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
 
   <!-- Manage Document Types -->
   <div class="col-lg-3 col-md-6">
-    <div class="card info-card border-0 shadow-sm" style="--start-color:#198754;--end-color:#20c997;" onclick="manage_doc_outgoing()">
+    <div class="card info-card border-0 shadow-sm" style="--start-color:#198754;--end-color:#20c997;" onclick="card_two()">
       <div class="card-body">
         <h5 class="card-title">Outgoing <span class="text-muted">| Documents</span></h5>
         <div class="d-flex align-items-center">
@@ -300,14 +300,14 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
     </div>
   </div>
 
-  <!-- Released Summary -->
+  <!-- Returned -->
   <div class="col-lg-3 col-md-6">
-    <div class="card info-card border-0 shadow-sm" style="--start-color:#ffc107;--end-color:#ffb347;" onclick="released_summary()">
+    <div class="card info-card border-0 shadow-sm" style="--start-color:#ffc107;--end-color:#ffb347;" onclick="card_three()">
       <div class="card-body">
-        <h5 class="card-title">Summary <span class="text-muted">| Released</span></h5>
+        <h5 class="card-title">Returned <span class="text-muted">| Documents</span></h5>
         <div class="d-flex align-items-center">
           <div class="card-icon">
-            <i class="bx bxs-objects-vertical-top"></i>
+            <i class="bi bi-arrow-90deg-down"></i>
           </div>
           <div>
             <h3 id="load_summary" class="mb-0">0</h3>
@@ -1453,13 +1453,17 @@ document.getElementById("btn_update_record").addEventListener("click", function(
 });
 
 //LINKS
-  function manage_doc_outgoing(){
+  function card_two(){
     window.location = 'records_outgoing.php';
   }
 
-  function manage_records(){
+  function card_one(){
     window.location = 'index.php';
   }
+
+  function card_three(){
+    window.location = 'records_returned.php';
+  }  
 
 </script>
 

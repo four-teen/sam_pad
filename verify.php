@@ -35,7 +35,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $_SESSION['username']   = $row['acc_username'];
             $_SESSION['fullname']   = $row['acc_fullname'];
             $_SESSION['role']       = $row['acc_role'];
-            $_SESSION['officeid']   = $row['acc_officeid'] ?? null;
+            $_SESSION['officeid']   = $row['acc_role'] ?? null;
 
             // 🕒 Update last login
             mysqli_query($conn, "UPDATE tbl_accounts SET last_login_at = NOW() WHERE acc_id = '{$row['acc_id']}'");

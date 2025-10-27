@@ -119,14 +119,25 @@ if(isset($_POST['saving_new_office'])){
 }
 
 if(isset($_POST['get_outgoing_counter'])){
-    $check = "SELECT count(action_type) as outgoing_count FROM tbl_document_actions 
-              WHERE action_type='Outgoing'";
+    $check = "
+        SELECT COUNT(*) AS outgoing_count
+        FROM (
+            SELECT doc_id, MAX(action_date) AS latest_date
+            FROM tbl_document_actions
+            GROUP BY doc_id
+        ) AS latest
+        INNER JOIN tbl_document_actions a 
+            ON a.doc_id = latest.doc_id AND a.action_date = latest.latest_date
+        WHERE a.action_type = 'Outgoing'
+    ";
+
     $runcheck = mysqli_query($conn, $check);
     if($runcheck){
         $r = mysqli_fetch_assoc($runcheck);
         echo $r['outgoing_count'];
     }
 }
+
 
 if(isset($_POST['saving_take_actions'])){
 
@@ -439,7 +450,7 @@ while ($r = mysqli_fetch_assoc($result)) {
     // check if record already has outgoing action
     $check = "SELECT * FROM tbl_document_actions 
               WHERE doc_id = '{$r['doc_id']}' 
-              AND from_office_id = '{$_SESSION['acc_id']}' 
+              AND from_office_id = '{$_SESSION['officeid']}' 
               LIMIT 1";
     $runcheck = mysqli_query($conn, $check);
 
