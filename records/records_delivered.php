@@ -206,73 +206,36 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
         display: flex;
         gap: .25rem;
       }
-    /* --- Select2 Alignment Fix (Bootstrap 5 Friendly) --- */
-    .select2-container {
-      width: 100% !important;
-    }
+/* --- Select2 Alignment Fix (Bootstrap 5 Friendly) --- */
+.select2-container {
+  width: 100% !important;
+}
 
-    .select2-container--bootstrap4 .select2-selection--single {
-      height: calc(2.35rem + 2px) !important; /* Match Bootstrap form height */
-      border: 1px solid #ced4da !important;
-      border-radius: 0.375rem !important;
-      padding: 0.375rem 0.75rem !important;
-      display: flex !important;
-      align-items: center !important;
-    }
+.select2-container--bootstrap4 .select2-selection--single {
+  height: calc(2.35rem + 2px) !important; /* Match Bootstrap form height */
+  border: 1px solid #ced4da !important;
+  border-radius: 0.375rem !important;
+  padding: 0.375rem 0.75rem !important;
+  display: flex !important;
+  align-items: center !important;
+}
 
-    .select2-container--bootstrap4 .select2-selection__rendered {
-      font-size: 0.95rem !important;
-      color: #495057 !important;
-      line-height: normal !important;
-    }
+.select2-container--bootstrap4 .select2-selection__rendered {
+  font-size: 0.95rem !important;
+  color: #495057 !important;
+  line-height: normal !important;
+}
 
-    .select2-container--bootstrap4 .select2-selection__arrow {
-      height: 100% !important;
-      top: 0 !important;
-      right: 0.75rem !important;
-    }
+.select2-container--bootstrap4 .select2-selection__arrow {
+  height: 100% !important;
+  top: 0 !important;
+  right: 0.75rem !important;
+}
 
-    /* Placeholder color consistency */
-    .select2-selection__placeholder {
-      color: #6c757d !important;
-    }
-    #view_images_grid .thumb {
-      position: relative;
-      border-radius: 0.5rem;
-      overflow: hidden;
-      background: #fff;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-      transition: transform 0.2s ease;
-    }
-    #view_images_grid .thumb:hover {
-      transform: scale(1.05);
-    }
-    #view_images_grid img {
-      width: 100%;
-      height: 140px;
-      object-fit: cover;
-      cursor: pointer;
-    }
-
-  /* 🔹 Equal height and smooth hover */
-  .info-card {
-    transition: all 0.25s ease-in-out;
-  }
-  .info-card:hover {
-    transform: scale(1.03);
-    cursor: pointer;
-  }
-
-  /* 🔹 Active look */
-  .info-card.active {
-    background: linear-gradient(135deg, var(--start-color), var(--end-color));
-    color: #fff !important;
-    transform: scale(1.03);
-    box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
-  }
-  .info-card.active .text-muted {
-    color: #fff !important;
-  }
+/* Placeholder color consistency */
+.select2-selection__placeholder {
+  color: #6c757d !important;
+}
   </style>
 </head>
 
@@ -294,15 +257,17 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
 
     <section class="section dashboard">
       <div class="row">
-<!-- Improved Dashboard Cards -->
 
-      <?php include 'cards.php'; ?>
+      <!-- Improved Dashboard Cards -->
+      <?php 
+        include 'card.php';
+       ?>
 
         <!-- Reports -->
         <div class="col-12">
           <div class="card">
             <div class="card-body">
-              <h5 class="card-title"><i class='bx bxs-down-arrow text-success'></i> Incoming Documents <span class="text-muted">/ Processing...</span></h5>
+              <h5 class="card-title"><i class='bx bx-run text-danger'></i> Outgoing Documents <span class="text-muted">/ Processing...</span></h5>
               <div id="main_data"></div>
             </div>
           </div>
@@ -312,6 +277,64 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
       </div>
     </section>
   </main>
+
+
+
+
+<div class="modal fade" id="takeActionModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="uploadImagesLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable modal-dialog-centered">
+    <div class="modal-content shadow-lg border-0 rounded-3">
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title fw-semibold" id="uploadImagesLabel">
+          <i class="bi bi-images me-2"></i> Take Action
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+
+      <div class="modal-body">
+        <input type="hidden" id="take_action_doc_id">
+        
+        <div class="mb-3">
+          <label class="form-label fw-semibold" for="to_office_id">Select Office</label>
+          <select id="to_office_id" class="form-control">
+            <option value="">Select Office</option>
+            <?php 
+              $get_office = "SELECT * FROM `tbl_office_heads`";
+              $runget_office = mysqli_query($conn, $get_office);
+              while($r_office = mysqli_fetch_assoc($runget_office)){
+                echo'<option value="'.$r_office['office_id'].'">'.$r_office['office_name'].'</option>';
+              }
+            ?>
+          </select>
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-semibold" for="action_type">Select Action</label>
+          <select id="action_type" class="form-control">
+            <option value="">Select Action</option>
+            <option value="OUTGOING">OUTGOING</option>
+            <option value="ARCHIEVED">ARCHIEVED</option>
+          </select>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label fw-semibold" for="action_type_remarks">Add Remarks</label>
+          <textarea id="action_type_remarks" rows="5" class="form-control"></textarea>
+        </div>
+
+
+      </div>
+
+      <div class="modal-footer bg-white border-0">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+          <i class="bi bi-x-circle me-1"></i> Close
+        </button>
+        <button type="button" class="btn btn-info" onclick="save_set_actions()" data-bs-dismiss="modal">
+          <i class="bi bi-cloud-upload me-1"></i> Set Action
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <!-- View Uploaded Images Modal -->
 <div class="modal fade" id="viewImagesModal" tabindex="-1" aria-hidden="true">
@@ -370,7 +393,6 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
 
 <script>
 
-
 function view_uploaded_images(doc_id) {
   // Open modal and show spinner first
   $("#viewImagesModal").modal("show");
@@ -380,7 +402,7 @@ function view_uploaded_images(doc_id) {
 
   // Load details & images
   $.ajax({
-    url: "query_incoming_records.php",
+    url: "query_outgoing_records.php",
     type: "POST",
     data: { load_images_for_view: 1, doc_id: doc_id },
     success: function(resp) {
@@ -416,99 +438,14 @@ function view_uploaded_images(doc_id) {
   });
 }
 
-// Lightbox-style image enlargement
-function enlargeImage(src) {
-  Swal.fire({
-    imageUrl: src,
-    imageAlt: "Uploaded Document",
-    showConfirmButton: false,
-    background: "#000",
-    width: '90%',
-    padding: 0,
-    allowOutsideClick: true,     // ✅ click outside to close
-    allowEscapeKey: true,        // ✅ Esc key works
-    showCloseButton: true,       // ✅ visible close (×) button
-    closeButtonHtml: '<i class="bi bi-x-lg text-white"></i>', // Bootstrap icon
-    customClass: {
-      closeButton: 'position-absolute top-0 end-0 m-3 fs-4', // nicely placed
-      popup: 'p-0 border-0 rounded-0'
-    },
-    didOpen: () => {
-      // Add fade-in effect for better UX
-      const img = Swal.getImage();
-      img.style.borderRadius = '8px';
-      img.style.transition = 'opacity 0.3s ease';
-      img.style.opacity = 0;
-      setTimeout(() => img.style.opacity = 1, 10);
-    }
-  });
-}
-
-
-
-
-
-function confirmDocumentReceipt(doc_id, received_by, office_division) {
-  Swal.fire({
-    title: "Confirm Document Receipt?",
-    text: "Before proceeding, please verify that you have the physical document in your possession.",
-    icon: "info",
-    showCancelButton: true,
-    confirmButtonColor: "#28a745", // Green confirm
-    cancelButtonColor: "#6c757d",  // Grey cancel
-    confirmButtonText: "Yes, I have received it",
-    cancelButtonText: "Close",
-    reverseButtons: true
-  }).then((result) => {
-    if (result.isConfirmed) {
-
-      $.ajax({
-        url: "query_incoming_records.php",
-        type: "POST",
-        data: { 
-          take_action_received: 1,
-          doc_id: doc_id,
-          received_by: received_by,
-          office_division: office_division
-        },
-        success: function(response) {
-          $('#test').html(response);
-          if (response.trim() === "success") {
-            Swal.fire({
-              title: "Receipt Confirmed!",
-              text: "The document receipt has been successfully logged.",
-              icon: "success",
-              timer: 1500,
-              showConfirmButton: false
-            });
-            loadTable(); // Refresh table
-            get_count_received();
-            get_doc_count();
-
-          } else {
-            Swal.fire({
-              title: "Error",
-              text: "Unable to log document receipt.",
-              icon: "error"
-            });
-          }
-        },
-        error: function() {
-          Swal.fire("Error", "Server not reachable.", "error");
-        }
-      });
-
-    }
-  });
-}
-
-
     // Load data when page opens
     window.onload = function() {
       loadTable();
       get_doc_count(); // ✅ add this here
       get_count_outgoing();
-      get_count_received();
+      get_count_returned();
+      get_count_acted();
+      get_count_delivered();
     };
 
     function loadTable() {
@@ -536,7 +473,7 @@ function confirmDocumentReceipt(doc_id, received_by, office_division) {
 
       $.ajax({
         type: "POST",
-        url: "query_incoming_records.php",
+        url: "query_delivered.php",
         data: { "load_table": "1" },
         success: function(response) {
           clearInterval(interval);
@@ -559,7 +496,45 @@ function confirmDocumentReceipt(doc_id, received_by, office_division) {
       });
     }
 
+function get_count_delivered(){
+  $.ajax({
+    url: "query_delivered.php",
+    type: "POST",
+    data: { 
+      get_delivered_counter: 1 
+    },
+    success: function(response) {
+      $('#load_delivered_count').html(response);
+    }
+  });  
+}
 
+function get_count_acted(){
+  $.ajax({
+    url: "query_acted.php",
+    type: "POST",
+    data: { 
+      get_acted_counter: 1 
+    },
+    success: function(response) {
+      $('#load_acted_count').html(response);
+    }
+  });  
+}
+
+
+function get_count_returned(){
+  $.ajax({
+    url: "query_returned.php",
+    type: "POST",
+    data: { 
+      get_returned_counter: 1 
+    },
+    success: function(response) {
+      $('#load_returned_count').html(response);
+    }
+  });  
+}
 
 function get_count_outgoing(){
   $.ajax({
@@ -570,19 +545,6 @@ function get_count_outgoing(){
     },
     success: function(response) {
       $('#load_outgoing_count').html(response);
-    }
-  });  
-}
-
-function get_count_received(){
-  $.ajax({
-    url: "query_records.php",
-    type: "POST",
-    data: { 
-      get_received_counter: 1 
-    },
-    success: function(response) {
-      $('#load_received_count').html(response);
     }
   });  
 }
@@ -601,18 +563,30 @@ function get_doc_count(){
 }
 
 //LINKS
+
   function card_one(){
     window.location = 'index.php';
   }
 
   function card_two(){
-    window.location = 'received_documents.php';
+    window.location = 'records_outgoing.php';
   }
 
   function card_three(){
-    window.location = 'all_docs.php';
+    window.location = 'records_returned.php';
+  }
+
+  function card_four(){
+    window.location = 'records_acted.php';
   } 
 
+  function card_five(){
+    window.location = 'records_delivered.php';
+  } 
+
+  function card_six(){
+    window.location = 'all_docs.php';
+  }    
 </script>
 
 

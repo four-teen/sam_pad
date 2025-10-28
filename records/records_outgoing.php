@@ -257,83 +257,10 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
 
     <section class="section dashboard">
       <div class="row">
-<!-- Improved Dashboard Cards -->
-<div class="row g-2">
-
-  <!-- Manage Request -->
-  <div class="col-lg-3 col-md-6">
-    <div class="card info-card border-0 shadow-sm" style="--start-color:#007bff;--end-color:#17a2b8;" onclick="card_one()">
-      <div class="card-body">
-        <h5 class="card-title">Manage Records <span class="text-muted">| List</span></h5>
-        <div class="d-flex align-items-center">
-          <div class="card-icon">
-            <i class="bx bx-file"></i>
-          </div>
-          <div>
-            <h3 id="load_doc_count" class="mb-0">0</h3>
-            <small class="text-muted">processed</small>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Manage Document Types -->
-  <div class="col-lg-3 col-md-6">
-    <div class="card info-card border-0 shadow-sm" style="--start-color:#198754;--end-color:#20c997;" onclick="card_two()">
-      <div class="card-body">
-        <h5 class="card-title">Outgoing <span class="text-muted">| Documents</span></h5>
-        <div class="d-flex align-items-center">
-          <div class="card-icon">
-            <i class='bx bx-archive-out'></i>
-          </div>
-          <div>
-            <h3 id="load_outgoing_count" class="mb-0">0</h3>
-            <small class="text-muted">Need Actions</small>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Released Summary -->
-  <div class="col-lg-3 col-md-6">
-    <div class="card info-card border-0 shadow-sm" style="--start-color:#ffc107;--end-color:#ffb347;" onclick="card_three()">
-      <div class="card-body">
-        <h5 class="card-title">Summary <span class="text-muted">| Released</span></h5>
-        <div class="d-flex align-items-center">
-          <div class="card-icon">
-            <i class="bx bxs-objects-vertical-top"></i>
-          </div>
-          <div>
-            <h3 id="load_returned_count" class="mb-0">0</h3>
-            <small class="text-muted">records</small>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Statistics -->
-  <div class="col-lg-3 col-md-6">
-    <div class="card info-card border-0 shadow-sm" style="--start-color:#dc3545;--end-color:#fd7e14;" onclick="statistics_summary()">
-      <div class="card-body">
-        <h5 class="card-title">Statistics <span class="text-muted">| Documents</span></h5>
-        <div class="d-flex align-items-center">
-          <div class="card-icon">
-            <i class="bx bx-bar-chart-alt-2"></i>
-          </div>
-          <div>
-            <h3 id="load_statistics" class="mb-0">0</h3>
-            <small class="text-muted">total transactions</small>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-</div>
-
+      <!-- Improved Dashboard Cards -->
+      <?php 
+        include 'card.php';
+       ?>
         <!-- Reports -->
         <div class="col-12">
           <div class="card">
@@ -595,6 +522,7 @@ function viewReturnRemarks(doc_id) {
       loadTable();
       get_doc_count(); // ✅ add this here
       get_count_outgoing();
+      get_count_returned();
     };
 
     function loadTable() {
@@ -646,6 +574,18 @@ function viewReturnRemarks(doc_id) {
     }
 
 
+function get_count_returned(){
+  $.ajax({
+    url: "query_returned.php",
+    type: "POST",
+    data: { 
+      get_returned_counter: 1 
+    },
+    success: function(response) {
+      $('#load_returned_count').html(response);
+    }
+  });  
+}
 
 function get_count_outgoing(){
   $.ajax({
@@ -685,6 +625,18 @@ function get_doc_count(){
   function card_three(){
     window.location = 'records_returned.php';
   }
+
+  function card_four(){
+    window.location = 'records_acted.php';
+  } 
+
+  function card_five(){
+    window.location = 'records_delivered.php';
+  } 
+
+  function card_six(){
+    window.location = 'all_docs.php';
+  } 
 
 </script>
 

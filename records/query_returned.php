@@ -8,16 +8,17 @@ if (isset($_POST['get_returned_remarks'])) {
     $doc_id = intval($_POST['doc_id'] ?? 0);
 
     $sql = "
-        SELECT a.action_remarks, a.action_date,
-               a.from_office_id,
-               fo.division_desc AS from_office
-        FROM tbl_document_actions a
-        LEFT JOIN tbldivisions fo ON fo.divisionid = a.from_office_id
-        WHERE a.doc_id = ?
-          AND a.action_type = 'Returned'
-        ORDER BY a.action_id DESC
-        LIMIT 1
+SELECT a.action_remarks, a.action_date,
+a.from_office_id,
+fo.office_name AS from_office
+FROM tbl_document_actions a
+LEFT JOIN tbl_office_heads fo ON fo.office_id = a.from_office_id
+WHERE a.doc_id = ?
+AND a.action_type = 'Returned'
+ORDER BY a.action_id DESC
+LIMIT 1
     ";
+
     $stmt = mysqli_prepare($conn, $sql);
     mysqli_stmt_bind_param($stmt, 'i', $doc_id);
     mysqli_stmt_execute($stmt);
@@ -42,47 +43,61 @@ if (isset($_POST['get_returned_remarks'])) {
 /* ---------- 2.b Set next action as Outgoing back to PAD ---------- */
 if (isset($_POST['set_outgoing_to_pad'])) {
     $doc_id = intval($_POST['doc_id'] ?? 0);
+    $from_office_id = $_SESSION['officeid'] ?? 0;
 
-    // ✅ Define PAD office id (set this in your session during login/setup)
-    $PAD_OFFICE_ID = isset($_SESSION['pad_office_id']) ? intval($_SESSION['pad_office_id']) : 1;
-    $actor_id      = isset($_SESSION['acc_id']) ? intval($_SESSION['acc_id']) : null;
-
-    // Guard: ensure latest action is still Returned
-    $chk = "
-        SELECT a.action_type
-        FROM tbl_document_actions a
-        WHERE a.doc_id = ?
-        ORDER BY a.action_id DESC
+    // 🔍 Get latest action details
+    $sql = "
+        SELECT action_id, doc_id, from_office_id, to_office_id, action_type, action_remarks, action_date
+        FROM tbl_document_actions
+        WHERE doc_id = ?
+        ORDER BY action_id DESC
         LIMIT 1
     ";
-    $s1 = mysqli_prepare($conn, $chk);
-    mysqli_stmt_bind_param($s1, 'i', $doc_id);
-    mysqli_stmt_execute($s1);
-    $rs1 = mysqli_stmt_get_result($s1);
-    $latest_type = ($row = mysqli_fetch_assoc($rs1)) ? $row['action_type'] : null;
+    $stmt = mysqli_prepare($conn, $sql);
+    mysqli_stmt_bind_param($stmt, 'i', $doc_id);
+    mysqli_stmt_execute($stmt);
+    $res = mysqli_stmt_get_result($stmt);
+    $latest = mysqli_fetch_assoc($res);
 
-    if ($latest_type !== 'Returned') {
-        echo "ALREADY_MOVED";
+    if (!$latest) {
+        echo "NoActionFound";
         exit;
     }
 
-    // Insert new Outgoing action (back to PAD)
-    $remarks = "Returned document re-sent to PAD";
-    $ins = "
+    // 🧩 Verify the latest action is Returned
+    if ($latest['action_type'] !== 'Returned') {
+        echo "NotReturned";
+        exit;
+    }
+
+    // 🔁 Swap office IDs
+    $new_from = $latest['to_office_id']; // previously sent-to office
+    $new_to   = $latest['from_office_id']; // previously sent-from office
+
+    // ✍️ Compose remarks
+    $remarks = "Document re-sent to previous office. Reason: " . ($latest['action_remarks'] ?? 'N/A');
+
+    // 📨 Insert new Outgoing action (swapped)
+    $insert = "
         INSERT INTO tbl_document_actions
-            (doc_id, action_type, to_office_id, action_remarks, action_date, action_by)
-        VALUES
-            (?, 'Outgoing', ?, ?, NOW(), ?)
+            (doc_id, from_office_id, to_office_id, action_type, action_remarks, action_date)
+        VALUES (?, ?, ?, 'Outgoing', ?, NOW())
     ";
-    $s2 = mysqli_prepare($conn, $ins);
-    mysqli_stmt_bind_param($s2, 'iisi', $doc_id, $PAD_OFFICE_ID, $remarks, $actor_id);
-    if (mysqli_stmt_execute($s2)) {
-        echo "OK";
+    $ins_stmt = mysqli_prepare($conn, $insert);
+    mysqli_stmt_bind_param($ins_stmt, 'iiis', $doc_id, $new_from, $new_to, $remarks);
+
+    ob_clean(); // ensure no spaces or BOM before response
+
+    if (mysqli_stmt_execute($ins_stmt)) {
+        echo 'OK';
     } else {
-        echo "DB_ERROR";
+        // optional: log error for debugging
+        file_put_contents(__DIR__.'/error_log.txt', mysqli_error($conn).PHP_EOL, FILE_APPEND);
+        echo 'DB_ERROR';
     }
     exit;
 }
+
 
 if(isset($_POST['get_returned_counter'])){
     $query = "

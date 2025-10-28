@@ -291,6 +291,11 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
   z-index: 1;
 }
 
+  /* Make the timeline drawer wider */
+  #timelineDrawer.offcanvas-end {
+    width: 600px !important;   /* Default ~400px; adjust as needed */
+    max-width: 90vw;           /* Responsive limit */
+  }
   </style>
 </head>
 
@@ -313,7 +318,7 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
     <section class="section dashboard">
       <div class="row">
 <!-- Improved Dashboard Cards -->
-      <?php include 'cards.php'; ?>
+      <?php include 'card.php'; ?>
 
 
         <!-- Reports -->
@@ -338,216 +343,6 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
 
   </main>
 
-<!-- Add Record Modal -->
-<div class="modal fade" id="recordModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="recordModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-lg modal-dialog-scrollable modal-dialog-centered">
-    <div class="modal-content shadow-lg border-0 rounded-3">
-      <div class="modal-header bg-primary text-white">
-        <h5 class="modal-title fw-semibold" id="recordModalLabel">
-          <i class="bi bi-folder-plus me-2"></i> Add New Document Record
-        </h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-
-      <div class="modal-body bg-light">
-        <form id="form_add_record" class="needs-validation" novalidate>
-          <div class="row g-3">
-            <!-- Row 1 -->
-            <div class="col-md-6">
-              <label class="form-label fw-semibold">Date Received</label>
-              <input type="datetime-local" class="form-control shadow-sm" name="date_received" required>
-            </div>
-            <div class="col-md-6">
-              <label class="form-label fw-semibold">File Code</label>
-              <input type="text" class="form-control shadow-sm bg-light" name="file_code" id="file_code" readonly>
-            </div>
-
-            <!-- Row 2 -->
-            <div class="col-md-6">
-              <label class="form-label fw-semibold">Office / Division</label>
-              <select class="js-example-basic-single" name="divisionid" id="divisionid" required>
-                <option value="">Select Division</option>
-              </select>
-            </div>
-            <div class="col-md-6">
-              <label class="form-label fw-semibold">Type of Document</label>
-              <select class="form-select shadow-sm" name="doctypeid" id="doctypeid" required>
-                <option value="">Select Type</option>
-              </select>
-            </div>
-
-            <!-- Row 3 -->
-            <div class="col-12">
-              <label class="form-label fw-semibold">Particular</label>
-              <textarea class="form-control shadow-sm" name="particular" rows="6" placeholder="Enter brief details..." required></textarea>
-            </div>
-          </div>
-        </form>
-      </div>
-
-      <div class="modal-footer bg-white border-0">
-        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
-          <i class="bi bi-x-circle me-1"></i> Close
-        </button>
-        <button type="button" class="btn btn-success" id="btn_save_record">
-          <i class="bi bi-save2 me-1"></i> Save Record
-        </button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ================== EDIT RECORD DRAWER ================== -->
-<div class="offcanvas offcanvas-end offcanvas-edit" tabindex="-1" id="editDrawer" aria-labelledby="editDrawerLabel">
-  <div class="offcanvas-header bg-primary text-white">
-    <h5 class="offcanvas-title" id="editDrawerLabel"><i class="bi bi-pencil-square me-2"></i>Edit Document Record</h5>
-    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
-  </div>
-
-  <div class="offcanvas-body bg-light">
-    <form id="form_edit_record">
-      <input type="hidden" name="doc_id" id="edit_doc_id">
-
-      <div class="mb-3">
-        <label class="form-label fw-semibold">Date Received</label>
-        <input type="datetime-local" class="form-control" id="edit_date_received" required>
-      </div>
-
-      <div class="mb-3">
-        <label class="form-label fw-semibold">File Code</label>
-        <input type="text" class="form-control bg-light" id="edit_file_code" readonly>
-      </div>
-
-      <div class="mb-3">
-        <label class="form-label fw-semibold">Office / Division</label>
-        <select class="form-select" id="edit_divisionid" required>
-          <option value="">Select Division</option>
-        </select>
-      </div>
-
-      <div class="mb-3">
-        <label class="form-label fw-semibold">Type of Document</label>
-        <select class="form-select" id="edit_doctypeid" required>
-          <option value="">Select Type</option>
-        </select>
-      </div>
-
-      <div class="mb-3">
-        <label class="form-label fw-semibold">Particular</label>
-        <textarea class="form-control" id="edit_particular" rows="5" required></textarea>
-      </div>
-    </form>
-  </div>
-
-  <div class="offcanvas-footer p-3 border-top bg-white text-end">
-    <button class="btn btn-secondary me-2" data-bs-dismiss="offcanvas"><i class="bi bi-x-circle me-1"></i>Close</button>
-    <button class="btn btn-success" id="btn_update_record"><i class="bi bi-check2-circle me-1"></i>Update Record</button>
-  </div>
-</div>
-
-
-<!-- ================== UPLOAD IMAGES MODAL ================== -->
-<div class="modal fade" id="uploadImagesModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="uploadImagesLabel" aria-hidden="true">
-  <div class="modal-dialog modal-lg modal-dialog-scrollable modal-dialog-centered">
-    <div class="modal-content shadow-lg border-0 rounded-3">
-      <div class="modal-header bg-info text-white">
-        <h5 class="modal-title fw-semibold" id="uploadImagesLabel">
-          <i class="bi bi-images me-2"></i> Upload Images for Record
-        </h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-
-      <div class="modal-body">
-        <input type="hidden" id="upload_doc_id">
-        
-        <div class="mb-3">
-          <label class="form-label fw-semibold">Select Images</label>
-          <input type="file" class="form-control" id="image_files" accept="image/*" multiple>
-          <div class="form-text">You can select multiple images. Max size 5MB each. (jpg, jpeg, png, gif, webp)</div>
-        </div>
-
-        <div class="mb-3">
-          <label class="form-label fw-semibold">Preview (selected)</label>
-          <div id="preview_grid" class="row g-2"></div>
-        </div>
-
-        <hr class="my-3">
-
-        <div class="mb-2 d-flex align-items-center justify-content-between">
-          <label class="form-label fw-semibold mb-0">Already Uploaded</label>
-          <small class="text-muted" id="uploaded_count"></small>
-        </div>
-        <div id="uploaded_grid" class="row g-2"></div>
-      </div>
-
-      <div class="modal-footer bg-white border-0">
-        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
-          <i class="bi bi-x-circle me-1"></i> Close
-        </button>
-        <button type="button" class="btn btn-info" id="btn_upload_images">
-          <i class="bi bi-cloud-upload me-1"></i> Upload Selected
-        </button>
-      </div>
-    </div>
-  </div>
-</div>
-
-
-
-<div class="modal fade" id="takeActionModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="uploadImagesLabel" aria-hidden="true">
-  <div class="modal-dialog modal-lg modal-dialog-scrollable modal-dialog-centered">
-    <div class="modal-content shadow-lg border-0 rounded-3">
-      <div class="modal-header bg-primary text-white">
-        <h5 class="modal-title fw-semibold" id="uploadImagesLabel">
-          <i class="bi bi-images me-2"></i> Take Action
-        </h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-
-      <div class="modal-body">
-        <input type="hidden" id="take_action_doc_id">
-        
-        <div class="mb-3">
-          <label class="form-label fw-semibold" for="to_office_id">Select Office</label>
-          <select id="to_office_id" class="form-control">
-            <option value="">Select Office</option>
-            <?php 
-              $get_office = "SELECT * FROM `tbl_office_heads`";
-              $runget_office = mysqli_query($conn, $get_office);
-              while($r_office = mysqli_fetch_assoc($runget_office)){
-                echo'<option value="'.$r_office['office_id'].'">'.$r_office['office_name'].'</option>';
-              }
-            ?>
-          </select>
-        </div>
-        <div class="mb-3">
-          <label class="form-label fw-semibold" for="action_type">Select Action</label>
-          <select id="action_type" class="form-control">
-            <option value="">Select Action</option>
-            <option value="OUTGOING">OUTGOING</option>
-            <option value="ARCHIEVED">ARCHIEVED</option>
-          </select>
-        </div>
-
-        <div class="mb-3">
-          <label class="form-label fw-semibold" for="action_type_remarks">Add Remarks</label>
-          <textarea id="action_type_remarks" rows="5" class="form-control"></textarea>
-        </div>
-
-
-      </div>
-
-      <div class="modal-footer bg-white border-0">
-        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
-          <i class="bi bi-x-circle me-1"></i> Close
-        </button>
-        <button type="button" class="btn btn-info" onclick="save_set_actions()" data-bs-dismiss="modal">
-          <i class="bi bi-cloud-upload me-1"></i> Set Action
-        </button>
-      </div>
-    </div>
-  </div>
-</div>
 
 
 <!-- 🔹 Timeline Drawer -->
@@ -691,6 +486,19 @@ $(document).ready(function() {
 });
 
 
+function get_count_new_received(){
+  $.ajax({
+    url: "query_records.php",
+    type: "POST",
+    data: { 
+      get_received_counter: 1 
+    },
+    success: function(response) {
+      $('#load_new_received_count').html(response);
+    }
+  });  
+}
+
 function get_count_outgoing(){
   $.ajax({
     url: "query_records.php",
@@ -738,6 +546,7 @@ window.onload = function() {
   get_doc_count(); // ✅ add this here
   get_count_outgoing();
   get_count_received();
+  get_count_new_received()
 };
 
 ;
@@ -919,13 +728,24 @@ document.getElementById("btn_update_record").addEventListener("click", function(
   }
 
   function card_two(){
-    window.location = 'received_documents.php';
+    window.location = 'records_outgoing.php';
   }
 
   function card_three(){
-    window.location = 'all_docs.php';
+    window.location = 'records_returned.php';
   }
 
+  function card_four(){
+    window.location = 'records_acted.php';
+  } 
+
+  function card_five(){
+    window.location = 'records_delivered.php';
+  } 
+
+  function card_six(){
+    window.location = 'all_docs.php';
+  } 
 
 
 

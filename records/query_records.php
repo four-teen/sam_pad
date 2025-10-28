@@ -3,6 +3,33 @@ include '../db.php';
 session_start();
 
 
+if (isset($_POST['get_received_counter'])) {
+
+    $office_id = $_SESSION['officeid'];
+
+    // ✅ Count documents that are received by this office but not yet processed
+    $sql = "
+        SELECT COUNT(*) AS pending_count
+        FROM tbl_documents_registry d
+        WHERE NOT EXISTS (
+            SELECT 1 
+            FROM tbl_document_actions a
+            WHERE a.doc_id = d.doc_id
+              AND a.from_office_id = '$office_id'
+              AND a.action_type IN ('Outgoing', 'Acted', 'Delivered')
+        )
+    ";
+
+    $run = mysqli_query($conn, $sql);
+    if ($run) {
+        $row = mysqli_fetch_assoc($run);
+        echo $row['pending_count'];
+    } else {
+        echo 0;
+    }
+}
+
+
 /* 🧩 Check if record has uploaded images */
 if (isset($_POST['check_images'])) {
     $doc_id = intval($_POST['doc_id']);
@@ -396,14 +423,16 @@ if (isset($_POST['delete_record'])) {
 }
 
 /* 🚀 SERVER-SIDE DATATABLES PROCESSING */
+/* 🚀 SERVER-SIDE DATATABLES PROCESSING */
 if (isset($_POST['server_table'])) {
-   
+
     $columns = ['date_received', 'received_by', 'file_code', 'office_division', 'type_of_documents', 'particular', 'created_at'];
 
     $start = intval($_POST['start']);
     $length = intval($_POST['length']);
     $searchValue = mysqli_real_escape_string($conn, $_POST['search']['value']);
 
+    // ✅ Build search condition
     $where = "";
     if (!empty($searchValue)) {
         $where = "WHERE 
@@ -414,11 +443,11 @@ if (isset($_POST['server_table'])) {
             d.particular LIKE '%$searchValue%'";
     }
 
-    // Total count
+    // ✅ Total number of documents
     $totalQuery = mysqli_query($conn, "SELECT COUNT(*) AS total FROM tbl_documents_registry");
     $totalData = mysqli_fetch_assoc($totalQuery)['total'];
 
-    // Filtered count
+    // ✅ Total number of filtered results
     $queryFiltered = mysqli_query($conn, "
         SELECT COUNT(*) AS total 
         FROM tbl_documents_registry d
@@ -428,7 +457,7 @@ if (isset($_POST['server_table'])) {
     ");
     $totalFiltered = mysqli_fetch_assoc($queryFiltered)['total'];
 
-    // Fetch paginated data
+    // ✅ Actual data (only those NOT yet forwarded, acted, or delivered)
     $query = "
         SELECT d.doc_id, d.date_received, d.received_by, d.file_code, 
                v.division_desc AS office_division, 
@@ -444,57 +473,57 @@ if (isset($_POST['server_table'])) {
     $result = mysqli_query($conn, $query);
 
     $data = [];
-    //how to echo the d.doc_id id here
-while ($r = mysqli_fetch_assoc($result)) {
+    $pendingCount = 0; // ✅ For accurate total pending count later
 
-    // check if record already has outgoing action
-    $check = "SELECT * FROM tbl_document_actions 
-              WHERE doc_id = '{$r['doc_id']}' 
-              AND from_office_id = '{$_SESSION['officeid']}' 
-              LIMIT 1";
-    $runcheck = mysqli_query($conn, $check);
+    while ($r = mysqli_fetch_assoc($result)) {
 
-    if (mysqli_num_rows($runcheck) <= 0) {
-        // format date
-        if (!empty($r['date_received'])) {
-            $r['date_received'] = strtoupper(date("M d, Y h:i A", strtotime($r['date_received'])));
-        } else {
-            $r['date_received'] = "";
-        }
-
-        // buttons
-        $r['actions'] = "
-          <div class='d-grid gap-1' style='grid-template-columns: repeat(3, 1fr); display: grid;'>
-            <button class='btn btn-info btn-sm' onclick='upload_image_record({$r['doc_id']})' title='Upload Image'>
-              <i class='bx bx-image'></i>
-            </button>
-            <button class='btn btn-primary btn-sm' onclick='take_action({$r['doc_id']})' title='Take Action'>
-              <i class='bx bx-cog'></i>
-            </button>
-            <button class='btn btn-warning btn-sm' onclick='edit_record({$r['doc_id']})' title='Edit Record'>
-              <i class='bx bx-edit'></i>
-            </button>
-            <button class='btn btn-danger btn-sm' onclick='delete_record({$r['doc_id']})' title='Delete Record'>
-              <i class='bx bx-trash'></i>
-            </button>
-            <button class='btn btn-success btn-sm' onclick='trace_record({$r['doc_id']})' title='Delete Record'>
-              <i class='bi bi-alarm'></i>
-            </button>
-          </div>
+        // ✅ Check if the document has already been processed by this office
+        $check = "
+            SELECT action_id 
+            FROM tbl_document_actions 
+            WHERE doc_id = '{$r['doc_id']}' 
+              AND from_office_id = '{$_SESSION['officeid']}'
+              AND action_type IN ('Outgoing', 'Acted', 'Delivered')
+            LIMIT 1
         ";
+        $runcheck = mysqli_query($conn, $check);
 
-        // ✅ only include this record if it has no outgoing action
-        $data[] = $r;
+        if (mysqli_num_rows($runcheck) <= 0) {
+            $pendingCount++;
+
+            // format date
+            $r['date_received'] = !empty($r['date_received'])
+                ? strtoupper(date("M d, Y h:i A", strtotime($r['date_received'])))
+                : "";
+
+            // actions
+            $r['actions'] = "
+              <div class='d-grid gap-1' style='grid-template-columns: repeat(2, 1fr); display: grid;'>
+                <button class='btn btn-info btn-sm' onclick='upload_image_record({$r['doc_id']})' title='Upload Image'>
+                  <i class='bx bx-image'></i>
+                </button>
+                <button class='btn btn-primary btn-sm' onclick='take_action({$r['doc_id']})' title='Take Action'>
+                  <i class='bx bx-cog'></i>
+                </button>
+                <button class='btn btn-warning btn-sm' onclick='edit_record({$r['doc_id']})' title='Edit Record'>
+                  <i class='bx bx-edit'></i>
+                </button>
+                <button class='btn btn-danger btn-sm' onclick='delete_record({$r['doc_id']})' title='Delete Record'>
+                  <i class='bx bx-trash'></i>
+                </button>
+              </div>
+            ";
+
+            $data[] = $r;
+        }
     }
-}
 
-
-    echo json_encode([
-        "draw" => intval($_POST['draw']),
-        "recordsTotal" => $totalData,
-        "recordsFiltered" => $totalFiltered,
-        "data" => $data
-    ]);
+echo json_encode([
+    "draw" => intval($_POST['draw']),
+    "recordsTotal" => count($data),      // ✅ Total of actual displayed pending records
+    "recordsFiltered" => count($data),   // ✅ Fixes misleading “showing X of Y”
+    "data" => $data
+]);
     exit;
 }
 

@@ -254,6 +254,26 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
       cursor: pointer;
     }
 
+
+.swal2-select {
+  width: 80% !important;
+  margin: 10px auto;
+  display: block;
+}
+.select2-container--default .select2-selection--single {
+  height: 38px !important;
+  border-radius: 6px !important;
+  border: 1px solid #ccc !important;
+  padding: 4px 8px;
+}
+.select2-container .select2-selection__rendered {
+  line-height: 28px !important;
+}
+.select2-dropdown {
+  z-index: 20000 !important; /* Ensures dropdown appears on top of Swal */
+}
+
+
   </style>
 </head>
 
@@ -276,83 +296,7 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
     <section class="section dashboard">
       <div class="row">
 <!-- Improved Dashboard Cards -->
-<div class="row g-2">
-
-  <!-- Manage Document Types -->
-  <div class="col-lg-3 col-md-6">
-    <div class="card info-card border-0 shadow-sm" style="--start-color:#198754;--end-color:#20c997;" onclick="card_one()">
-      <div class="card-body">
-        <h5 class="card-title">Incoming/Outgoing <span class="text-muted">| Documents</span></h5>
-        <div class="d-flex align-items-center">
-          <div class="card-icon">
-            <i class='bx bx-archive-out'></i>
-          </div>
-          <div>
-            <h3 id="load_outgoing_count" class="mb-0">0</h3>
-            <small class="text-muted">Need Actions</small>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- RECEIVED -->
-  <div class="col-lg-3 col-md-6">
-    <div class="card info-card border-0 shadow-sm" style="--start-color:#dc3545;--end-color:#fd7e14;" onclick="card_two()">
-      <div class="card-body">
-        <h5 class="card-title">RECEIVED <span class="text-muted">| Documents</span></h5>
-        <div class="d-flex align-items-center">
-          <div class="card-icon">
-            <i class="bi bi-suitcase"></i>
-          </div>
-          <div>
-            <h3 id="load_received_count" class="mb-0"></h3>
-            <small class="text-muted">total transactions</small>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>  
-
-  <!-- Manage Request -->
-  <div class="col-lg-3 col-md-6">
-    <div class="card info-card border-0 shadow-sm" style="--start-color:#007bff;--end-color:#17a2b8;" onclick="card_three()">
-      <div class="card-body">
-        <h5 class="card-title">Records Section <span class="text-muted">| List</span></h5>
-        <div class="d-flex align-items-center">
-          <div class="card-icon">
-            <i class="bx bx-file"></i>
-          </div>
-          <div>
-            <h3 id="load_doc_count" class="mb-0">0</h3>
-            <small class="text-muted">processed</small>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Released Summary -->
-  <div class="col-lg-3 col-md-6">
-    <div class="card info-card border-0 shadow-sm" style="--start-color:#ffc107;--end-color:#ffb347;" onclick="released_summary()">
-      <div class="card-body">
-        <h5 class="card-title">Summary <span class="text-muted">| Released</span></h5>
-        <div class="d-flex align-items-center">
-          <div class="card-icon">
-            <i class="bx bxs-objects-vertical-top"></i>
-          </div>
-          <div>
-            <h3 id="load_summary" class="mb-0">0</h3>
-            <small class="text-muted">transactions this period</small>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-
-
-</div>
+      <?php include 'cards.php'; ?>
 
         <!-- Reports -->
         <div class="col-12">
@@ -425,6 +369,147 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
   <script src="../assets/js/main.js"></script>
 
 <script>
+
+//FORWARD TO THE RECORDS ALREADY ACTED
+
+// function send_back_to_records(office_id, doc_id){
+//   let doc_id = office_id;
+//   let from_office_id = doc_id;
+
+//   Swal.fire({
+//     title: 'Return Document to Records Section?',
+//     html: `
+//       <textarea id="return_remarks" class="swal2-textarea" 
+//         placeholder="Enter remarks or reason for return..."></textarea>
+//     `,
+//     icon: 'question',
+//     showCancelButton: true,
+//     confirmButtonText: 'Send Back',
+//     cancelButtonText: 'Cancel',
+//     confirmButtonColor: '#3085d6',
+//     cancelButtonColor: '#d33',
+//     preConfirm: () => {
+//       const remarks = $('#return_remarks').val().trim();
+//       if (!remarks) {
+//         Swal.showValidationMessage('Remarks are required before returning!');
+//         return false;
+//       }
+//       return remarks;
+//     }
+//   }).then((result) => {
+//     if (result.isConfirmed) {
+//       $.ajax({
+//         url: 'query_received_documents.php',
+//         type: 'POST',
+//         data: {
+//           send_back_to_records: 1,
+//           doc_id: doc_id,
+//           from_office_id: from_office_id,
+//           remarks: result.value
+//         },
+//         success: function(response) {
+//           Swal.fire('Sent!', 'Document successfully returned to Records Section.', 'success');
+//           // Optionally reload table or update UI
+//           load_received_documents();
+//         },
+//         error: function() {
+//           Swal.fire('Error!', 'Something went wrong while processing.', 'error');
+//         }
+//       });
+//     }
+//   });
+// }
+$(document).on('click', '.forward-records', function() {
+  let doc_id = $(this).data('docid');
+  let from_office_id = $(this).data('from'); // from session
+
+  // ✅ Step 1: Load office options dynamically via AJAX
+  $.ajax({
+    url: 'query_received_documents.php',
+    type: 'POST',
+    data: { load_offices: 1 },
+    success: function(response) {
+      Swal.fire({
+        title: 'Forward Document',
+        html: `
+          <label class="swal2-label">Select Office to Send</label>
+          <select id="to_office_id" class="swal2-select" style="width:80%;">
+            ${response}
+          </select>
+          <textarea id="remarks" class="swal2-textarea" placeholder="Enter remarks or reason..."></textarea>
+        `,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Send Document',
+        cancelButtonText: 'Cancel',
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        didOpen: () => {
+          // 🌟 Initialize Select2 inside SweetAlert after it opens
+          $('#to_office_id').select2({
+            dropdownParent: $('.swal2-container'),
+            placeholder: 'Select office...',
+            width: 'resolve'
+          });
+        },
+        preConfirm: () => {
+          const to_office_id = $('#to_office_id').val();
+          const remarks = $('#remarks').val().trim();
+
+          if (!to_office_id) {
+            Swal.showValidationMessage('Please select a destination office!');
+            return false;
+          }
+          if (!remarks) {
+            Swal.showValidationMessage('Remarks are required before forwarding!');
+            return false;
+          }
+
+          return { to_office_id, remarks };
+        }
+      }).then((result) => {
+        if (result.isConfirmed) {
+
+console.log({
+  send_back_with_selection: 1,
+  doc_id: doc_id,
+  from_office_id: from_office_id,
+  to_office_id: result.value.to_office_id,
+  remarks: result.value.remarks
+});
+
+          $.ajax({
+            url: 'query_received_documents.php',
+            type: 'POST',
+            data: {
+              send_back_with_selection: 1,
+              doc_id: doc_id,
+              from_office_id: from_office_id,
+              to_office_id: result.value.to_office_id,
+              remarks: result.value.remarks
+            },
+            success: function(res) {
+              Swal.fire('Sent!', 'Document successfully forwarded.', 'success');
+              load_received_documents();
+              loadTable();
+              card_two();
+            },
+            error: function() {
+              Swal.fire('Error', 'Unable to process the transaction.', 'error');
+            }
+          });
+        }
+      });
+    }
+  });
+
+});
+
+
+
+
+//END OF ACTED RECORDS
+
 
 //RETURN BUTTON=================
 

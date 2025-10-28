@@ -1,8 +1,6 @@
 <?php
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
-session_start();
 include '../db.php';
+session_start();
 
 /* 🔹 Load timeline for a specific document */
 if (isset($_POST['load_timeline'])) {
@@ -39,6 +37,10 @@ if (isset($_POST['load_timeline'])) {
                     $color = 'secondary';
                     $icon = 'bi-archive';
                     break;
+                case 'Delivered':
+                    $color = 'success';
+                    $icon = 'bi-person';
+                    break;                    
                 default:
                     $color = 'info';
                     $icon = 'bi-archive';

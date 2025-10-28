@@ -3,24 +3,31 @@ include '../db.php';
 session_start();
 
 
-if(isset($_POST['get_received_counter'])){
+if (isset($_POST['get_received_counter'])) {
     $sql = "
         SELECT COUNT(*) AS receive_count
         FROM (
-            SELECT doc_id
-            FROM tbl_document_actions
-            WHERE to_office_id = '68'
-            GROUP BY doc_id
-            HAVING MAX(action_id) = MAX(CASE WHEN action_type = 'Received' THEN action_id ELSE 0 END)
+            SELECT da.doc_id
+            FROM tbl_document_actions da
+            INNER JOIN (
+                SELECT doc_id, MAX(action_id) AS latest_action
+                FROM tbl_document_actions
+                GROUP BY doc_id
+            ) AS last_action 
+                ON da.doc_id = last_action.doc_id 
+                AND da.action_id = last_action.latest_action
+            WHERE da.to_office_id = '68' 
+              AND da.action_type = 'Received'
         ) AS latest_received;
     ";
 
     $run = mysqli_query($conn, $sql);
-    if($run){
+    if ($run) {
         $row_count = mysqli_fetch_assoc($run);
         echo $row_count['receive_count'];
     }
 }
+
 
 
 

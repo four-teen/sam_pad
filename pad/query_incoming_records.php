@@ -176,8 +176,8 @@ if (isset($_POST['load_table'])) {
                     <button class="btn btn-info" title="View Images" onclick="view_uploaded_images(\''.$r['doc_id'].'\')">
                       <i class="bi bi-images"></i>
                     </button> 
-                    <button  onclick="confirmDocumentReceipt(\''.$r['doc_id'].'\',\''.$r['received_by'].'\',\''.$r['office_division'].'\')" class="btn btn-warning" title="Outgoing">
-                      <i class="bx bxs-right-arrow"></i>
+                    <button  onclick="confirmDocumentReceipt(\''.$r['doc_id'].'\',\''.$r['received_by'].'\',\''.$r['office_division'].'\')" class="btn btn-success" title="Recieved this document">
+                      <i class="bi bi-arrow-90deg-right"></i>
                     </button>
 
                 ';
