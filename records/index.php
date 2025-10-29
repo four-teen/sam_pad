@@ -259,6 +259,8 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
       </nav>
     </div>
 
+<div id="test">test</div>
+
     <section class="section dashboard">
       <div class="row">
 <!-- Improved Dashboard Cards -->
@@ -575,6 +577,59 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
   </div>
 </div>
 
+<div class="modal fade" id="DocumentNumberModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="uploadImagesLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable modal-dialog-centered">
+    <div class="modal-content shadow-lg border-0 rounded-3">
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title fw-semibold" id="uploadImagesLabel">
+          <i class="bi bi-images me-2"></i> Update Document Code (Series)
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+
+      <div class="modal-body">
+        <div class="row">
+          <?php 
+            $get_series = "SELECT * FROM `tbl_file_series` LIMIT 1";
+            $runget_series = mysqli_query($conn, $get_series);
+            $rowseries = mysqli_fetch_assoc($runget_series);
+            echo
+            '
+            <div class="col-lg-3">
+              <div class="mb-3">
+                <label class="form-label fw-semibold" for="doc_prefix">Series Prefix</label>
+                <input type="text" class="form-control" id="doc_prefix" value="'.$rowseries['series_prefix'].'">
+              </div>
+            </div>
+            <div class="col-lg-9">
+              <div class="mb-3">
+                <label class="form-label fw-semibold" for="doc_number">Series Number</label>
+                <input type="text" class="form-control" id="doc_number" value="'.$rowseries['series_number'].'">
+              </div>            
+            </div>
+            ';
+          ?>
+
+
+        </div>
+
+
+        <div class="mb-3 py-2">
+            <button type="button" class="btn btn-info" onclick="saving_doc_series()">
+                <i class="bi bi-save2"></i> Update
+            </button>
+        </div>        
+      </div>
+
+      <div class="modal-footer bg-white border-0">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+          <i class="bi bi-x-circle me-1"></i> Close
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
   <!-- ======= Footer ======= -->
   <footer id="footer" class="footer">
     <div class="copyright">
@@ -599,6 +654,29 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
   <script src="../assets/js/main.js"></script>
   <script src="functioned.js"></script>
 <script>
+
+  function saving_doc_series(){
+    var doc_prefix = $('#doc_prefix').val();
+    var doc_number = $('#doc_number').val();
+    $.ajax({
+      url: "query_records.php",
+      type: "POST",
+      data: { 
+        saving_document_series: 1,
+        doc_prefix: doc_prefix,
+        doc_number: doc_number
+      },
+      success: function(response) {
+        $('#test').html(response);
+        Swal.fire("Updated!", "Document number updated.", "success");
+      }
+    });
+
+  }
+
+function manage_doc_number(){
+  $('#DocumentNumberModal').modal('show');
+}
 
 function delete_doctype(docid){
 Swal.fire({

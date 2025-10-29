@@ -20,6 +20,10 @@
       <ul onclick="manage_type_doc()" id="management-nav" class="nav-content collapse" data-bs-parent="#sidebar-nav">
         <li><a href="#"><i class="bi bi-folder-plus fs-5"></i></i><span>Add Type of Document</span></a></li>
       </ul>
+      <ul onclick="manage_doc_number()" id="management-nav" class="nav-content collapse" data-bs-parent="#sidebar-nav">
+        <li><a href="#"><i class="bi bi-list-ol fs-5"></i><span>Document Number</span></a></li>
+      </ul>
+
 
     </li>
 

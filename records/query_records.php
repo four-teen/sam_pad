@@ -2,6 +2,13 @@
 include '../db.php';
 session_start();
 
+if(isset($_POST['saving_document_series'])){
+    $doc_prefix = $_POST['doc_prefix'];
+    $doc_number = $_POST['doc_number'];
+    $insert = "UPDATE `tbl_file_series` SET `series_prefix`='$doc_prefix', `series_number`='$doc_number'";
+    $runinsert = mysqli_query($conn, $insert);
+    echo $insert;
+}
 
 if (isset($_POST['get_received_counter'])) {
 
