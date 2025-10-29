@@ -100,8 +100,9 @@ if (isset($_POST['loading_document_type'])) {
 
 
 
-if(isset($_POST['divisionid'])){
-    $delete = "DELETE FROM `tbldivisions` WHERE divisionid='$_POST[divisionid]'";
+if(isset($_POST['removing_office']) && isset($_POST['divisionid'])){
+    $divisionid = mysqli_real_escape_string($conn, $_POST['divisionid']);
+    $delete = "DELETE FROM `tbldivisions` WHERE divisionid='$divisionid'";
     $rundelete = mysqli_query($conn, $delete);
 }
 
@@ -431,6 +432,7 @@ if (isset($_POST['delete_record'])) {
 
 /* 🚀 SERVER-SIDE DATATABLES PROCESSING */
 /* 🚀 SERVER-SIDE DATATABLES PROCESSING */
+/* 🚀 SERVER-SIDE DATATABLES PROCESSING */
 if (isset($_POST['server_table'])) {
 
     $columns = ['date_received', 'received_by', 'file_code', 'office_division', 'type_of_documents', 'particular', 'created_at'];
@@ -442,12 +444,13 @@ if (isset($_POST['server_table'])) {
     // ✅ Build search condition
     $where = "";
     if (!empty($searchValue)) {
-        $where = "WHERE 
+        $where = "WHERE (
             d.file_code LIKE '%$searchValue%' OR 
             d.received_by LIKE '%$searchValue%' OR 
             v.division_desc LIKE '%$searchValue%' OR 
             t.doctype_desc LIKE '%$searchValue%' OR 
-            d.particular LIKE '%$searchValue%'";
+            d.particular LIKE '%$searchValue%'
+        )";
     }
 
     // ✅ Total number of documents
@@ -455,23 +458,29 @@ if (isset($_POST['server_table'])) {
     $totalData = mysqli_fetch_assoc($totalQuery)['total'];
 
     // ✅ Total number of filtered results
-    $queryFiltered = mysqli_query($conn, "
+    $countFiltered = "
         SELECT COUNT(*) AS total 
         FROM tbl_documents_registry d
-        LEFT JOIN tbldivisions v ON d.office_division = v.divisionid
+        LEFT JOIN tbldivisions v ON CAST(d.office_division AS UNSIGNED) = v.divisionid
         LEFT JOIN tbltypeofdocuments t ON d.type_of_documents = t.docid
         $where
-    ");
+    ";
+    $queryFiltered = mysqli_query($conn, $countFiltered);
     $totalFiltered = mysqli_fetch_assoc($queryFiltered)['total'];
 
-    // ✅ Actual data (only those NOT yet forwarded, acted, or delivered)
+    // ✅ Actual data query
     $query = "
-        SELECT d.doc_id, d.date_received, d.received_by, d.file_code, 
-               v.division_desc AS office_division, 
-               t.doctype_desc AS type_of_documents, 
-               d.particular, d.created_at
+        SELECT 
+            d.doc_id, 
+            d.date_received, 
+            d.received_by, 
+            d.file_code, 
+            IFNULL(v.division_desc, CONCAT('Unknown (ID: ', d.office_division, ')')) AS office_division,
+            IFNULL(t.doctype_desc, 'Unknown Type') AS type_of_documents, 
+            d.particular, 
+            d.created_at
         FROM tbl_documents_registry d
-        LEFT JOIN tbldivisions v ON d.office_division = v.divisionid
+        LEFT JOIN tbldivisions v ON CAST(d.office_division AS UNSIGNED) = v.divisionid
         LEFT JOIN tbltypeofdocuments t ON d.type_of_documents = t.docid
         $where
         ORDER BY d.doc_id DESC
@@ -480,11 +489,11 @@ if (isset($_POST['server_table'])) {
     $result = mysqli_query($conn, $query);
 
     $data = [];
-    $pendingCount = 0; // ✅ For accurate total pending count later
+    $pendingCount = 0;
 
     while ($r = mysqli_fetch_assoc($result)) {
 
-        // ✅ Check if the document has already been processed by this office
+        // ✅ Check if already processed
         $check = "
             SELECT action_id 
             FROM tbl_document_actions 
@@ -498,12 +507,12 @@ if (isset($_POST['server_table'])) {
         if (mysqli_num_rows($runcheck) <= 0) {
             $pendingCount++;
 
-            // format date
+            // 🕓 Format date
             $r['date_received'] = !empty($r['date_received'])
                 ? strtoupper(date("M d, Y h:i A", strtotime($r['date_received'])))
                 : "";
 
-            // actions
+            // 🧩 Actions
             $r['actions'] = "
               <div class='d-grid gap-1' style='grid-template-columns: repeat(2, 1fr); display: grid;'>
                 <button class='btn btn-info btn-sm' onclick='upload_image_record({$r['doc_id']})' title='Upload Image'>
@@ -525,14 +534,16 @@ if (isset($_POST['server_table'])) {
         }
     }
 
-echo json_encode([
-    "draw" => intval($_POST['draw']),
-    "recordsTotal" => count($data),      // ✅ Total of actual displayed pending records
-    "recordsFiltered" => count($data),   // ✅ Fixes misleading “showing X of Y”
-    "data" => $data
-]);
+    // ✅ JSON response
+    echo json_encode([
+        "draw" => intval($_POST['draw']),
+        "recordsTotal" => $totalData,
+        "recordsFiltered" => $totalFiltered,
+        "data" => $data
+    ]);
     exit;
 }
+
 
 
 ?>
