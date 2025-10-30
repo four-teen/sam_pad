@@ -343,7 +343,51 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
     </div>
   </div>
 </div>
+<!-- ================== UPLOAD IMAGES MODAL ================== -->
+<div class="modal fade" id="uploadImagesModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="uploadImagesLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable modal-dialog-centered">
+    <div class="modal-content shadow-lg border-0 rounded-3">
+      <div class="modal-header bg-info text-white">
+        <h5 class="modal-title fw-semibold" id="uploadImagesLabel">
+          <i class="bi bi-images me-2"></i> Upload Images for Record
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
 
+      <div class="modal-body">
+        <input type="hidden" id="upload_doc_id">
+        
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Select Images</label>
+          <input type="file" class="form-control" id="image_files" accept="image/*" multiple>
+          <div class="form-text">You can select multiple images. Max size 5MB each. (jpg, jpeg, png, gif, webp)</div>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Preview (selected)</label>
+          <div id="preview_grid" class="row g-2"></div>
+        </div>
+
+        <hr class="my-3">
+
+        <div class="mb-2 d-flex align-items-center justify-content-between">
+          <label class="form-label fw-semibold mb-0">Already Uploaded</label>
+          <small class="text-muted" id="uploaded_count"></small>
+        </div>
+        <div id="uploaded_grid" class="row g-2"></div>
+      </div>
+
+      <div class="modal-footer bg-white border-0">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+          <i class="bi bi-x-circle me-1"></i> Close
+        </button>
+        <button type="button" class="btn btn-info" id="btn_upload_images">
+          <i class="bi bi-cloud-upload me-1"></i> Upload Selected
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
 
   <!-- ======= Footer ======= -->
   <footer id="footer" class="footer">
@@ -369,6 +413,210 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
   <script src="../assets/js/main.js"></script>
 
 <script>
+
+//==========================================================
+// Bootstrap modal instance
+const uploadModal = new bootstrap.Modal(document.getElementById('uploadImagesModal'));
+
+// Keep selected files in memory (for upload)
+let selectedFiles = [];
+
+// Open modal & load images for this record
+function upload_image_record(doc_id) {
+  selectedFiles = [];
+  $("#upload_doc_id").val(doc_id);
+  $("#image_files").val("");
+  $("#preview_grid").html("");
+  $("#uploaded_grid").html(`<div class='text-muted'>Loading...</div>`);
+  $("#uploaded_count").text("");
+
+  load_existing_images(doc_id);
+  uploadModal.show();
+}
+
+// Live preview when selecting files
+document.getElementById("image_files").addEventListener("change", function() {
+  const files = Array.from(this.files);
+  selectedFiles = []; // reset
+  $("#preview_grid").html("");
+
+  const allowed = ["image/jpeg", "image/jpg", "image/png", "image/gif", "image/webp"];
+  const maxSize = 5 * 1024 * 1024;
+
+  files.forEach((f, idx) => {
+    if (!allowed.includes(f.type)) return;
+    if (f.size > maxSize) {
+      Swal.fire("Too big", `${f.name} exceeds 5MB.`, "warning");
+      return;
+    }
+    selectedFiles.push(f);
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const col = document.createElement("div");
+      col.className = "col-6 col-md-3";
+      col.innerHTML = `
+        <div class="thumb">
+          <img src="${e.target.result}" alt="">
+          <div class="thumb-actions">
+            <button type="button" class="btn btn-sm btn-outline-danger" title="Remove" onclick="remove_selected(${idx})">
+              <i class="bi bi-x-lg"></i>
+            </button>
+          </div>
+        </div>`;
+      document.getElementById("preview_grid").appendChild(col);
+    };
+    reader.readAsDataURL(f);
+  });
+});
+
+// Remove a selected file from the preview list
+function remove_selected(idx) {
+  // Remove by index in current selectedFiles
+  selectedFiles.splice(idx, 1);
+  // Rebuild preview
+  $("#preview_grid").html("");
+  selectedFiles.forEach((f, i) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const col = document.createElement("div");
+      col.className = "col-6 col-md-3";
+      col.innerHTML = `
+        <div class="thumb">
+          <img src="${e.target.result}" alt="">
+          <div class="thumb-actions">
+            <button type="button" class="btn btn-sm btn-outline-danger" title="Remove" onclick="remove_selected(${i})">
+              <i class="bi bi-x-lg"></i>
+            </button>
+          </div>
+        </div>`;
+      document.getElementById("preview_grid").appendChild(col);
+    };
+    reader.readAsDataURL(f);
+  });
+}
+
+// Upload selected files
+document.getElementById("btn_upload_images").addEventListener("click", function() {
+  const doc_id = $("#upload_doc_id").val();
+  if (!doc_id) {
+    Swal.fire("Missing", "No record selected.", "warning");
+    return;
+  }
+  if (selectedFiles.length === 0) {
+    Swal.fire("No files", "Please select images first.", "info");
+    return;
+  }
+
+  const fd = new FormData();
+  fd.append("upload_images", 1);
+  fd.append("doc_id", doc_id);
+  selectedFiles.forEach((f) => fd.append("images[]", f));
+
+  $.ajax({
+    url: "query_records.php",
+    type: "POST",
+    data: fd,
+    contentType: false,
+    processData: false,
+    success: function(resp) {
+      try {
+        const data = JSON.parse(resp);
+        if (data.status === "ok") {
+          Swal.fire({ icon: "success", title: "Uploaded!", timer: 1200, showConfirmButton: false });
+          // reset selected
+          selectedFiles = [];
+          $("#image_files").val("");
+          $("#preview_grid").html("");
+          load_existing_images(doc_id);
+        } else {
+          Swal.fire("Error", data.message || "Upload failed", "error");
+        }
+      } catch (e) {
+        Swal.fire("Error", "Unexpected server response.", "error");
+      }
+    },
+    error: function() {
+      Swal.fire("Error", "Cannot upload right now.", "error");
+    }
+  });
+});
+
+// Load already uploaded images
+function load_existing_images(doc_id) {
+  $.ajax({
+    url: "query_records.php",
+    type: "POST",
+    data: { load_images: 1, doc_id: doc_id },
+    success: function(resp) {
+      try {
+        const data = JSON.parse(resp);
+        const list = data.images || [];
+        $("#uploaded_grid").html("");
+        $("#uploaded_count").text(`${list.length} image(s)`);
+
+        if (list.length === 0) {
+          $("#uploaded_grid").html(`<div class='text-muted'>No images yet.</div>`);
+          return;
+        }
+
+        list.forEach(img => {
+          const col = document.createElement("div");
+          col.className = "col-6 col-md-3";
+          col.innerHTML = `
+            <div class="thumb">
+              <img src="${img.url}" alt="">
+              <div class="thumb-actions">
+                <a class="btn btn-sm btn-outline-secondary" href="${img.url}" target="_blank" title="Open">
+                  <i class="bi bi-box-arrow-up-right"></i>
+                </a>
+                <button type="button" class="btn btn-sm btn-outline-danger" title="Delete" onclick="delete_uploaded_image(${img.img_id}, ${doc_id})">
+                  <i class="bi bi-trash"></i>
+                </button>
+              </div>
+            </div>`;
+          document.getElementById("uploaded_grid").appendChild(col);
+        });
+      } catch (e) {
+        $("#uploaded_grid").html("<div class='text-danger'>Failed to load images.</div>");
+      }
+    },
+    error: function() {
+      $("#uploaded_grid").html("<div class='text-danger'>Failed to load images.</div>");
+    }
+  });
+}
+
+// Delete an uploaded image
+function delete_uploaded_image(img_id, doc_id) {
+  Swal.fire({
+    title: "Delete image?",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonText: "Delete",
+    confirmButtonColor: "#d33"
+  }).then(res => {
+    if (!res.isConfirmed) return;
+    $.ajax({
+      url: "query_records.php",
+      type: "POST",
+      data: { delete_image: 1, img_id: img_id },
+      success: function(r) {
+        if (r.trim() === "deleted") {
+          load_existing_images(doc_id);
+        } else {
+          Swal.fire("Error", "Could not delete image.", "error");
+        }
+      },
+      error: function() {
+        Swal.fire("Error", "Server not reachable.", "error");
+      }
+    });
+  });
+}  
+
+// =========================================================
+
 
 //FORWARD TO THE RECORDS ALREADY ACTED
 

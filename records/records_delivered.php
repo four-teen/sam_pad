@@ -438,15 +438,6 @@ function view_uploaded_images(doc_id) {
   });
 }
 
-    // Load data when page opens
-    window.onload = function() {
-      loadTable();
-      get_doc_count(); // ✅ add this here
-      get_count_outgoing();
-      get_count_returned();
-      get_count_acted();
-      get_count_delivered();
-    };
 
     function loadTable() {
       let progress = 0;
@@ -496,6 +487,19 @@ function view_uploaded_images(doc_id) {
       });
     }
 
+
+// Load data when page opens
+window.onload = function() {
+  loadTable();
+  get_doc_count(); // ✅ add this here
+  get_count_outgoing();
+  get_count_returned();
+  get_count_acted();  
+  get_count_delivered();
+  get_count_new_received();
+};
+
+// ===========COUNTS=====================================
 function get_count_delivered(){
   $.ajax({
     url: "query_delivered.php",
@@ -563,7 +567,6 @@ function get_doc_count(){
 }
 
 //LINKS
-
   function card_one(){
     window.location = 'index.php';
   }
@@ -586,7 +589,7 @@ function get_doc_count(){
 
   function card_six(){
     window.location = 'all_docs.php';
-  }    
+  }     
 </script>
 
 

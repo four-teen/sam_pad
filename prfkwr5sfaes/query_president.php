@@ -2,33 +2,203 @@
 include '../db.php';
 session_start();
 
-if (isset($_POST['load_pending_actions'])) {
+/* ---------- Save annotated image ---------- */
+if (isset($_POST['image']) && isset($_POST['img_id'])) {
 
-  $sql = "SELECT d.id, d.file_code, d.particular, o.office_name, d.date_received, d.status
-          FROM tbl_documents_registry d
-          LEFT JOIN tbl_office_heads o ON o.office_id = d.origin_office
-          WHERE d.received_by = 'President' AND d.status='Received'
-          ORDER BY d.date_received DESC";
-  
-  $result = mysqli_query($conn, $sql);
-  $count = 0;
+    $img_id = intval($_POST['img_id']);
+    $imgData = $_POST['image'];
 
-  if (mysqli_num_rows($result) > 0) {
-    while ($row = mysqli_fetch_assoc($result)) {
-      $count++;
-      echo "
-        <tr>
-          <td>{$count}</td>
-          <td>{$row['file_code']}</td>
-          <td>{$row['particular']}</td>
-          <td>{$row['office_name']}</td>
-          <td>{$row['date_received']}</td>
-          <td><span class='badge bg-warning text-dark'>{$row['status']}</span></td>
-        </tr>
-      ";
+    if (empty($imgData)) {
+        exit('⚠️ No image data received.');
     }
+
+    // ✅ Clean base64 data
+    $imgData = str_replace('data:image/png;base64,', '', $imgData);
+    $imgData = str_replace(' ', '+', $imgData);
+    $decoded = base64_decode($imgData);
+
+    // ✅ Get original filename from database
+    $getFile = mysqli_query($conn, "SELECT img_filename FROM tbl_document_images WHERE img_id = '$img_id' LIMIT 1");
+    if (!$getFile || mysqli_num_rows($getFile) == 0) {
+        exit('⚠️ Image record not found.');
+    }
+
+    $row = mysqli_fetch_assoc($getFile);
+    $originalFilename = $row['img_filename'];
+    $targetFile = __DIR__ . '/../uploads/' . $originalFilename;
+
+    if (!file_exists($targetFile)) {
+        exit('⚠️ Original file not found in uploads folder.');
+    }
+
+    if (file_put_contents($targetFile, $decoded) === false) {
+        exit('❌ Failed to overwrite file. Check file permissions.');
+    }
+
+    mysqli_query($conn, "
+        UPDATE tbl_document_images 
+        SET img_uploaded_at = NOW() 
+        WHERE img_id = '$img_id'
+    ");
+
+    exit('✅ Image successfully updated!');
+}
+
+
+
+if (isset($_POST['get_received_counter'])) {
+
+  $office_id = 68;
+  // ✅ Count only latest "Received" transactions per document for this office
+  $sql = "
+    SELECT COUNT(*) AS received_doc_count
+    FROM (
+      SELECT da.doc_id
+      FROM tbl_document_actions da
+      INNER JOIN (
+        SELECT doc_id, MAX(action_id) AS last_action_id
+        FROM tbl_document_actions
+        GROUP BY doc_id
+      ) AS latest ON latest.last_action_id = da.action_id
+      WHERE da.to_office_id = '$office_id'
+      AND da.action_type = 'Received'
+    ) AS final
+  ";
+
+  $query = mysqli_query($conn, $sql);
+
+  if ($query) {
+    $row = mysqli_fetch_assoc($query);
+    echo $row['received_doc_count'] ?? 0;
   } else {
-    echo "<tr><td colspan='6' class='text-center text-muted'>No pending actions found.</td></tr>";
+    echo 0;
   }
 }
+
+
+
+if (isset($_POST['load_pending_actions'])) {
+
+  $sql = "
+    SELECT 
+      d.doc_id, 
+      d.file_code, 
+      d.particular, 
+      d.office_division, 
+      v.division_desc AS division_name,
+      d.type_of_documents, 
+      t.doctype_desc AS document_type,
+      d.date_received, 
+      d.received_by, 
+      a.action_remarks, 
+      a.action_date
+    FROM tbl_document_actions a
+    INNER JOIN (
+        SELECT doc_id, MAX(action_id) AS last_action_id
+        FROM tbl_document_actions
+        GROUP BY doc_id
+    ) AS latest ON latest.last_action_id = a.action_id
+    INNER JOIN tbl_documents_registry d ON d.doc_id = a.doc_id
+    LEFT JOIN tbltypeofdocuments t ON t.docid = d.type_of_documents
+    LEFT JOIN tbldivisions v ON v.divisionid = d.office_division
+    WHERE a.action_type = 'Received'
+    ORDER BY a.action_date DESC
+  ";
+
+  $res = mysqli_query($conn, $sql);
+
+  if ($res && mysqli_num_rows($res) > 0) {
+    while ($row = mysqli_fetch_assoc($res)) {
+
+      $file_code       = htmlspecialchars($row['file_code'] ?? '');
+      $particular      = htmlspecialchars($row['particular'] ?? '');
+      $type_doc        = htmlspecialchars($row['document_type'] ?? '');
+      $division        = htmlspecialchars($row['division_name'] ?? '');
+      $received_by     = htmlspecialchars($row['received_by'] ?? '');
+      $remarks         = htmlspecialchars($row['action_remarks'] ?? '');
+      $action_date_fmt = $row['action_date'] ? date("M d, Y h:i A", strtotime($row['action_date'])) : '';
+
+      echo '
+        <div class="doc-card shadow-sm mb-2 p-3 rounded bg-white" onclick="viewDocumentImage(' . $row['doc_id'] . ')">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <div class="fw-bold text-primary">
+              <i class="bx bx-file"></i> ' . $file_code . '
+            </div>
+            <small class="text-muted">' . $action_date_fmt . '</small>
+          </div>
+
+          <div class="text-dark mb-1">
+            <strong>' . $particular . '</strong>
+          </div>
+
+          <div class="text-muted small mb-2">
+            ' . ($type_doc ?: 'No Document Type') . ( $division ? ' | ' . $division : '' ) . '
+          </div>
+
+          <div class="text-muted small">
+            ' . ( $remarks ? '<i class="bi bi-chat-left-text"></i> ' . $remarks : '' ) . '
+          </div>
+        </div>
+      ';
+    }
+  } else {
+    echo '<div class="text-center text-muted py-4">No pending documents found.</div>';
+  }
+
+  exit;
+}
+
+
+/* ---------- Load images for a specific document ---------- */
+if (isset($_POST['get_document_image'])) {
+  $doc_id = intval($_POST['doc_id']);
+
+  $imgQuery = mysqli_query($conn, "
+    SELECT img_id, img_filename, img_uploaded_at 
+    FROM tbl_document_images 
+    WHERE doc_id = '$doc_id' 
+    ORDER BY img_uploaded_at DESC
+  ");
+
+  if ($imgQuery && mysqli_num_rows($imgQuery) > 0) {
+    echo '<div class="row justify-content-center">';
+
+    while ($img = mysqli_fetch_assoc($imgQuery)) {
+      $img_id = $img['img_id'];
+      $file_name = htmlspecialchars($img['img_filename']);
+      $file_path = '../uploads/' . $file_name . '?v=' . strtotime($img['img_uploaded_at']);
+      $uploaded_at = date("M d, Y h:i A", strtotime($img['img_uploaded_at']));
+
+      echo '
+        <div class="col-md-6 col-sm-12 mb-3 text-center">
+          <div class="card border-0 shadow-sm">
+            <img src="' . $file_path . '" 
+                 alt="Document Image" 
+                 class="img-fluid rounded"
+                 style="max-height:350px; object-fit:contain;"
+                 onclick="openAnnotateModal(\'' . $file_path . '\', ' . $img_id . ')">
+            <div class="card-footer text-muted small">
+              Uploaded: ' . $uploaded_at . '
+              <br>
+              <button class="btn btn-sm btn-outline-primary mt-2"
+                      onclick="openAnnotateModal(\'' . $file_path . '\', ' . $img_id . ')">
+                <i class="bi bi-pencil-square"></i> Annotate
+              </button>
+            </div>
+          </div>
+        </div>
+      ';
+    }
+
+    echo '</div>';
+  } else {
+    echo '<div class="text-center text-muted py-4">No images uploaded for this document.</div>';
+  }
+
+  exit;
+}
+
+
+
+
 ?>

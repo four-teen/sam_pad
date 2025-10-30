@@ -516,15 +516,6 @@ function viewReturnRemarks(doc_id) {
 }
 
 
-
-    // Load data when page opens
-    window.onload = function() {
-      loadTable();
-      get_doc_count(); // ✅ add this here
-      get_count_outgoing();
-      get_count_returned();
-    };
-
     function loadTable() {
       let progress = 0;
       let interval;
@@ -572,6 +563,46 @@ function viewReturnRemarks(doc_id) {
         }
       });
     }
+
+
+
+// Load data when page opens
+window.onload = function() {
+  loadTable();
+  get_doc_count(); // ✅ add this here
+  get_count_outgoing();
+  get_count_returned();
+  get_count_acted();  
+  get_count_delivered();
+  // get_count_new_received();
+};
+
+// ===========COUNTS=====================================
+function get_count_delivered(){
+  $.ajax({
+    url: "query_delivered.php",
+    type: "POST",
+    data: { 
+      get_delivered_counter: 1 
+    },
+    success: function(response) {
+      $('#load_delivered_count').html(response);
+    }
+  });  
+}
+
+function get_count_acted(){
+  $.ajax({
+    url: "query_acted.php",
+    type: "POST",
+    data: { 
+      get_acted_counter: 1 
+    },
+    success: function(response) {
+      $('#load_acted_count').html(response);
+    }
+  });  
+}
 
 
 function get_count_returned(){
@@ -636,8 +667,7 @@ function get_doc_count(){
 
   function card_six(){
     window.location = 'all_docs.php';
-  } 
-
+  }   
 </script>
 
 

@@ -117,18 +117,44 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
       background: radial-gradient(circle at top right, rgba(255,255,255,0.3), transparent 60%);
       opacity: 0.8;
     }
+    @media (max-width: 768px) {
+      #tbl_pending_actions {
+        font-size: 0.85rem;
+      }
+      .modal-dialog {
+        margin: 1rem;
+      }
+      .modal-body {
+        padding: 0.75rem;
+      }
+    }
+.doc-card {
+  border-left: 4px solid #007bff;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.doc-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
 @media (max-width: 768px) {
-  #tbl_pending_actions {
-    font-size: 0.85rem;
-  }
-  .modal-dialog {
-    margin: 1rem;
-  }
-  .modal-body {
-    padding: 0.75rem;
+  .doc-card {
+    font-size: 0.9rem;
+    padding: 10px;
   }
 }
-
+.doc-card {
+  border-left: 4px solid #007bff;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  cursor: pointer; /* 👈 make cards clickable */
+}
+.doc-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+#document_image_container {
+  max-height: 70vh;
+  overflow-y: auto;
+}
   </style>
 </head>
 
@@ -144,7 +170,7 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
 <section class="section dashboard">
   <div class="container-fluid">
     <div class="row g-3 justify-content-center">
-
+<div id="test">test</div>
       <!-- 🟦 Pending Actions -->
       <div class="col-xl-3 col-md-6 col-sm-12">
         <div class="card info-card border-0 shadow-sm" style="--start-color:#007bff;--end-color:#17a2b8;" onclick="show_pending_actions()">
@@ -211,17 +237,7 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
 
     </div>
 
-    <!-- 📊 Reports Section -->
-<!--     <div class="row mt-4">
-      <div class="col-12">
-        <div class="card">
-          <div class="card-body">
-            <h5 class="card-title">Document Flow Summary <span class="text-muted">| Real-time Tracking</span></h5>
-            <div id="main_data"></div>
-          </div>
-        </div>
-      </div>
-    </div> -->
+
 
   </div>
 </section>
@@ -266,31 +282,17 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
 <div class="modal fade" id="modalPendingActions" tabindex="-1" aria-labelledby="modalPendingActionsLabel" aria-hidden="true">
   <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
     <div class="modal-content">
-      
+
       <div class="modal-header bg-primary text-white">
         <h5 class="modal-title" id="modalPendingActionsLabel">
-          <i class="bx bx-time"></i> Pending Actions – Documents Received from PAD
+          <i class="bx bx-time"></i> Pending Actions
         </h5>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
 
       <div class="modal-body">
-        <div class="table-responsive">
-          <table id="tbl_pending_actions" class="table table-bordered table-hover table-sm w-100">
-            <thead class="table-light">
-              <tr>
-                <th>#</th>
-                <th>Document Code</th>
-                <th>Title / Subject</th>
-                <th>Originating Office</th>
-                <th>Date Received</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              <!-- loaded dynamically via AJAX -->
-            </tbody>
-          </table>
+        <div id="pending_list_container" style="max-height:70vh; overflow-y:auto; padding:5px;">
+          <!-- cards load here -->
         </div>
       </div>
 
@@ -304,7 +306,53 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
   </div>
 </div>
 
+<!-- 📄 Document Image Viewer Modal -->
+<div class="modal fade" id="modalViewImage" tabindex="-1" aria-labelledby="modalViewImageLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-dark text-white">
+        <h5 class="modal-title" id="modalViewImageLabel"><i class="bi bi-image"></i> Document Attachment</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body text-center" id="document_image_container">
+        <div class="text-muted">Loading document image...</div>
+      </div>
+    </div>
+  </div>
+</div>
 
+<!-- 🖋️ Image Annotation Modal -->
+<div class="modal fade" id="annotateModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-dark text-white">
+        <h5 class="modal-title"><i class="bi bi-brush"></i> Annotate Image</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body text-center">
+        <canvas id="annotateCanvas" style="max-width:100%; border:1px solid #ddd; cursor:crosshair;"></canvas>
+<div class="mt-3">
+  <div class="d-flex justify-content-center gap-2 flex-wrap mb-2">
+    <button class="btn btn-sm btn-outline-secondary" id="drawModeBtn"><i class="bi bi-pencil"></i> Draw</button>
+    <button class="btn btn-sm btn-outline-secondary" id="textModeBtn"><i class="bi bi-type"></i> Text</button>
+    <button class="btn btn-sm btn-outline-warning" id="clearCanvasBtn"><i class="bi bi-eraser"></i> Clear</button>
+    <button class="btn btn-sm btn-success" id="saveAnnotatedBtn"><i class="bi bi-save"></i> Save</button>
+  </div>
+
+  <!-- 🗒️ Fixed Annotation Textbox with Add Button -->
+  <div class="d-flex justify-content-center align-items-start gap-2 flex-wrap" style="max-width:650px; margin:auto;">
+    <textarea id="bottomAnnotationBox" class="form-control form-control-sm flex-grow-1"
+      placeholder="Type your remarks here..."
+      style="resize:none; height:80px; background:rgba(255,255,255,0.9); border:1px solid #ccc; border-radius:6px;"></textarea>
+    <button class="btn btn-sm btn-primary mt-2 mt-md-0" id="addAnnotationBtn">
+      <i class="bi bi-plus-circle"></i> Add Annotation
+    </button>
+  </div>
+</div>
+      </div>
+    </div>
+  </div>
+</div>
 
 
   <!-- JS -->
@@ -318,22 +366,230 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
 
   <script>
 
-function show_pending_actions() {
-  $('#modalPendingActions').modal('show'); // ✅ show modal on click
+// ==============IMAGE ANNOTATION===================================
 
-  // 🔁 Load data dynamically from PHP (you can adjust query later)
+let canvas, ctx, imgObj;
+let isDrawing = false;
+let mode = 'draw'; // draw | text
+let currentImgPath = '';
+let currentImgId = 0;
+
+function openAnnotateModal(imgPath, imgId) {
+  currentImgPath = imgPath;
+  currentImgId = imgId;
+
+  $('#annotateModal').modal('show');
+
+  setTimeout(() => {
+    canvas = document.getElementById('annotateCanvas');
+    ctx = canvas.getContext('2d');
+    imgObj = new Image();
+
+    imgObj.onload = function () {
+      canvas.width = imgObj.width;
+      canvas.height = imgObj.height;
+      ctx.drawImage(imgObj, 0, 0);
+    };
+    imgObj.src = imgPath;
+
+    /* ===================== COORDINATE HELPER ===================== */
+    function getCoords(e) {
+      const rect = canvas.getBoundingClientRect();
+      if (e.touches && e.touches.length > 0) {
+        return {
+          x: e.touches[0].clientX - rect.left,
+          y: e.touches[0].clientY - rect.top,
+        };
+      } else {
+        return {
+          x: e.offsetX ?? e.clientX - rect.left,
+          y: e.offsetY ?? e.clientY - rect.top,
+        };
+      }
+    }
+
+    /* ===================== DRAW MODE (Mouse + Touch) ===================== */
+    canvas.onmousedown = (e) => {
+      const { x, y } = getCoords(e);
+      if (mode === "draw") {
+        isDrawing = true;
+        ctx.beginPath();
+        ctx.moveTo(x, y);
+      }
+    };
+
+    canvas.onmousemove = (e) => {
+      if (isDrawing && mode === "draw") {
+        const { x, y } = getCoords(e);
+        ctx.lineTo(x, y);
+        ctx.strokeStyle = "blue";
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      }
+    };
+
+    canvas.onmouseup = () => (isDrawing = false);
+
+    // Touch events for drawing
+    canvas.addEventListener("touchstart", (e) => {
+      if (mode !== "draw") return;
+      const { x, y } = getCoords(e);
+      isDrawing = true;
+      ctx.beginPath();
+      ctx.moveTo(x, y);
+      e.preventDefault();
+    });
+
+    canvas.addEventListener("touchmove", (e) => {
+      if (isDrawing && mode === "draw") {
+        const { x, y } = getCoords(e);
+        ctx.lineTo(x, y);
+        ctx.strokeStyle = "blue";
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      }
+      e.preventDefault();
+    });
+
+    canvas.addEventListener("touchend", () => (isDrawing = false));
+
+    /* ===================== TEXT MODE (Bottom Annotation Box) ===================== */
+    $("#textModeBtn").click(() => (mode = "text"));
+
+function renderBottomText() {
+  const text = $("#bottomAnnotationBox").val().trim();
+  if (text === "") return;
+
+  const padding = 10;
+  const lineHeight = 22;
+  const maxWidth = canvas.width - 2 * padding;
+
+  // 🔹 Split by new lines first (\n from textarea)
+  const paragraphs = text.split(/\r?\n/);
+  ctx.font = "18px Poppins, Arial";
+  let lines = [];
+
+  // 🔹 Wrap each paragraph individually
+  paragraphs.forEach((para) => {
+    const words = para.split(" ");
+    let currentLine = words[0];
+    for (let i = 1; i < words.length; i++) {
+      const testLine = currentLine + " " + words[i];
+      if (ctx.measureText(testLine).width > maxWidth && i > 0) {
+        lines.push(currentLine);
+        currentLine = words[i];
+      } else {
+        currentLine = testLine;
+      }
+    }
+    lines.push(currentLine);
+  });
+
+  // 🔹 Calculate box height based on total lines
+  const boxHeight = lines.length * lineHeight + padding * 2;
+  const y = canvas.height - boxHeight - 10;
+
+  // 🔹 Draw gray background box
+  ctx.fillStyle = "rgba(200,200,200,0.8)";
+  ctx.fillRect(padding, y, canvas.width - 2 * padding, boxHeight);
+  ctx.strokeStyle = "rgba(100,100,100,0.4)";
+  ctx.strokeRect(padding, y, canvas.width - 2 * padding, boxHeight);
+
+  // 🔹 Render wrapped + multi-line text
+  ctx.fillStyle = "red";
+  ctx.textBaseline = "top";
+  let textY = y + padding;
+  lines.forEach((line) => {
+    ctx.fillText(line, padding + 10, textY);
+    textY += lineHeight;
+  });
+}
+
+
+    // ✅ When pressing Enter in bottom textbox, render annotation
+// 🔹 Add button click handler for annotation
+$("#addAnnotationBtn").off("click").on("click", function () {
+  renderBottomText();
+  $("#bottomAnnotationBox").val(""); // clear textarea after adding
+});
+
+  }, 300); // end of setTimeout
+}
+
+/* ===================== TOOLBAR BUTTONS ===================== */
+$("#drawModeBtn").click(() => (mode = "draw"));
+$("#textModeBtn").click(() => (mode = "text"));
+$("#clearCanvasBtn").click(() => {
+  ctx.drawImage(imgObj, 0, 0);
+});
+$("#saveAnnotatedBtn").click(() => saveAnnotatedImage());
+
+/* ===================== SAVE ANNOTATED IMAGE ===================== */
+function saveAnnotatedImage() {
+  const dataURL = canvas.toDataURL("image/png");
+  $.ajax({
+    url: "query_president.php",
+    type: "POST",
+    data: { image: dataURL, img_id: currentImgId },
+    success: function (res) {
+      Swal.fire({
+        title: "Saved!",
+        text: res,
+        icon: "success",
+        timer: 1500,
+        showConfirmButton: false,
+      });
+      $("#annotateModal").modal("hide");
+    },
+    error: function (xhr) {
+      Swal.fire("Error", xhr.responseText || "Unable to save image", "error");
+    },
+  });
+}
+
+//==========END OF IMAGE ANNOTATION===============================
+
+
+
+// 🖼️ Load image related to clicked document
+function viewDocumentImage(docId) {
+  $('#modalViewImage').modal('show');
+  $('#document_image_container').html('<div class="text-muted py-4">Loading document image...</div>');
+
+  $.ajax({
+    url: "query_president.php",
+    type: "POST",
+    data: { get_document_image: 1, doc_id: docId },
+    success: function (response) {
+      $('#document_image_container').html(response);
+    },
+    error: function () {
+      $('#document_image_container').html('<div class="text-danger py-4">Error loading image.</div>');
+    }
+  });
+}
+
+function show_pending_actions() {
+  $('#modalPendingActions').modal('show');
+
+  $("#pending_list_container").html('<div class="text-center text-secondary py-3">Loading...</div>');
+
   $.ajax({
     url: "query_president.php",
     type: "POST",
     data: { load_pending_actions: 1 },
     success: function (response) {
-      $('#tbl_pending_actions tbody').html(response);
+      $("#pending_list_container").html(response);
     },
     error: function () {
-      $('#tbl_pending_actions tbody').html('<tr><td colspan="6" class="text-center text-danger">Error loading data.</td></tr>');
+      $("#pending_list_container").html('<div class="text-center text-danger py-3">Error loading data.</div>');
     }
   });
 }
+
+
+
+
     
   function animateValue(id, start, end, duration) {
     const el = document.getElementById(id);
@@ -347,6 +603,23 @@ function show_pending_actions() {
     }
     requestAnimationFrame(frame);
   }
+
+// 🔹 Load the count for the Pending Actions card
+function get_req() {
+  $.ajax({
+    url: "query_president.php",
+    type: "POST",
+    data: { get_received_counter: 1 },
+    success: function (response) {
+      $("#load_pending_actions").text(response || 0);
+    },
+    error: function () {
+      $("#load_pending_actions").text("0");
+    }
+  });
+}
+
+
   </script>
 </body>
 </html>

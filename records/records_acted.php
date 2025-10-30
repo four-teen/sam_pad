@@ -560,6 +560,7 @@ function get_count_delivered(){
 }
 
 function get_count_acted(){
+
   $.ajax({
     url: "query_acted.php",
     type: "POST",

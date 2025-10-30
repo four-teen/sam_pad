@@ -1399,9 +1399,9 @@ window.onload = function() {
   get_doc_count(); // ✅ add this here
   get_count_outgoing();
   get_count_returned();
-  get_count_new_received();
+  get_count_acted();  
   get_count_delivered();
-  get_count_acted();
+  // get_count_new_received();
 };
 
 // ===========COUNTS=====================================
