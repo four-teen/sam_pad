@@ -96,7 +96,7 @@
           <i class="bi bi-arrow-90deg-down"></i>
         </div>
         <div>
-          <h3 id="load_statistics" class="mb-0">0</h3>
+          <h3 id="load_returned_count" class="mb-0">0</h3>
           <small class="text-muted">records</small>
         </div>
       </div>

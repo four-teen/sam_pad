@@ -2,12 +2,25 @@
 include '../db.php';
 session_start();
 
+if(isset($_POST['refresh_file_series'])){
+    $select = "SELECT * FROM `tbl_file_series` LIMIT 1";
+    $runselect = mysqli_query($conn, $select);
+    $rowselect = mysqli_fetch_assoc($runselect);    
+    $series = $rowselect['series_prefix'].'-'.$rowselect['series_number'];
+    echo
+    '
+      <label class="form-label fw-semibold">File Code</label>
+      <input type="text" value="'.$series.'" class="form-control shadow-sm bg-light" name="file_code" id="file_code" readonly>
+    ';
+}
+
+
 if(isset($_POST['saving_document_series'])){
     $doc_prefix = $_POST['doc_prefix'];
     $doc_number = $_POST['doc_number'];
     $insert = "UPDATE `tbl_file_series` SET `series_prefix`='$doc_prefix', `series_number`='$doc_number'";
     $runinsert = mysqli_query($conn, $insert);
-    echo $insert;
+    // echo $insert;
 }
 
 if (isset($_POST['get_received_counter'])) {

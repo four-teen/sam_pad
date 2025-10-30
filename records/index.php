@@ -314,8 +314,7 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
               <input type="datetime-local" class="form-control shadow-sm" name="date_received" required>
             </div>
             <div class="col-md-6">
-              <label class="form-label fw-semibold">File Code</label>
-              <input type="text" class="form-control shadow-sm bg-light" name="file_code" id="file_code" readonly>
+              <div id="file_codes">Loading file code</div>
             </div>
 
             <!-- Row 2 -->
@@ -655,6 +654,19 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
   <script src="functioned.js"></script>
 <script>
 
+  function refresh_filecode(){
+    $.ajax({
+      url: "query_records.php",
+      type: "POST",
+      data: { 
+        refresh_file_series: 1
+      },
+      success: function(response) {
+        $('#file_codes').html(response);
+      }
+    });    
+  }
+
   function saving_doc_series(){
     var doc_prefix = $('#doc_prefix').val();
     var doc_number = $('#doc_number').val();
@@ -846,22 +858,10 @@ document.getElementById("btnAddRecord").addEventListener("click", function() {
   document.getElementById("form_add_record").reset();
   recordModal.show();
   loadDropdowns();
-  generateFileCode();
+  refresh_filecode();
 
 });
 
-function get_count_outgoing(){
-  $.ajax({
-    url: "query_records.php",
-    type: "POST",
-    data: { 
-      get_outgoing_counter: 1 
-    },
-    success: function(response) {
-      $('#load_outgoing_count').html(response);
-    }
-  });  
-}
 
 function save_set_actions() {
   const to_office_id = $('#to_office_id').val();
@@ -914,51 +914,12 @@ function save_set_actions() {
 }
 
 
-// function take_action(id){
-//   $('#take_action_doc_id').val(id);
-//   $('#takeActionModal').modal('show');
-// }
-
 function take_action(doc_id) {
   // 🔍 Check if there are uploaded images for this record first
-  $.ajax({
-    url: "query_records.php",
-    type: "POST",
-    data: { check_images: 1, doc_id: doc_id },
-    success: function(response) {
-      const count = parseInt(response.trim());
-      if (count > 0) {
-        // ✅ Proceed if at least 1 image found
-        $('#take_action_doc_id').val(doc_id);
-        $('#takeActionModal').modal('show');
-      } else {
-        // ⚠️ No image found → show dual button SweetAlert
-        Swal.fire({
-          icon: 'warning',
-          title: 'Upload Required',
-          text: 'Please upload at least one image before taking action.',
-          showCancelButton: true,
-          confirmButtonText: 'Upload Now',
-          cancelButtonText: 'Not Now',
-          confirmButtonColor: '#0d6efd',
-          cancelButtonColor: '#6c757d',
-          reverseButtons: true
-        }).then((result) => {
-          if (result.isConfirmed) {
-            upload_image_record(doc_id); // 🔁 Open upload modal
-          }
-          // 💤 If Not Now → just close SweetAlert (no action)
-        });
-      }
-    },
-    error: function() {
-      Swal.fire("Error", "Could not verify uploaded images.", "error");
-    }
-  });
+    $('#take_action_doc_id').val(doc_id);
+    $('#takeActionModal').modal('show');  
+
 }
-
-
-
 
 
 $(document).ready(function() {
@@ -1182,29 +1143,8 @@ function delete_uploaded_image(img_id, doc_id) {
 }  
 
 // =========================================================
-function get_doc_count(){
-  $.ajax({
-    url: "query_records.php",
-    type: "POST",
-    data: { 
-      load_rec_count: 1 
-    },
-    success: function(response) {
-      $('#load_doc_count').html(response);
-    }
-  });  
-}
 
 const recordModal = new bootstrap.Modal(document.getElementById('recordModal'));
-
-// Load data when page opens
-window.onload = function() {
-  loadTable();
-  get_doc_count(); // ✅ add this here
-  get_count_outgoing();
-  get_count_returned();
-  get_count_new_received();
-};
 
 // Load dropdowns
 function loadDropdowns() {
@@ -1264,6 +1204,7 @@ document.getElementById("btn_save_record").addEventListener("click", function() 
     },
     success: function(response) {
       if (response.trim() === "success") {
+        generateFileCode();
         Swal.fire({
           icon: "success",
           title: "Saved!",
@@ -1452,18 +1393,44 @@ document.getElementById("btn_update_record").addEventListener("click", function(
 });
 
 
-function get_count_new_received(){
+// Load data when page opens
+window.onload = function() {
+  loadTable();
+  get_doc_count(); // ✅ add this here
+  get_count_outgoing();
+  get_count_returned();
+  get_count_new_received();
+  get_count_delivered();
+  get_count_acted();
+};
+
+// ===========COUNTS=====================================
+function get_count_delivered(){
   $.ajax({
-    url: "query_records.php",
+    url: "query_delivered.php",
     type: "POST",
     data: { 
-      get_received_counter: 1 
+      get_delivered_counter: 1 
     },
     success: function(response) {
-      $('#load_new_received_count').html(response);
+      $('#load_delivered_count').html(response);
     }
   });  
 }
+
+function get_count_acted(){
+  $.ajax({
+    url: "query_acted.php",
+    type: "POST",
+    data: { 
+      get_acted_counter: 1 
+    },
+    success: function(response) {
+      $('#load_acted_count').html(response);
+    }
+  });  
+}
+
 
 function get_count_returned(){
   $.ajax({
@@ -1474,6 +1441,32 @@ function get_count_returned(){
     },
     success: function(response) {
       $('#load_returned_count').html(response);
+    }
+  });  
+}
+
+function get_count_outgoing(){
+  $.ajax({
+    url: "query_records.php",
+    type: "POST",
+    data: { 
+      get_outgoing_counter: 1 
+    },
+    success: function(response) {
+      $('#load_outgoing_count').html(response);
+    }
+  });  
+}
+
+function get_doc_count(){
+  $.ajax({
+    url: "query_records.php",
+    type: "POST",
+    data: { 
+      load_rec_count: 1 
+    },
+    success: function(response) {
+      $('#load_doc_count').html(response);
     }
   });  
 }

@@ -105,14 +105,7 @@ if (isset($_POST['load_table'])) {
               </tr>';
             $count++;
         }
-    } else {
-        $output .= '
-          <tr>
-            <td colspan="7" class="text-center text-muted py-3">
-              No delivered documents found.
-            </td>
-          </tr>';
-    }
+    } 
 
     $output .= "</tbody></table>";
     echo $output;

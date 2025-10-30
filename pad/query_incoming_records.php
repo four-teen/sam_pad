@@ -5,6 +5,99 @@ session_start();
 
 // ==========================================
 
+/* 🔹 UPLOAD IMAGES */
+if (isset($_POST['upload_images'])) {
+    $doc_id = intval($_POST['doc_id']);
+    if ($doc_id <= 0) {
+        echo json_encode(['status' => 'error', 'message' => 'Invalid document.']);
+        exit;
+    }
+
+    if (!isset($_FILES['images'])) {
+        echo json_encode(['status' => 'error', 'message' => 'No files received.']);
+        exit;
+    }
+
+    $uploadDir = dirname(__DIR__) . '/uploads/'; // filesystem path
+    if (!is_dir($uploadDir)) { @mkdir($uploadDir, 0755, true); }
+
+    $allowed = ['image/jpeg','image/jpg','image/png','image/gif','image/webp'];
+    $maxSize = 5 * 1024 * 1024;
+
+    $files = $_FILES['images'];
+    $count = count($files['name']);
+    $uploaded = 0; $errors = [];
+
+    for ($i = 0; $i < $count; $i++) {
+        if ($files['error'][$i] !== UPLOAD_ERR_OK) {
+            $errors[] = $files['name'][$i] . ' failed to upload.';
+            continue;
+        }
+
+        // Validate size
+        if ($files['size'][$i] > $maxSize) {
+            $errors[] = $files['name'][$i] . ' exceeds 5MB.';
+            continue;
+        }
+
+        // Validate mime using finfo
+        $finfo = new finfo(FILEINFO_MIME_TYPE);
+        $mime  = $finfo->file($files['tmp_name'][$i]);
+        if (!in_array($mime, $allowed)) {
+            $errors[] = $files['name'][$i] . ' is not an allowed image type.';
+            continue;
+        }
+
+        // Create safe unique filename
+        $ext = pathinfo($files['name'][$i], PATHINFO_EXTENSION);
+        $newName = date('Ymd_His') . '_' . bin2hex(random_bytes(4)) . '.' . strtolower($ext);
+        $dest = $uploadDir . $newName;
+
+        if (move_uploaded_file($files['tmp_name'][$i], $dest)) {
+            // Save to DB
+            $stmt = mysqli_prepare($conn, "INSERT INTO tbl_document_images (doc_id, img_filename) VALUES (?, ?)");
+            mysqli_stmt_bind_param($stmt, "is", $doc_id, $newName);
+            mysqli_stmt_execute($stmt);
+            mysqli_stmt_close($stmt);
+            $uploaded++;
+        } else {
+            $errors[] = $files['name'][$i] . ' could not be saved.';
+        }
+    }
+
+    echo json_encode([
+        'status'  => 'ok',
+        'uploaded'=> $uploaded,
+        'errors'  => $errors
+    ]);
+    exit;
+}
+
+
+/* 🔹 DELETE IMAGE */
+if (isset($_POST['delete_image'])) {
+    $img_id = intval($_POST['img_id']);
+
+    $get = mysqli_query($conn, "SELECT img_filename FROM tbl_document_images WHERE img_id = $img_id");
+    if ($get && mysqli_num_rows($get) === 1) {
+        $row = mysqli_fetch_assoc($get);
+        $file = $row['img_filename'];
+
+        // Delete DB row first
+        mysqli_query($conn, "DELETE FROM tbl_document_images WHERE img_id = $img_id");
+
+        // Remove file on disk
+        $path = dirname(__DIR__) . '/uploads/' . $file;
+        if (is_file($path)) { @unlink($path); }
+
+        echo "deleted";
+    } else {
+        echo "not_found";
+    }
+    exit;
+}
+
+
 //RETURN RECORDS=======================
 if (isset($_POST['return_document_action'])) {
     $doc_id = intval($_POST['doc_id']);
@@ -173,6 +266,9 @@ if (isset($_POST['load_table'])) {
                 <td class="text-nowrap" width="1%">';
 
                 $output .= '
+                <button class="btn btn-info" onclick="upload_image_record(\''.$r['doc_id'].'\')" title="Upload Image">
+                  <i class="bx bx-image"></i>
+                </button>                
                     <button class="btn btn-info" title="View Images" onclick="view_uploaded_images(\''.$r['doc_id'].'\')">
                       <i class="bi bi-images"></i>
                     </button> 
