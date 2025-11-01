@@ -1,9 +1,6 @@
 <?php 
-
-    session_start();    
     ob_start();
-
-
+    session_start(); 
     include '../db.php';
 
     if($_SESSION['username']==''){

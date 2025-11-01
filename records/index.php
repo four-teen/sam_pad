@@ -40,6 +40,9 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
   <link href="../assets/vendor/simple-datatables/style.css" rel="stylesheet">
   <link href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+  <!-- ✅ Bootstrap 5 theme for Select2 -->
+  <link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet">
+
 
   <!-- Template Main CSS File -->
   <link href="../assets/css/style.css" rel="stylesheet">
@@ -236,9 +239,15 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
       .select2-selection__placeholder {
         color: #6c757d !important;
       }
-
-
-
+      /* ✅ Beautiful multi-select chips */
+      .select2-container--bootstrap-5 .select2-selection__choice {
+        background-color: #0d6efd;
+        color: #fff;
+        border: none;
+        border-radius: .25rem;
+        padding: 2px 8px;
+        margin-top: 4px;
+      }
 
   </style>
 </head>
@@ -587,6 +596,7 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
       </div>
 
       <div class="modal-body">
+
         <div class="row">
           <?php 
             $get_series = "SELECT * FROM `tbl_file_series` LIMIT 1";
@@ -608,15 +618,64 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
             </div>
             ';
           ?>
-
-
         </div>
-
-
         <div class="mb-3 py-2">
             <button type="button" class="btn btn-info" onclick="saving_doc_series()">
                 <i class="bi bi-save2"></i> Update
             </button>
+        </div>        
+      </div>
+      <div class="modal-footer bg-white border-0">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+          <i class="bi bi-x-circle me-1"></i> Close
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<div class="modal fade" id="otherInfoModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="uploadImagesLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable modal-dialog-centered">
+    <div class="modal-content shadow-lg border-0 rounded-3">
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title fw-semibold" id="uploadImagesLabel">
+          <i class="bi bi-images me-2"></i> Add other information
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+
+      <div class="modal-body">
+        <input type="hidden" id="doc_id_selection">
+        <div class="mb-3">
+          <label class="form-label fw-semibold" for="info_names">Select Name</label>
+          <select
+            id="info_names"
+            class="form-select js-example-basic-multiple"
+            name="info_names[]"
+            multiple
+          >
+            <?php 
+              $get_profile = "SELECT * FROM `tblprofiles`";
+              $runget_profiles = mysqli_query($conn, $get_profile);
+              while($r = mysqli_fetch_assoc($runget_profiles)){
+                echo
+                '
+                  <option value="'.$r['acc_id'].'">'.$r['acc_name'].'</option>
+                ';
+              }
+
+            ?>
+          </select>
+        </div>
+        <div class="mb-3">
+          <div id="show_names">Loading names list</div>
+        </div>
+
+        <div class="mb-3 py-2">
+            <button type="button" class="btn btn-info" onclick="saving_names()">
+          <i class="bi bi-save2"></i> Save
+        </button>
         </div>        
       </div>
 
@@ -628,6 +687,8 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
     </div>
   </div>
 </div>
+
+
 
   <!-- ======= Footer ======= -->
   <footer id="footer" class="footer">
@@ -651,9 +712,158 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
   <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
   <script src="../assets/sweetalert2.js"></script>
   <script src="../assets/js/main.js"></script>
-  <script src="functioned.js"></script>
 <script>
 
+// ✅ Delete record from tblother_information
+function delete_other_info(other_info_id, doc_id) {
+  Swal.fire({
+    title: "Are you sure?",
+    text: "This record will be permanently deleted.",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonColor: "#d33",
+    cancelButtonColor: "#6c757d",
+    confirmButtonText: "Yes, delete it!"
+  }).then((result) => {
+    if (result.isConfirmed) {
+      $.ajax({
+        url: "query_records.php",
+        type: "POST",
+        data: {
+          delete_other_info: 1,
+          other_info_id: other_info_id
+        },
+        success: function(response) {
+          if (response.trim() === "deleted") {
+            Swal.fire({
+              title: "Deleted!",
+              text: "Record removed successfully.",
+              icon: "success",
+              timer: 1000,
+              showConfirmButton: false
+            });
+            load_names_list(doc_id);
+          } else {
+            Swal.fire("Error!", "Failed to delete record.", "error");
+          }
+        },
+        error: function() {
+          Swal.fire("Error!", "Server not reachable.", "error");
+        }
+      });
+    }
+  });
+}
+
+
+// ===============OTHER INFORMATION=======================================================
+
+// ✅ Save selected names (store all names in one record per doc_id)
+function saving_names() {
+  const doc_id = $('#doc_id_selection').val(); // or wherever your doc_id is stored
+  const selectedNames = $('#info_names').val(); // array of acc_id
+
+  if (!doc_id) {
+    Swal.fire("Missing Document!", "No document selected.", "warning");
+    return;
+  }
+  if (!selectedNames || selectedNames.length === 0) {
+    Swal.fire("No Selection!", "Please select at least one name.", "warning");
+    return;
+  }
+
+  $.ajax({
+    url: "query_records.php",
+    type: "POST",
+    data: {
+      saving_other_info: 1,
+      doc_id: doc_id,
+      names_involve: selectedNames
+    },
+    success: function (response) {
+      if (response.trim() === "saved") {
+        Swal.fire("Saved!", "Names successfully added to this document.", "success");
+        $('#info_names').val(null).trigger('change');
+        load_names_list(doc_id); // reload filtered list
+      } else {
+        Swal.fire("Error!", response, "error");
+      }
+    },
+    error: function () {
+      Swal.fire("Error!", "Server not reachable.", "error");
+    }
+  });
+}
+
+// ✅ Load names only for this document
+function load_names_list(doc_id) { 
+  if (!doc_id) return;
+  $.ajax({
+    url: "query_records.php",
+    type: "POST",
+    data: { load_other_info: 1, doc_id: doc_id },
+    success: function (response) {
+      $('#show_names').html(response);
+    },
+    error: function () {
+      $('#show_names').html("<div class='text-danger'>Failed to load list.</div>");
+    }
+  });
+
+}
+
+// ✅ Automatically load names when modal opens
+// $('#otherInfoModal').on('shown.bs.modal', function () {
+//   const doc_id = $('#take_action_doc_id').val(); // make sure this field is filled before showing modal
+//   load_names_list(doc_id);
+// });
+
+
+
+
+
+$(document).ready(function () {
+  $('#otherInfoModal').on('shown.bs.modal', function () {
+    // Reinitialize Select2 cleanly each time
+    if ($.fn.select2 && $('#info_names').data('select2')) {
+      $('#info_names').select2('destroy');
+    }
+
+    $('#info_names').select2({
+      theme: 'bootstrap-5',              // ✅ Correct theme
+      width: '100%',
+      placeholder: 'Select one or more names',
+      closeOnSelect: false,
+      dropdownParent: $('#otherInfoModal') // ✅ Keeps dropdown above modal
+    });
+  });
+});
+
+// ===========END OF OTHER IFNORMATION==================================
+//ADD OTHER INFORMATION LIKE NAMES RELATED TO THE RECORD
+
+function other_info(doc_id) {
+  $('#doc_id_selection').val(doc_id);       // store the current doc id
+  $('#otherInfoModal').modal('show');       // open the modal
+
+  // initialize select2 (safe reinit)
+  if ($.fn.select2 && $('#info_names').data('select2')) {
+    $('#info_names').select2('destroy');
+  }
+  $('#info_names').select2({
+    theme: 'bootstrap-5',
+    width: '100%',
+    placeholder: 'Select one or more names',
+    closeOnSelect: false,
+    dropdownParent: $('#otherInfoModal')
+  });
+
+  // load filtered names list
+  load_names_list(doc_id);
+}
+
+
+// ==================
   function refresh_filecode(){
     $.ajax({
       url: "query_records.php",
@@ -837,22 +1047,26 @@ function manage_division(){
 }
 
 $(document).ready(function() {
-  $('#takeActionModal').on('show.bs.modal', function () {
-    // Prevent double initialization
+
+  // ✅ For Take Action Modal
+  $('#takeActionModal').on('shown.bs.modal', function () {
     if ($.fn.select2 && $('#to_office_id').data('select2')) {
       $('#to_office_id').select2('destroy');
     }
 
-    // Initialize before modal transition
     $('#to_office_id').select2({
-      theme: 'bootstrap4',
+      theme: 'bootstrap-5',
       placeholder: 'Select Office / Division',
       width: '100%',
       allowClear: true,
       dropdownParent: $('#takeActionModal')
     });
   });
+
 });
+
+
+
 
 document.getElementById("btnAddRecord").addEventListener("click", function() {
   document.getElementById("form_add_record").reset();
@@ -1215,7 +1429,13 @@ document.getElementById("btn_save_record").addEventListener("click", function() 
         recordModal.hide();
         $("#form_add_record")[0].reset();
         loadTable();
+        get_count_outgoing();
+        get_count_returned();
+        get_count_acted();  
+        get_count_delivered();
         get_count_new_received();
+        get_doc_count();
+
       } else {
         Swal.fire("Error", "Something went wrong while saving.", "error");
       }
@@ -1401,7 +1621,7 @@ window.onload = function() {
   get_count_returned();
   get_count_acted();  
   get_count_delivered();
-  // get_count_new_received();
+  get_count_new_received();
 };
 
 // ===========COUNTS=====================================
@@ -1467,6 +1687,19 @@ function get_doc_count(){
     },
     success: function(response) {
       $('#load_doc_count').html(response);
+    }
+  });  
+}
+
+function get_count_new_received(){
+  $.ajax({
+    url: "query_records.php",
+    type: "POST",
+    data: { 
+      get_received_counter: 1 
+    },
+    success: function(response) {
+      $('#load_new_received_count').html(response);
     }
   });  
 }

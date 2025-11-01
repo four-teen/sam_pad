@@ -419,7 +419,7 @@ function confirmDocumentReturn(docId, receivedBy, officeDivision){
     }).then((res)=>{
       if(res.isConfirmed){
         $.post('query_returned.php', { set_outgoing_to_pad: 1, doc_id: docId }, function(r){
-          if(r === 'OK'){
+          if (r.trim() === 'OK') {
             Swal.fire('Sent!', 'Document set to Outgoing back to PAD.', 'success')
               .then(()=> {
                 if (typeof get_count_returned === 'function') get_count_returned();

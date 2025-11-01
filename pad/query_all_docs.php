@@ -1,8 +1,12 @@
 <?php
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
+ob_start();
 session_start();
 include '../db.php';
+
+// ✅ Always set timezone before doing any date/time calculations
+date_default_timezone_set('Asia/Manila');
 
 /* 🔹 Load timeline for a specific document */
 if (isset($_POST['load_timeline'])) {
@@ -20,31 +24,49 @@ if (isset($_POST['load_timeline'])) {
 
     if (mysqli_num_rows($run) > 0) {
         echo '<div class="timeline">';
+        $prev_action_date = null;   // store date of the *previous* (more recent) action
+
         while ($r = mysqli_fetch_assoc($run)) {
-            // ✅ Replace match() with switch (works on PHP 7+)
+
+            // --- color/icon setup ---
             switch ($r['action_type']) {
-                case 'Outgoing':
-                    $color = 'warning';
-                    $icon = 'bi-send';
-                    break;
-                case 'Received':
-                    $color = 'success';
-                    $icon = 'bi-check-circle';
-                    break;
-                case 'Returned':
-                    $color = 'danger';
-                    $icon = 'bi-arrow-counterclockwise';
-                    break;
-                case 'Archived':
-                    $color = 'secondary';
-                    $icon = 'bi-archive';
-                    break;
-                default:
-                    $color = 'info';
-                    $icon = 'bi-archive';
-                    break;
+                case 'Outgoing':  $color='warning'; $icon='bi-send'; break;
+                case 'Received':  $color='success'; $icon='bi-check-circle'; break;
+                case 'Returned':  $color='danger';  $icon='bi-arrow-counterclockwise'; break;
+                case 'Archived':  $color='secondary'; $icon='bi-archive'; break;
+                default:          $color='info'; $icon='bi-archive'; break;
             }
 
+                // --- compute duration ---
+                $current_date = new DateTime($r['action_date']);
+                if ($prev_action_date) {
+                    // difference between this and the next newer action
+                    $diff = $prev_action_date->diff($current_date);
+                } else {
+                    // topmost item → difference from now
+                    $diff = (new DateTime())->diff($current_date);
+                }
+
+                // ✅ Determine more precise duration text (with minutes)
+                if ($diff->days == 0 && $diff->h == 0 && $diff->i < 60) {
+                    if ($diff->i <= 1) {
+                        $duration_text = "1 minute";
+                    } else {
+                        $duration_text = $diff->i . " minutes";
+                    }
+                } elseif ($diff->days == 0 && $diff->h > 0 && $diff->i > 0) {
+                    $duration_text = $diff->h . " hour" . ($diff->h > 1 ? "s" : "") .
+                                     " and " . $diff->i . " minute" . ($diff->i > 1 ? "s" : "");
+                } elseif ($diff->days == 0) {
+                    $duration_text = $diff->h . " hour" . ($diff->h > 1 ? "s" : "");
+                } elseif ($diff->h == 0) {
+                    $duration_text = $diff->days . " day" . ($diff->days > 1 ? "s" : "");
+                } else {
+                    $duration_text = $diff->days . " day" . ($diff->days > 1 ? "s" : "") .
+                                     " and " . $diff->h . " hour" . ($diff->h > 1 ? "s" : "");
+                }
+
+            // --- output unchanged UI ---
             echo '
             <div class="timeline-item">
               <div class="timeline-icon bg-' . $color . '">
@@ -52,12 +74,21 @@ if (isset($_POST['load_timeline'])) {
               </div>
               <div class="ms-3">
                 <h6 class="fw-bold text-' . $color . ' mb-0">' . htmlspecialchars($r['action_type']) . '</h6>
-                <small class="text-muted d-block">' . date("F d, Y h:i A", strtotime($r['action_date'])) . '</small>
+                <small class="text-muted d-block">' .
+                    (new DateTime($r['action_date'], new DateTimeZone('Asia/Manila')))
+                        ->format("F d, Y h:i A") .
+                '</small>
+                <small class="text-muted"><i class="bi bi-clock-history me-1"></i>Stayed for ' . $duration_text . '</small>
                 <p class="mb-1 text-secondary">' . htmlspecialchars($r['action_remarks']) . '</p>
-                <span class="badge bg-light text-dark">From: ' . htmlspecialchars($r['from_office']) . ' → To: ' . htmlspecialchars($r['to_office']) . '</span>
+                <span class="badge bg-light text-dark">
+                  From: ' . htmlspecialchars($r['from_office']) . ' → To: ' . htmlspecialchars($r['to_office']) . '
+                </span>
               </div>
             </div>
             ';
+
+            // store this date for the next loop iteration
+            $prev_action_date = $current_date;
         }
         echo '</div>';
     } else {
@@ -69,6 +100,7 @@ if (isset($_POST['load_timeline'])) {
 
     exit;
 }
+
 
 /* 🚀 SERVER-SIDE DATATABLES PROCESSING */
 if (isset($_POST['server_table'])) {

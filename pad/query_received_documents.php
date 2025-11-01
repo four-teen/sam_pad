@@ -1,5 +1,6 @@
 <?php
 include '../db.php';
+ob_start();
 session_start();
 
 
@@ -119,6 +120,8 @@ if (isset($_POST['send_back_with_selection'])) {
 
     // Safety check — none should be zero
     if ($doc_id > 0 && $from_office_id > 0 && $to_office_id > 0) {
+
+        // ✅ Insert new document action (forwarding)
         $insert = "
             INSERT INTO tbl_document_actions 
             (doc_id, from_office_id, to_office_id, action_type, action_remarks, action_date)
@@ -126,15 +129,50 @@ if (isset($_POST['send_back_with_selection'])) {
         ";
 
         if (mysqli_query($conn, $insert)) {
+            // ✅ After successful forwarding, mark president remark as viewed
+            $update = "
+                UPDATE tblpresident_actions
+                SET is_viewed = 1
+                WHERE pres_doc_id = '$doc_id' AND is_viewed = 0
+            ";
+            mysqli_query($conn, $update);
+
             echo 'success';
         } else {
             echo 'db_error: ' . mysqli_error($conn);
         }
+
     } else {
         echo 'missing_fields';
     }
     exit;
 }
+
+
+// if (isset($_POST['send_back_with_selection'])) {
+//     $doc_id = intval($_POST['doc_id']);
+//     $from_office_id = intval($_POST['from_office_id']);
+//     $to_office_id = intval($_POST['to_office_id']);
+//     $remarks = mysqli_real_escape_string($conn, $_POST['remarks']);
+
+//     // Safety check — none should be zero
+//     if ($doc_id > 0 && $from_office_id > 0 && $to_office_id > 0) {
+//         $insert = "
+//             INSERT INTO tbl_document_actions 
+//             (doc_id, from_office_id, to_office_id, action_type, action_remarks, action_date)
+//             VALUES ('$doc_id', '$from_office_id', '$to_office_id', 'Acted', '$remarks', NOW())
+//         ";
+
+//         if (mysqli_query($conn, $insert)) {
+//             echo 'success';
+//         } else {
+//             echo 'db_error: ' . mysqli_error($conn);
+//         }
+//     } else {
+//         echo 'missing_fields';
+//     }
+//     exit;
+// }
 
 
 
@@ -151,6 +189,7 @@ if (isset($_POST['load_table_received'])) {
             <th>DIVISION</th>
             <th>TYPE</th>
             <th>PARTICULAR</th>
+            <th></th>
             <th class="text-center">ACTIONS</th>
           </tr>
         </thead>
@@ -204,6 +243,16 @@ if (isset($_POST['load_table_received'])) {
             }
         }
 
+        $pres_status = '';
+
+        //check president comment
+        $pa = "SELECT * FROM `tblpresident_actions` WHERE pres_doc_id='$r[doc_id]'";
+        $runpa = mysqli_query($conn, $pa);
+
+        if(mysqli_num_rows($runpa) == 1){
+            $pres_status = '<i class="bi bi-chat-square-text-fill text-success pres-blink" style="cursor:pointer" onclick="get_comments(\''.$r['doc_id'].'\')"></i>';
+        }
+
         // ✅ Format table row
         $output .= '
           <tr>
@@ -214,6 +263,9 @@ if (isset($_POST['load_table_received'])) {
             <td>'.$r['division_desc'].'</td>
             <td>'.$r['doctype_desc'].'</td>
             <td>'.$r['particular'].'</td>
+            <td>
+                '.$pres_status.'
+            </td>
             <td class="text-nowrap text-center" width="1%">
               <div style="
                   display: grid; 

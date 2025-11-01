@@ -1,7 +1,8 @@
 <?php
-include '../db.php';
-session_start();
 
+ob_start();
+session_start();
+include '../db.php';
 
 if (isset($_POST['load_images_for_view'])) {
     $doc_id = intval($_POST['doc_id']);

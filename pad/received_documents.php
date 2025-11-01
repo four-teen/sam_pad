@@ -273,7 +273,31 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
   z-index: 20000 !important; /* Ensures dropdown appears on top of Swal */
 }
 
+.pres-blink {
+  animation: presBlink 2s infinite;
+}
 
+@keyframes presBlink {
+  0%, 100% {
+    opacity: 12;
+    filter: drop-shadow(0 0 4px #28a745);
+  }
+  50% {
+    opacity: 0.2;
+    filter: drop-shadow(0 0 8px #28a745);
+  }
+}
+.animated {
+  animation-duration: 0.3s;
+  animation-fill-mode: both;
+}
+@keyframes fadeInDown {
+  from {opacity: 0; transform: translate3d(0, -10%, 0);}
+  to {opacity: 1; transform: none;}
+}
+.fadeInDown {
+  animation-name: fadeInDown;
+}
   </style>
 </head>
 
@@ -389,6 +413,8 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
   </div>
 </div>
 
+
+
   <!-- ======= Footer ======= -->
   <footer id="footer" class="footer">
     <div class="copyright">
@@ -413,6 +439,132 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
   <script src="../assets/js/main.js"></script>
 
 <script>
+
+// 🔔 Open notification modal
+function openNotifications() {
+  card_two();
+}
+
+function get_comments(doc_id) {
+  $.ajax({
+    url: "mark_notifications_read.php",
+    type: "POST",
+    data: { doc_id: doc_id },
+    dataType: "json",
+    success: function (data) {
+      if (data.status === "success") {
+
+Swal.fire({
+  title: `
+    <div class="d-flex align-items-center justify-content-center mb-2">
+      <i class="bi bi-person-badge-fill text-primary me-2 fs-4"></i>
+      <span class="fw-bold text-dark">President's Remarks</span>
+    </div>
+  `,
+  html: `
+    <div style="
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 10px;
+      padding: 1rem 1.2rem;
+      box-shadow: 0 0 10px rgba(0,0,0,0.05);
+      text-align: left;
+    ">
+      <div class="mb-2">
+        <span class="fw-semibold text-secondary">
+          <i class="bi bi-flag-fill text-primary me-1"></i>Action:
+        </span>
+        <span class="text-dark fw-bold">${data.action}</span>
+      </div>
+
+      <div class="mb-3">
+        <span class="fw-semibold text-secondary">
+          <i class="bi bi-chat-dots-fill text-success me-1"></i>Remarks:
+        </span><br>
+        <div class="mt-1 p-2 border rounded bg-light text-dark"
+             style="font-style:italic; font-size:0.95rem;">
+          ${data.remarks || '<span class="text-muted">No remarks provided.</span>'}
+        </div>
+      </div>
+
+      <div class="text-end small text-muted">
+        <i class="bi bi-clock me-1"></i>${data.date}
+      </div>
+    </div>
+  `,
+  background: 'rgba(255,255,255,0.9)',
+  width: 480,
+  padding: '1rem',
+  showConfirmButton: true,
+  confirmButtonText: 'Close',
+  confirmButtonColor: '#6c757d',     // Bootstrap gray
+  customClass: {
+    popup: 'swal2-glass',
+    confirmButton: 'swal-cancel-btn'
+  }
+});
+
+
+      } else {
+        Swal.fire({
+          icon: "info",
+          title: "No Remarks Found",
+          text: "The president has not added remarks for this document yet.",
+          confirmButtonColor: "#3085d6"
+        });
+      }
+    },
+    error: function () {
+      Swal.fire({
+        icon: "error",
+        title: "Server Error",
+        text: "Unable to load remarks. Please try again later."
+      });
+    }
+  });
+}
+
+
+function checkNotifications() {
+  $.ajax({
+    url: "check_president_notifications.php",
+    type: "POST",
+    dataType: "json",
+    success: function(data) {
+      let count = data.count;
+      let list = data.list;
+
+      // 🔢 Update counter
+      if (count > 0) {
+        $("#notifCount").text(count).fadeIn();
+        $("#notifIcon").addClass("pres-blink");
+      } else {
+        $("#notifCount").fadeOut();
+        $("#notifIcon").removeClass("pres-blink");
+      }
+
+      // 📝 Build notification list for modal
+      let html = "";
+      if (list.length === 0) {
+        html = `<li class='list-group-item text-center text-muted py-3'>No new notifications.</li>`;
+      } else {
+        list.forEach(row => {
+          html += `
+            <li class='list-group-item d-flex justify-content-between align-items-center'>
+              <div>
+                <strong>Document #${row.pres_doc_id}</strong><br>
+                <small class='text-muted'>${row.pres_remarks}</small>
+              </div>
+              <span class='badge bg-warning text-dark'>${row.pres_action}</span>
+            </li>`;
+        });
+      }
+      $("#notifList").html(html);
+    }
+  });
+}
+// 🕒 check every 10 seconds
+setInterval(checkNotifications, 10000);
+checkNotifications();
 
 //==========================================================
 // Bootstrap modal instance
@@ -718,14 +870,6 @@ $(document).on('click', '.forward-records', function() {
       }).then((result) => {
         if (result.isConfirmed) {
 
-console.log({
-  send_back_with_selection: 1,
-  doc_id: doc_id,
-  from_office_id: from_office_id,
-  to_office_id: result.value.to_office_id,
-  remarks: result.value.remarks
-});
-
           $.ajax({
             url: 'query_received_documents.php',
             type: 'POST',
@@ -738,9 +882,11 @@ console.log({
             },
             success: function(res) {
               Swal.fire('Sent!', 'Document successfully forwarded.', 'success');
-              load_received_documents();
               loadTable();
               card_two();
+              get_doc_count(); // ✅ add this here
+              get_count_outgoing();
+              get_count_received();
             },
             error: function() {
               Swal.fire('Error', 'Unable to process the transaction.', 'error');
@@ -936,7 +1082,7 @@ function enlargeImage(src) {
 
           setTimeout(() => {
             $('#main_data').html(response);
-            $('#outgoingTable').DataTable({
+            $('#receivedTable').DataTable({
               paging: true,
               pageLength: 10,
               lengthChange: true,

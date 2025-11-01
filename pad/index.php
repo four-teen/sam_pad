@@ -273,6 +273,26 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
   .info-card.active .text-muted {
     color: #fff !important;
   }
+
+.pres-blink {
+  animation: presBlink 2s infinite;
+}
+@keyframes presBlink {
+  0%, 100% {
+    opacity: 1;
+    filter: drop-shadow(0 0 3px #ffc107);
+  }
+  50% {
+    opacity: 0.6;
+    filter: drop-shadow(0 0 7px #ffc107);
+  }
+}
+#notifList .list-group-item {
+  transition: all 0.2s ease-in-out;
+}
+#notifList .list-group-item:hover {
+  background-color: #fff8e1;
+}
   </style>
 </head>
 
@@ -345,6 +365,7 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
 </div>
 
 
+
   <!-- ======= Footer ======= -->
   <footer id="footer" class="footer">
     <div class="copyright">
@@ -369,6 +390,57 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
   <script src="../assets/js/main.js"></script>
 
 <script>
+
+function checkNotifications() {
+  $.ajax({
+    url: "check_president_notifications.php",
+    type: "POST",
+    dataType: "json",
+    success: function(data) {
+      let count = data.count;
+      let list = data.list;
+
+      // 🔢 Update counter
+      if (count > 0) {
+        $("#notifCount").text(count).fadeIn();
+        $("#notifIcon").addClass("pres-blink");
+      } else {
+        $("#notifCount").fadeOut();
+        $("#notifIcon").removeClass("pres-blink");
+      }
+
+      // 📝 Build notification list for modal
+      let html = "";
+      if (list.length === 0) {
+        html = `<li class='list-group-item text-center text-muted py-3'>No new notifications.</li>`;
+      } else {
+        list.forEach(row => {
+          html += `
+            <li class='list-group-item d-flex justify-content-between align-items-center'>
+              <div>
+                <strong>Document #${row.pres_doc_id}</strong><br>
+                <small class='text-muted'>${row.pres_remarks}</small>
+              </div>
+              <span class='badge bg-warning text-dark'>${row.pres_action}</span>
+            </li>`;
+        });
+      }
+      $("#notifList").html(html);
+    }
+  });
+}
+
+// 🔔 Open notification modal
+function openNotifications() {
+  card_two();
+}
+
+
+// 🕒 check every 10 seconds
+setInterval(checkNotifications, 10000);
+checkNotifications();
+
+
 
 
 
@@ -479,9 +551,10 @@ function confirmDocumentReceipt(doc_id, received_by, office_division) {
               showConfirmButton: false
             });
             loadTable(); // Refresh table
+            get_doc_count(); // ✅ add this here
+            get_count_outgoing();
             get_count_received();
-            get_doc_count();
-
+            
           } else {
             Swal.fire({
               title: "Error",

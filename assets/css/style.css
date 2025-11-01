@@ -13,6 +13,20 @@
   scroll-behavior: smooth;
 }
 
+.pres-blink {
+  animation: presBlink 2s infinite;
+}
+@keyframes presBlink {
+  0%, 100% {
+    opacity: 1;
+    filter: drop-shadow(0 0 3px #ffc107);
+  }
+  50% {
+    opacity: 0.6;
+    filter: drop-shadow(0 0 7px #ffc107);
+  }
+}
+
 body {
   font-family: "Open Sans", sans-serif;
   background: #f6f9ff;

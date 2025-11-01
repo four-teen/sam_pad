@@ -1,7 +1,8 @@
 <?php
-include '../db.php';
-session_start();
 
+ob_start();
+session_start();
+include '../db.php';
 
 /* ---------- 2.a Get latest Returned remarks for a doc ---------- */
 if (isset($_POST['get_returned_remarks'])) {
@@ -37,6 +38,7 @@ LIMIT 1
             'from_office' => ''
         ]);
     }
+    ob_clean(); // remove accidental output buffers or blank lines
     exit;
 }
 

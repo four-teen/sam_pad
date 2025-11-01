@@ -1,6 +1,95 @@
 <?php
-include '../db.php';
 session_start();
+ob_start();
+include '../db.php';
+
+
+/* ================= SAVE OTHER INFO (normalized) ================= */
+if (isset($_POST['saving_other_info'])) {
+    $doc_id = intval($_POST['doc_id']);
+    $acc_ids = $_POST['names_involve']; // array of acc_id
+
+    if (empty($acc_ids)) {
+        echo "no_names";
+        exit();
+    }
+
+    $ok = true;
+    foreach ($acc_ids as $acc_id) {
+        $acc_id = intval($acc_id);
+
+        // avoid duplicate entries for same doc & name
+        $check = mysqli_query($conn, "SELECT 1 FROM tblother_information 
+                                      WHERE doc_id='$doc_id' AND acc_id='$acc_id'");
+        if (mysqli_num_rows($check) == 0) {
+            $insert = "INSERT INTO tblother_information (doc_id, acc_id)
+                       VALUES ('$doc_id', '$acc_id')";
+            if (!mysqli_query($conn, $insert)) {
+                $ok = false;
+            }
+        }
+    }
+
+    echo $ok ? "saved" : "error";
+    exit();
+}
+
+/* ================= LOAD OTHER INFO (JOIN tblprofiles) ================= */
+if (isset($_POST['load_other_info'])) {
+    $doc_id = intval($_POST['doc_id']);
+    $query = "
+        SELECT oi.other_info_id, oi.doc_id, p.acc_name
+        FROM tblother_information oi
+        LEFT JOIN tblprofiles p ON oi.acc_id = p.acc_id
+        WHERE oi.doc_id = '$doc_id'
+        ORDER BY oi.other_info_id DESC
+    ";
+    $run = mysqli_query($conn, $query);
+
+    if (mysqli_num_rows($run) > 0) {
+        echo '<table class="table table-sm table-bordered table-striped align-middle">
+                <thead class="table-light">
+                  <tr>
+                    <th style="width:5%">#</th>
+                    <th>Proponents</th>
+                    <th class="text-center" style="width:15%">Action</th>
+                  </tr>
+                </thead>
+                <tbody>';
+        $count = 1;
+        while ($r = mysqli_fetch_assoc($run)) {
+            echo '<tr>
+                    <td class="text-end">'.$count++.'.</td>
+                    <td>'.htmlspecialchars($r['acc_name']).'</td>
+                    <td class="text-center">
+                      <button class="btn btn-sm btn-danger" 
+                              onclick="delete_other_info('.$r['other_info_id'].','.$r['doc_id'].')">
+                        <i class="bi bi-trash"></i>
+                      </button>
+                    </td>
+                  </tr>';
+        }
+        echo '</tbody></table>';
+    } else {
+        echo '<div class="text-muted text-center py-2">
+                No other information found for this document.
+              </div>';
+    }
+    exit();
+}
+
+
+/* ================= DELETE OTHER INFO ================= */
+if (isset($_POST['delete_other_info'])) {
+    $id = intval($_POST['other_info_id']);
+    $query = "DELETE FROM tblother_information WHERE other_info_id='$id' LIMIT 1";
+    if (mysqli_query($conn, $query)) {
+        echo "deleted";
+    } else {
+        echo "error";
+    }
+    exit();
+}
 
 if(isset($_POST['refresh_file_series'])){
     $select = "SELECT * FROM `tbl_file_series` LIMIT 1";
@@ -187,7 +276,7 @@ if(isset($_POST['get_outgoing_counter'])){
 }
 
 
-if(isset($_POST['saving_take_actions'])){
+if (isset($_POST['saving_take_actions'])) {
 
     $to_office_id = $_POST['to_office_id'];
     $action_type = $_POST['action_type'];
@@ -195,9 +284,17 @@ if(isset($_POST['saving_take_actions'])){
     $action_type_remarks = $_POST['action_type_remarks'];
     $user_office_id = $_SESSION['officeid'];
 
-    $insert = "INSERT INTO `tbl_document_actions` (`doc_id`, `from_office_id`, `to_office_id`, `action_type`, `action_remarks`, `action_date`) VALUES ('$take_action_doc_id', '$user_office_id', '$to_office_id', '$action_type', '$action_type_remarks', current_timestamp())";
+    // 🕒 Use PHP time (Asia/Manila) instead of MySQL current_timestamp()
+    $current_datetime = date('Y-m-d H:i:s');
+
+    $insert = "INSERT INTO tbl_document_actions 
+               (doc_id, from_office_id, to_office_id, action_type, action_remarks, action_date) 
+               VALUES 
+               ('$take_action_doc_id', '$user_office_id', '$to_office_id', '$action_type', '$action_type_remarks', '$current_datetime')";
+    
     $runinsert = mysqli_query($conn, $insert);
 }
+
 
 
 if (isset($_POST['take_action'])) {
@@ -417,7 +514,7 @@ if (isset($_POST['load_dropdowns'])) {
 /* 🔹 ADD RECORD */
 if (isset($_POST['add_record'])) {
     $date_received = mysqli_real_escape_string($conn, $_POST['date_received']);
-    $received_by   = $_SESSION['acc_id'];
+    $received_by   = $_SESSION['officeid'];
     $file_code     = mysqli_real_escape_string($conn, $_POST['file_code']);
     $divisionid    = mysqli_real_escape_string($conn, $_POST['divisionid']);
     $doctypeid     = mysqli_real_escape_string($conn, $_POST['doctypeid']);
@@ -528,8 +625,8 @@ if (isset($_POST['server_table'])) {
             // 🧩 Actions
             $r['actions'] = "
               <div class='d-grid gap-1' style='grid-template-columns: repeat(2, 1fr); display: grid;'>
-                <button class='btn btn-info btn-sm' onclick='upload_image_record({$r['doc_id']})' title='Upload Image'>
-                  <i class='bx bx-image'></i>
+                <button class='btn btn-info btn-sm' onclick='other_info({$r['doc_id']})' title='Related information'>
+                  <i class='bi bi-person-lines-fill'></i>
                 </button>
                 <button class='btn btn-primary btn-sm' onclick='take_action({$r['doc_id']})' title='Take Action'>
                   <i class='bx bx-cog'></i>

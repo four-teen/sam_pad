@@ -1,5 +1,6 @@
 <?php
 include '../db.php';
+ob_start();
 session_start();
 
 
@@ -87,29 +88,32 @@ if (isset($_POST['take_action_received'])) {
     $office_division = mysqli_real_escape_string($conn, $_POST['office_division']);
     $receiver_name = $_SESSION['fullname'] ?? 'Unknown Receiver';
 
-    // Get the latest outgoing record
+    // 🟢 Get the latest outgoing record
     $check = "SELECT * FROM tbl_document_actions 
-        WHERE doc_id='$doc_id' 
-        ORDER BY action_id DESC LIMIT 1";
+              WHERE doc_id = '$doc_id' 
+              ORDER BY action_id DESC 
+              LIMIT 1";
     $runcheck = mysqli_query($conn, $check);
     $rowcheck = mysqli_fetch_assoc($runcheck);
 
     $from_office = $rowcheck['from_office_id'];
-    $to_office = $rowcheck['to_office_id'];
+    $to_office   = $rowcheck['to_office_id'];
+
+    // 🕒 Use PHP’s Manila timezone to insert accurate local time
+    $current_datetime = date('Y-m-d H:i:s');
 
     $insert = "INSERT INTO tbl_document_actions 
-        (doc_id, from_office_id, to_office_id, action_type, action_remarks, action_date)
-        VALUES ('$doc_id', '$from_office', '$to_office', 'Received', 'Received by $receiver_name.', NOW())";
+                (doc_id, from_office_id, to_office_id, action_type, action_remarks, action_date)
+               VALUES 
+                ('$doc_id', '$from_office', '$to_office', 
+                 'Received', 'Received by $receiver_name.', '$current_datetime')";
     $runinsert = mysqli_query($conn, $insert);
 
-    if ($runinsert) {
-        echo "success";
-    } else {
-        echo "failed";
-    }
-
+    echo $runinsert ? "success" : "failed";
     exit;
 }
+
+
 
 
 
