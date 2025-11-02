@@ -1,7 +1,7 @@
 <?php
-include '../db.php';
-ob_start();
-session_start();
+ob_start();              // Optional but good for safety
+session_start();         // Start session before anything else
+include '../db.php';     // Then include database or other files
 
 
 if(isset($_POST['get_acted_counter'])){

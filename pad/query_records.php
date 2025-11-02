@@ -1,8 +1,8 @@
 <?php
-include '../db.php';
+
 ob_start();
 session_start();
-
+include '../db.php';
 
 if (isset($_POST['get_received_counter'])) {
     $sql = "

@@ -19,7 +19,7 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
 <head>
   <meta charset="utf-8">
   <meta content="width=device-width, initial-scale=1.0" name="viewport">
-  <title><?php echo $rowconfig['systemname']; ?> | Dashboard</title>
+  <title><?php echo $rowconfig['systemname']; ?> | Accounts</title>
 
   <!-- Favicons -->
   <link href="../assets/img/logo.png" rel="icon">
@@ -42,39 +42,8 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
 
   <!-- Main CSS -->
   <link href="../assets/css/style.css" rel="stylesheet">
+  <link href="mycss.css" rel="stylesheet">
 
-  <style>
-      /* --- Select2 Alignment Fix (Bootstrap 5 Friendly) --- */
-      .select2-container {
-        width: 100% !important;
-      }
-
-      .select2-container--bootstrap4 .select2-selection--single {
-        height: calc(2.35rem + 2px) !important; /* Match Bootstrap form height */
-        border: 1px solid #ced4da !important;
-        border-radius: 0.375rem !important;
-        padding: 0.375rem 0.75rem !important;
-        display: flex !important;
-        align-items: center !important;
-      }
-
-      .select2-container--bootstrap4 .select2-selection__rendered {
-        font-size: 0.95rem !important;
-        color: #495057 !important;
-        line-height: normal !important;
-      }
-
-      .select2-container--bootstrap4 .select2-selection__arrow {
-        height: 100% !important;
-        top: 0 !important;
-        right: 0.75rem !important;
-      }
-
-      /* Placeholder color consistency */
-      .select2-selection__placeholder {
-        color: #6c757d !important;
-      }
-  </style>
 </head>
 
 <body onload="get_req();">
@@ -84,34 +53,21 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
 
   <main id="main" class="main">
     <div class="pagetitle">
-      <h1>Dashboard</h1>
+      <h1>MANAGE ACCOUNTS</h1>
       <nav>
         <ol class="breadcrumb">
           <li class="breadcrumb-item"><a href="index.php">Home</a></li>
-          <li class="breadcrumb-item active">Dashboard</li>
+          <li class="breadcrumb-item active">Account Management</li>
         </ol>
       </nav>
     </div>
 
     <section class="section dashboard">
       <div class="row">
-        <!-- Manage User Account -->
-        <div class="col-lg-3" style="cursor:pointer;">
-          <div class="card info-card bg-light border-0 shadow-sm" data-bs-toggle="modal" data-bs-target="#userModal">
-            <div class="card-body">
-              <h5 class="card-title">Manage User Account <span class="text-muted">| Accounts</span></h5>
-              <div class="d-flex align-items-center">
-                <div class="card-icon rounded-circle d-flex align-items-center justify-content-center bg-primary text-white me-3" style="width:48px;height:48px;">
-                  <i class='bx bx-user'></i>
-                </div>
-                <div>
-                  <h3 class="mb-0" id="get_count"></h3>
-                  <small class="text-muted">registered users</small>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+        <?php 
+          include 'card.php';
+         ?>
+
       </div>
 
       <!-- Data area -->
@@ -202,30 +158,27 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
   <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
   <script src="../assets/sweetalert2.js"></script>
   <script src="../assets/js/main.js"></script>
+  <script src="counter.js"></script>
 
   <script>
 
+    $(document).ready(function() {
+      $('#userModal').on('show.bs.modal', function () {
+        // Prevent double initialization
+        if ($.fn.select2 && $('#acc_role').data('select2')) {
+          $('#acc_role').select2('destroy');
+        }
 
-
-$(document).ready(function() {
-  $('#userModal').on('show.bs.modal', function () {
-    // Prevent double initialization
-    if ($.fn.select2 && $('#acc_role').data('select2')) {
-      $('#acc_role').select2('destroy');
-    }
-
-    // Initialize before modal transition
-    $('#acc_role').select2({
-      theme: 'bootstrap4',
-      placeholder: 'Select Office / Division',
-      width: '100%',
-      allowClear: true,
-      dropdownParent: $('#userModal')
+        // Initialize before modal transition
+        $('#acc_role').select2({
+          theme: 'bootstrap4',
+          placeholder: 'Select Office / Division',
+          width: '100%',
+          allowClear: true,
+          dropdownParent: $('#userModal')
+        });
+      });
     });
-  });
-});
-
-
 
     // 🔹 Load all user accounts (already used by onload)
     function get_req() {
@@ -281,18 +234,6 @@ $(document).ready(function() {
       refresh_user_card();
     }
 
-    // 🔹 Separate function for refreshing the dashboard card count
-    function refresh_user_card() {
-      $.ajax({
-          type: "POST",
-          url: "query_user_account.php",
-          data: { refresh_user_count: "1" },
-          success: function (response) {
-              $('#get_count').html(response);
-          }
-      });
-    }
-
     function saving_user_account() {
       var acc_id       = $('#acc_id').val();  // ✅ added
       var acc_fullname = $('#acc_fullname').val();
@@ -346,8 +287,6 @@ $(document).ready(function() {
       });
     }
 
-
-
     // 🔹 Edit user
     function edit_user(id) {
       $.ajax({
@@ -399,6 +338,11 @@ $(document).ready(function() {
         }
       });
     }
+
+    $(document).ready(function () {
+      refresh_user_card();
+      all_doc_counts();
+    });
 
 
   </script>

@@ -1,7 +1,7 @@
 <?php
-session_start();
-ob_start();
-include '../db.php';
+ob_start();              // Optional but good for safety
+session_start();         // Start session before anything else
+include '../db.php';     // Then include database or other files
 
 if (!isset($_SESSION['username']) || $_SESSION['username'] == '') {
     header('location:../logout.php');
@@ -46,6 +46,7 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
 
   <!-- Template Main CSS File -->
   <link href="../assets/css/style.css" rel="stylesheet">
+  <link href="css_records.css" rel="stylesheet">
 
   <style>
       /* Fix select2 alignment */
@@ -268,7 +269,7 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
       </nav>
     </div>
 
-<div id="test">test</div>
+
 
     <section class="section dashboard">
       <div class="row">

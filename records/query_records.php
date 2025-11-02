@@ -1,7 +1,7 @@
 <?php
-session_start();
-ob_start();
-include '../db.php';
+ob_start();              // Optional but good for safety
+session_start();         // Start session before anything else
+include '../db.php';     // Then include database or other files
 
 
 /* ================= SAVE OTHER INFO (normalized) ================= */

@@ -1,6 +1,7 @@
 <?php
-include '../db.php';
+ob_start();
 session_start();
+include '../db.php';
 
 $doc_id = intval($_POST['doc_id']);
 

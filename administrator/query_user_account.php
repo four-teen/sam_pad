@@ -1,6 +1,8 @@
 <?php
-include '../db.php';
+ob_start();
 session_start();
+include '../db.php';
+
 
 /* 🔹 LOAD USER ACCOUNTS */
 if (isset($_POST['loading_users'])) {
@@ -48,14 +50,6 @@ if (isset($_POST['loading_users'])) {
 
     $output .= '</tbody></table>';
     echo $output;
-    exit;
-}
-
-/* 🔹 REFRESH USER COUNT */
-if (isset($_POST['refresh_user_count'])) {
-    $countQuery = mysqli_query($conn, "SELECT COUNT(acc_id) AS total FROM tbl_accounts");
-    $result = mysqli_fetch_assoc($countQuery);
-    echo $result['total'];
     exit;
 }
 

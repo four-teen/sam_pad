@@ -1,17 +1,52 @@
 <?php
-include '../db.php';
 ob_start();
 session_start();
-
+include '../db.php';
 
 // ==========================================
 
 
 //RETURN RECORDS=======================
+// if (isset($_POST['return_document_action'])) {
+//     $doc_id = intval($_POST['doc_id']);
+//     $reason = mysqli_real_escape_string($conn, $_POST['reason']);
+//     $current_user = $_SESSION['fullname'] ?? 'Unknown User';
+
+//     $get = "SELECT * FROM tbl_document_actions 
+//             WHERE doc_id='$doc_id' 
+//             ORDER BY action_id DESC LIMIT 1";
+//     $run = mysqli_query($conn, $get);
+
+//     if (mysqli_num_rows($run) > 0) {
+//         $row = mysqli_fetch_assoc($run);
+
+//         $from_office = $row['to_office_id'];  // current receiver
+//         $to_office   = $row['from_office_id']; // previous sender
+
+//         $remarks = "Document returned by $current_user. Reason: $reason";
+
+//         $insert = "INSERT INTO tbl_document_actions 
+//                     (doc_id, from_office_id, to_office_id, action_type, action_remarks, action_date)
+//                     VALUES ('$doc_id', '$from_office', '$to_office', 'Returned', '$remarks', NOW())";
+
+//         $runinsert = mysqli_query($conn, $insert);
+
+//         echo $runinsert ? "success" : "failed";
+//     } else {
+//         echo "no_record_found";
+//     }
+
+//     exit;
+// }
+
 if (isset($_POST['return_document_action'])) {
     $doc_id = intval($_POST['doc_id']);
     $reason = mysqli_real_escape_string($conn, $_POST['reason']);
     $current_user = $_SESSION['fullname'] ?? 'Unknown User';
+
+    // 🕒 Always ensure Manila timezone
+    date_default_timezone_set('Asia/Manila');
+    $current_datetime = date('Y-m-d H:i:s');
 
     $get = "SELECT * FROM tbl_document_actions 
             WHERE doc_id='$doc_id' 
@@ -26,9 +61,10 @@ if (isset($_POST['return_document_action'])) {
 
         $remarks = "Document returned by $current_user. Reason: $reason";
 
+        // ✅ Use PHP timestamp (Manila time)
         $insert = "INSERT INTO tbl_document_actions 
                     (doc_id, from_office_id, to_office_id, action_type, action_remarks, action_date)
-                    VALUES ('$doc_id', '$from_office', '$to_office', 'Returned', '$remarks', NOW())";
+                    VALUES ('$doc_id', '$from_office', '$to_office', 'Returned', '$remarks', '$current_datetime')";
 
         $runinsert = mysqli_query($conn, $insert);
 
@@ -109,8 +145,13 @@ if (isset($_POST['take_action_received'])) {
                  'Received', 'Received by $receiver_name.', '$current_datetime')";
     $runinsert = mysqli_query($conn, $insert);
 
-    echo $runinsert ? "success" : "failed";
-    exit;
+        if (!$runinsert) {
+            echo "failed: " . mysqli_error($conn);
+            exit;
+        }
+
+        echo "success";
+        exit;
 }
 
 

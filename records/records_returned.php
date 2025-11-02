@@ -1,7 +1,7 @@
 <?php
-session_start();
-ob_start();
-include '../db.php';
+ob_start();              // Optional but good for safety
+session_start();         // Start session before anything else
+include '../db.php';     // Then include database or other files
 
 if (!isset($_SESSION['username']) || $_SESSION['username'] == '') {
     header('location:../logout.php');
@@ -43,6 +43,7 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
 
   <!-- Template Main CSS File -->
   <link href="../assets/css/style.css" rel="stylesheet">
+  <link href="css_records.css" rel="stylesheet">
 
   <style>
       /* Fix select2 alignment */
@@ -532,7 +533,6 @@ function view_uploaded_images(doc_id) {
     }
 
 
-
 // Load data when page opens
 window.onload = function() {
   loadTable();
@@ -541,7 +541,7 @@ window.onload = function() {
   get_count_returned();
   get_count_acted();  
   get_count_delivered();
-  // get_count_new_received();
+  get_count_new_received();
 };
 
 // ===========COUNTS=====================================
@@ -607,6 +607,19 @@ function get_doc_count(){
     },
     success: function(response) {
       $('#load_doc_count').html(response);
+    }
+  });  
+}
+
+function get_count_new_received(){
+  $.ajax({
+    url: "query_records.php",
+    type: "POST",
+    data: { 
+      get_received_counter: 1 
+    },
+    success: function(response) {
+      $('#load_new_received_count').html(response);
     }
   });  
 }

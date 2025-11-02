@@ -1,7 +1,7 @@
 <?php
-session_start();
-ob_start();
-include '../db.php';
+ob_start();              // Optional but good for safety
+session_start();         // Start session before anything else
+include '../db.php';     // Then include database or other files
 
 if (!isset($_SESSION['username']) || $_SESSION['username'] == '') {
     header('location:../logout.php');
@@ -43,7 +43,7 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
 
   <!-- Template Main CSS File -->
   <link href="../assets/css/style.css" rel="stylesheet">
-
+  <link href="css_records.css" rel="stylesheet">
   <style>
       /* Fix select2 alignment */
       .select2-container .select2-selection--single {
@@ -488,15 +488,6 @@ function view_uploaded_images(doc_id) {
   });
 }
 
-    // Load data when page opens
-    window.onload = function() {
-      loadTable();
-      get_doc_count(); // ✅ add this here
-      get_count_outgoing();
-      get_count_returned();
-      get_count_acted();
-      get_count_delivered();
-    };
 
     function loadTable() {
       let progress = 0;
@@ -546,6 +537,19 @@ function view_uploaded_images(doc_id) {
       });
     }
 
+
+// Load data when page opens
+window.onload = function() {
+  loadTable();
+  get_doc_count(); // ✅ add this here
+  get_count_outgoing();
+  get_count_returned();
+  get_count_acted();  
+  get_count_delivered();
+  get_count_new_received();
+};
+
+// ===========COUNTS=====================================
 function get_count_delivered(){
   $.ajax({
     url: "query_delivered.php",
@@ -560,7 +564,6 @@ function get_count_delivered(){
 }
 
 function get_count_acted(){
-
   $.ajax({
     url: "query_acted.php",
     type: "POST",
@@ -613,8 +616,20 @@ function get_doc_count(){
   });  
 }
 
-//LINKS
+function get_count_new_received(){
+  $.ajax({
+    url: "query_records.php",
+    type: "POST",
+    data: { 
+      get_received_counter: 1 
+    },
+    success: function(response) {
+      $('#load_new_received_count').html(response);
+    }
+  });  
+}
 
+//LINKS
   function card_one(){
     window.location = 'index.php';
   }
@@ -637,8 +652,7 @@ function get_doc_count(){
 
   function card_six(){
     window.location = 'all_docs.php';
-  } 
-
+  }   
 
 </script>
 

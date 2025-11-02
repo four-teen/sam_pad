@@ -880,14 +880,25 @@ $(document).on('click', '.forward-records', function() {
               to_office_id: result.value.to_office_id,
               remarks: result.value.remarks
             },
-            success: function(res) {
-              Swal.fire('Sent!', 'Document successfully forwarded.', 'success');
-              loadTable();
-              card_two();
-              get_doc_count(); // ✅ add this here
-              get_count_outgoing();
-              get_count_received();
-            },
+success: function (res) {
+  console.log("🔍 DEBUG RESPONSE FROM SERVER:\n" + res);
+
+  if (res.trim().startsWith("success")) {
+    Swal.fire('Sent!', 'Document successfully forwarded.', 'success');
+    loadTable();
+    card_two();
+    get_doc_count();
+    get_count_outgoing();
+    get_count_received();
+  } else {
+    Swal.fire({
+      title: '⚠️ Error',
+      html: `<pre style="text-align:left;">${res}</pre>`,
+      icon: 'error',
+      width: 600,
+    });
+  }
+},
             error: function() {
               Swal.fire('Error', 'Unable to process the transaction.', 'error');
             }

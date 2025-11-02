@@ -1,8 +1,8 @@
 <?php
-include '../db.php';
+
 ob_start();
 session_start();
-
+include '../db.php';
 
 // ==========================================
 
@@ -116,37 +116,71 @@ if (isset($_POST['send_back_with_selection'])) {
     $doc_id = intval($_POST['doc_id']);
     $from_office_id = intval($_POST['from_office_id']);
     $to_office_id = intval($_POST['to_office_id']);
-    $remarks = mysqli_real_escape_string($conn, $_POST['remarks']);
+    $remarks = trim(mysqli_real_escape_string($conn, $_POST['remarks']));
 
-    // Safety check — none should be zero
+    // 🧾 Start debug log content
+    $debug_log = [];
+
+    // Log initial values
+    $debug_log[] = "📄 Starting send_back_with_selection";
+    $debug_log[] = "doc_id = $doc_id";
+    $debug_log[] = "from_office_id = $from_office_id";
+    $debug_log[] = "to_office_id = $to_office_id";
+    $debug_log[] = "remarks = $remarks";
+
+    // Safety check
     if ($doc_id > 0 && $from_office_id > 0 && $to_office_id > 0) {
 
-        // ✅ Insert new document action (forwarding)
+        // ✅ Insert action record
         $insert = "
             INSERT INTO tbl_document_actions 
             (doc_id, from_office_id, to_office_id, action_type, action_remarks, action_date)
             VALUES ('$doc_id', '$from_office_id', '$to_office_id', 'Acted', '$remarks', NOW())
         ";
 
-        if (mysqli_query($conn, $insert)) {
-            // ✅ After successful forwarding, mark president remark as viewed
-            $update = "
-                UPDATE tblpresident_actions
-                SET is_viewed = 1
-                WHERE pres_doc_id = '$doc_id' AND is_viewed = 0
-            ";
-            mysqli_query($conn, $update);
+        $debug_log[] = "INSERT QUERY: " . $insert;
 
-            echo 'success';
+        if (mysqli_query($conn, $insert)) {
+            $debug_log[] = "✅ Insert successful";
+
+            // 🟡 Check if president action exists before updating
+            $check_pres = mysqli_query($conn, "SELECT 1 FROM tblpresident_actions WHERE pres_doc_id = '$doc_id' LIMIT 1");
+
+            if ($check_pres && mysqli_num_rows($check_pres) > 0) {
+                $update = "
+                    UPDATE tblpresident_actions
+                    SET is_viewed = 1
+                    WHERE pres_doc_id = '$doc_id' AND is_viewed = 0
+                ";
+                $debug_log[] = "UPDATE QUERY: " . $update;
+
+                if (mysqli_query($conn, $update)) {
+                    $debug_log[] = "✅ President actions updated";
+                } else {
+                    $debug_log[] = "⚠️ Update failed: " . mysqli_error($conn);
+                }
+            } else {
+                $debug_log[] = "ℹ️ No matching record in tblpresident_actions — skipping update";
+            }
+
+            echo "success";
         } else {
-            echo 'db_error: ' . mysqli_error($conn);
+            $debug_log[] = "❌ Insert failed: " . mysqli_error($conn);
+            echo "db_error";
         }
 
     } else {
-        echo 'missing_fields';
+        $debug_log[] = "⚠️ Missing fields - one of the IDs is zero or invalid";
+        echo "missing_fields";
     }
+
+    // 🔍 Save log file for debugging
+    $log_file = __DIR__ . "/debug_sendback_" . date("Ymd_His") . ".log";
+    file_put_contents($log_file, implode("\n", $debug_log));
+
     exit;
 }
+
 
 
 // if (isset($_POST['send_back_with_selection'])) {

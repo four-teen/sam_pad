@@ -1,7 +1,7 @@
 <?php
-session_start();
-ob_start();
-include '../db.php';
+ob_start();              // Optional but good for safety
+session_start();         // Start session before anything else
+include '../db.php';     // Then include database or other files
 
 if (!isset($_SESSION['username']) || $_SESSION['username'] == '') {
     header('location:../logout.php');
@@ -43,7 +43,7 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
 
   <!-- Template Main CSS File -->
   <link href="../assets/css/style.css" rel="stylesheet">
-
+  <link href="css_records.css" rel="stylesheet">
   <style>
       /* Fix select2 alignment */
       .select2-container .select2-selection--single {
@@ -420,19 +420,6 @@ function viewTimeline(doc_id) {
 }
 
 
-function get_count_outgoing(){
-  $.ajax({
-    url: "query_records.php",
-    type: "POST",
-    data: { 
-      get_outgoing_counter: 1 
-    },
-    success: function(response) {
-      $('#load_outgoing_count').html(response);
-    }
-  });  
-}
-
 function save_set_actions(){
   var to_office_id = $('#to_office_id').val();
   var action_type = $('#action_type').val();
@@ -484,60 +471,7 @@ $(document).ready(function() {
     });
   });
 });
-
-
-function get_count_new_received(){
-  $.ajax({
-    url: "query_records.php",
-    type: "POST",
-    data: { 
-      get_received_counter: 1 
-    },
-    success: function(response) {
-      $('#load_new_received_count').html(response);
-    }
-  });  
-}
-
-function get_count_outgoing(){
-  $.ajax({
-    url: "query_records.php",
-    type: "POST",
-    data: { 
-      get_outgoing_counter: 1 
-    },
-    success: function(response) {
-      $('#load_outgoing_count').html(response);
-    }
-  });  
-}
-
-function get_count_received(){
-  $.ajax({
-    url: "query_records.php",
-    type: "POST",
-    data: { 
-      get_received_counter: 1 
-    },
-    success: function(response) {
-      $('#load_received_count').html(response);
-    }
-  });  
-}
-
-function get_doc_count(){
-  $.ajax({
-    url: "query_records.php",
-    type: "POST",
-    data: { 
-      load_rec_count: 1 
-    },
-    success: function(response) {
-      $('#load_doc_count').html(response);
-    }
-  });  
-}
-
+;
 
 
 // Load data when page opens
@@ -545,12 +479,11 @@ window.onload = function() {
   loadTable();
   get_doc_count(); // ✅ add this here
   get_count_outgoing();
-  get_count_received();
-  get_count_new_received()
+  get_count_returned();
+  get_count_acted();  
+  get_count_delivered();
+  get_count_new_received();
 };
-
-;
-
 
 // 🚀 Optimized: Server-side DataTables for large datasets
 function loadTable() {
@@ -722,6 +655,88 @@ document.getElementById("btn_update_record").addEventListener("click", function(
   });
 });
 
+
+
+// ===========COUNTS=====================================
+function get_count_delivered(){
+  $.ajax({
+    url: "query_delivered.php",
+    type: "POST",
+    data: { 
+      get_delivered_counter: 1 
+    },
+    success: function(response) {
+      $('#load_delivered_count').html(response);
+    }
+  });  
+}
+
+function get_count_acted(){
+  $.ajax({
+    url: "query_acted.php",
+    type: "POST",
+    data: { 
+      get_acted_counter: 1 
+    },
+    success: function(response) {
+      $('#load_acted_count').html(response);
+    }
+  });  
+}
+
+
+function get_count_returned(){
+  $.ajax({
+    url: "query_returned.php",
+    type: "POST",
+    data: { 
+      get_returned_counter: 1 
+    },
+    success: function(response) {
+      $('#load_returned_count').html(response);
+    }
+  });  
+}
+
+function get_count_outgoing(){
+  $.ajax({
+    url: "query_records.php",
+    type: "POST",
+    data: { 
+      get_outgoing_counter: 1 
+    },
+    success: function(response) {
+      $('#load_outgoing_count').html(response);
+    }
+  });  
+}
+
+function get_doc_count(){
+  $.ajax({
+    url: "query_records.php",
+    type: "POST",
+    data: { 
+      load_rec_count: 1 
+    },
+    success: function(response) {
+      $('#load_doc_count').html(response);
+    }
+  });  
+}
+
+function get_count_new_received(){
+  $.ajax({
+    url: "query_records.php",
+    type: "POST",
+    data: { 
+      get_received_counter: 1 
+    },
+    success: function(response) {
+      $('#load_new_received_count').html(response);
+    }
+  });  
+}
+
 //LINKS
   function card_one(){
     window.location = 'index.php';
@@ -745,9 +760,7 @@ document.getElementById("btn_update_record").addEventListener("click", function(
 
   function card_six(){
     window.location = 'all_docs.php';
-  } 
-
-
+  }
 
 
 </script>
