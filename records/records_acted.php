@@ -206,36 +206,70 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
         display: flex;
         gap: .25rem;
       }
-/* --- Select2 Alignment Fix (Bootstrap 5 Friendly) --- */
-.select2-container {
-  width: 100% !important;
-}
+      /* --- Select2 Alignment Fix (Bootstrap 5 Friendly) --- */
+      .select2-container {
+        width: 100% !important;
+      }
 
-.select2-container--bootstrap4 .select2-selection--single {
-  height: calc(2.35rem + 2px) !important; /* Match Bootstrap form height */
-  border: 1px solid #ced4da !important;
-  border-radius: 0.375rem !important;
-  padding: 0.375rem 0.75rem !important;
-  display: flex !important;
-  align-items: center !important;
-}
+      .select2-container--bootstrap4 .select2-selection--single {
+        height: calc(2.35rem + 2px) !important; /* Match Bootstrap form height */
+        border: 1px solid #ced4da !important;
+        border-radius: 0.375rem !important;
+        padding: 0.375rem 0.75rem !important;
+        display: flex !important;
+        align-items: center !important;
+      }
 
-.select2-container--bootstrap4 .select2-selection__rendered {
-  font-size: 0.95rem !important;
-  color: #495057 !important;
-  line-height: normal !important;
-}
+      .select2-container--bootstrap4 .select2-selection__rendered {
+        font-size: 0.95rem !important;
+        color: #495057 !important;
+        line-height: normal !important;
+      }
 
-.select2-container--bootstrap4 .select2-selection__arrow {
-  height: 100% !important;
-  top: 0 !important;
-  right: 0.75rem !important;
-}
+      .select2-container--bootstrap4 .select2-selection__arrow {
+        height: 100% !important;
+        top: 0 !important;
+        right: 0.75rem !important;
+      }
 
-/* Placeholder color consistency */
-.select2-selection__placeholder {
-  color: #6c757d !important;
-}
+      /* Placeholder color consistency */
+      .select2-selection__placeholder {
+        color: #6c757d !important;
+      }
+
+      /* 🖼️ Style for image grid inside modal */
+      #view_images_grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        justify-content: center;
+        max-height: 70vh; /* limit height of modal body */
+        overflow-y: auto; /* allow scroll inside modal only if necessary */
+      }
+
+      /* 🧩 Image container */
+      #view_images_grid .thumb {
+        position: relative;
+        overflow: hidden;
+        border-radius: 8px;
+        box-shadow: 0 0 4px rgba(0,0,0,0.2);
+        cursor: pointer;
+        background: #f8f9fa;
+      }
+
+      /* 📏 Responsive image sizing */
+      #view_images_grid img {
+        width: 100%;
+        height: auto;
+        max-height: 160px;  /* limit image height */
+        object-fit: contain; /* maintain aspect ratio */
+        transition: transform 0.3s ease;
+      }
+
+      #view_images_grid img:hover {
+        transform: scale(1.05);
+      }
+
   </style>
 </head>
 
@@ -337,36 +371,70 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
 </div>
 
 <!-- View Uploaded Images Modal -->
-<div class="modal fade" id="viewImagesModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
-    <div class="modal-content shadow-lg border-0 rounded-3">
+<div class="modal fade" id="viewImagesModal" tabindex="-1">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
       <div class="modal-header bg-primary text-white">
-        <h5 class="modal-title fw-semibold">
-          <i class="bi bi-images me-2"></i> Document Preview & Uploaded Images
-        </h5>
+        <h5 class="modal-title">View Uploaded Images</h5>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
       </div>
-
-      <div class="modal-body bg-light">
-        <div class="mb-3">
-          <label class="fw-semibold">File Code:</label>
-          <span id="view_file_code" class="text-primary"></span><br>
-          <label class="fw-semibold">Particular:</label>
-          <span id="view_particular" class="text-dark"></span>
-        </div>
+      <div class="modal-body">
+        <h6 class="fw-semibold">File Code: <span id="view_file_code"></span></h6>
+        <p class="mb-3"><strong>Particular:</strong> <span id="view_particular"></span></p>
 
         <div id="view_images_grid" class="row g-2"></div>
-      </div>
-
-      <div class="modal-footer bg-white border-0">
-        <button class="btn btn-secondary" data-bs-dismiss="modal">
-          <i class="bi bi-x-circle me-1"></i> Close
-        </button>
       </div>
     </div>
   </div>
 </div>
 
+
+
+<!-- ================== UPLOAD IMAGES MODAL ================== -->
+<div class="modal fade" id="uploadImagesModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="uploadImagesLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable modal-dialog-centered">
+    <div class="modal-content shadow-lg border-0 rounded-3">
+      <div class="modal-header bg-info text-white">
+        <h5 class="modal-title fw-semibold" id="uploadImagesLabel">
+          <i class="bi bi-images me-2"></i> Upload Images for Record
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+
+      <div class="modal-body">
+        <input type="hidden" id="upload_doc_id">
+        
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Select Images</label>
+          <input type="file" class="form-control" id="image_files" accept="image/*" multiple>
+          <div class="form-text">You can select multiple images. Max size 5MB each. (jpg, jpeg, png, gif, webp)</div>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Preview (selected)</label>
+          <div id="preview_grid" class="row g-2"></div>
+        </div>
+
+        <hr class="my-3">
+
+        <div class="mb-2 d-flex align-items-center justify-content-between">
+          <label class="form-label fw-semibold mb-0">Already Uploaded</label>
+          <small class="text-muted" id="uploaded_count"></small>
+        </div>
+        <div id="uploaded_grid" class="row g-2"></div>
+      </div>
+
+      <div class="modal-footer bg-white border-0">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+          <i class="bi bi-x-circle me-1"></i> Close
+        </button>
+        <button type="button" class="btn btn-info" id="btn_upload_images">
+          <i class="bi bi-cloud-upload me-1"></i> Upload Selected
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
 
   <!-- ======= Footer ======= -->
   <footer id="footer" class="footer">
@@ -392,6 +460,224 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
   <script src="../assets/js/main.js"></script>
 
 <script>
+
+function enlargeImage(url) {
+  Swal.fire({
+    imageUrl: url,
+    imageWidth: '90%',
+    imageAlt: 'Uploaded Image',
+    background: '#000',
+    width: 'auto',
+    showConfirmButton: true,
+    confirmButtonText: 'Close',
+    confirmButtonColor: '#0d6efd'
+  });
+}
+
+//==========================================================
+// Bootstrap modal instance
+const uploadModal = new bootstrap.Modal(document.getElementById('uploadImagesModal'));
+
+// Keep selected files in memory (for upload)
+let selectedFiles = [];
+
+// Open modal & load images for this record
+function upload_image_record(doc_id) {
+  selectedFiles = [];
+  $("#upload_doc_id").val(doc_id);
+  $("#image_files").val("");
+  $("#preview_grid").html("");
+  $("#uploaded_grid").html(`<div class='text-muted'>Loading...</div>`);
+  $("#uploaded_count").text("");
+
+  load_existing_images(doc_id);
+  uploadModal.show();
+}
+
+// Live preview when selecting files
+document.getElementById("image_files").addEventListener("change", function() {
+  const files = Array.from(this.files);
+  selectedFiles = []; // reset
+  $("#preview_grid").html("");
+
+  const allowed = ["image/jpeg", "image/jpg", "image/png", "image/gif", "image/webp"];
+  const maxSize = 5 * 1024 * 1024;
+
+  files.forEach((f, idx) => {
+    if (!allowed.includes(f.type)) return;
+    if (f.size > maxSize) {
+      Swal.fire("Too big", `${f.name} exceeds 5MB.`, "warning");
+      return;
+    }
+    selectedFiles.push(f);
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const col = document.createElement("div");
+      col.className = "col-6 col-md-3";
+      col.innerHTML = `
+        <div class="thumb">
+          <img src="${e.target.result}" alt="">
+          <div class="thumb-actions">
+            <button type="button" class="btn btn-sm btn-outline-danger" title="Remove" onclick="remove_selected(${idx})">
+              <i class="bi bi-x-lg"></i>
+            </button>
+          </div>
+        </div>`;
+      document.getElementById("preview_grid").appendChild(col);
+    };
+    reader.readAsDataURL(f);
+  });
+});
+
+// Remove a selected file from the preview list
+function remove_selected(idx) {
+  // Remove by index in current selectedFiles
+  selectedFiles.splice(idx, 1);
+  // Rebuild preview
+  $("#preview_grid").html("");
+  selectedFiles.forEach((f, i) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const col = document.createElement("div");
+      col.className = "col-6 col-md-3";
+      col.innerHTML = `
+        <div class="thumb">
+          <img src="${e.target.result}" alt="">
+          <div class="thumb-actions">
+            <button type="button" class="btn btn-sm btn-outline-danger" title="Remove" onclick="remove_selected(${i})">
+              <i class="bi bi-x-lg"></i>
+            </button>
+          </div>
+        </div>`;
+      document.getElementById("preview_grid").appendChild(col);
+    };
+    reader.readAsDataURL(f);
+  });
+}
+
+// Upload selected files
+document.getElementById("btn_upload_images").addEventListener("click", function() {
+  const doc_id = $("#upload_doc_id").val();
+  if (!doc_id) {
+    Swal.fire("Missing", "No record selected.", "warning");
+    return;
+  }
+  if (selectedFiles.length === 0) {
+    Swal.fire("No files", "Please select images first.", "info");
+    return;
+  }
+
+  const fd = new FormData();
+  fd.append("upload_images", 1);
+  fd.append("doc_id", doc_id);
+  selectedFiles.forEach((f) => fd.append("images[]", f));
+
+  $.ajax({
+    url: "query_records.php",
+    type: "POST",
+    data: fd,
+    contentType: false,
+    processData: false,
+    success: function(resp) {
+      try {
+        const data = JSON.parse(resp);
+        if (data.status === "ok") {
+          Swal.fire({ icon: "success", title: "Uploaded!", timer: 1200, showConfirmButton: false });
+          // reset selected
+          selectedFiles = [];
+          $("#image_files").val("");
+          $("#preview_grid").html("");
+          load_existing_images(doc_id);
+        } else {
+          Swal.fire("Error", data.message || "Upload failed", "error");
+        }
+      } catch (e) {
+        Swal.fire("Error", "Unexpected server response.", "error");
+      }
+    },
+    error: function() {
+      Swal.fire("Error", "Cannot upload right now.", "error");
+    }
+  });
+});
+
+// Load already uploaded images
+function load_existing_images(doc_id) {
+  $.ajax({
+    url: "query_records.php",
+    type: "POST",
+    data: { load_images: 1, doc_id: doc_id },
+    success: function(resp) {
+      try {
+        const data = JSON.parse(resp);
+        const list = data.images || [];
+        $("#uploaded_grid").html("");
+        $("#uploaded_count").text(`${list.length} image(s)`);
+
+        if (list.length === 0) {
+          $("#uploaded_grid").html(`<div class='text-muted'>No images yet.</div>`);
+          return;
+        }
+
+        list.forEach(img => {
+          const col = document.createElement("div");
+          col.className = "col-6 col-md-3";
+          col.innerHTML = `
+            <div class="thumb">
+              <img src="${img.url}" alt="">
+              <div class="thumb-actions">
+                <a class="btn btn-sm btn-outline-secondary" href="${img.url}" target="_blank" title="Open">
+                  <i class="bi bi-box-arrow-up-right"></i>
+                </a>
+                <button type="button" class="btn btn-sm btn-outline-danger" title="Delete" onclick="delete_uploaded_image(${img.img_id}, ${doc_id})">
+                  <i class="bi bi-trash"></i>
+                </button>
+              </div>
+            </div>`;
+          document.getElementById("uploaded_grid").appendChild(col);
+        });
+      } catch (e) {
+        $("#uploaded_grid").html("<div class='text-danger'>Failed to load images.</div>");
+      }
+    },
+    error: function() {
+      $("#uploaded_grid").html("<div class='text-danger'>Failed to load images.</div>");
+    }
+  });
+}
+
+// Delete an uploaded image
+function delete_uploaded_image(img_id, doc_id) {
+  Swal.fire({
+    title: "Delete image?",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonText: "Delete",
+    confirmButtonColor: "#d33"
+  }).then(res => {
+    if (!res.isConfirmed) return;
+    $.ajax({
+      url: "query_records.php",
+      type: "POST",
+      data: { delete_image: 1, img_id: img_id },
+      success: function(r) {
+        if (r.trim() === "deleted") {
+          load_existing_images(doc_id);
+        } else {
+          Swal.fire("Error", "Could not delete image.", "error");
+        }
+      },
+      error: function() {
+        Swal.fire("Error", "Server not reachable.", "error");
+      }
+    });
+  });
+}  
+
+// =========================================================
+
+
 
 function confirmDocumentRelease(doc_id, office_division) {
   Swal.fire({
@@ -452,7 +738,7 @@ function view_uploaded_images(doc_id) {
 
   // Load details & images
   $.ajax({
-    url: "query_outgoing_records.php",
+    url: "query_acted.php",
     type: "POST",
     data: { load_images_for_view: 1, doc_id: doc_id },
     success: function(resp) {

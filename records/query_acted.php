@@ -4,6 +4,32 @@ session_start();         // Start session before anything else
 include '../db.php';     // Then include database or other files
 
 
+
+if (isset($_POST['load_images_for_view'])) {
+    $doc_id = intval($_POST['doc_id']);
+
+    // Get document info
+    $doc = mysqli_fetch_assoc(mysqli_query($conn, "SELECT file_code, particular FROM tbl_documents_registry WHERE doc_id='$doc_id'"));
+
+    // Get uploaded images
+    $imgs = [];
+    $qimgs = mysqli_query($conn, "SELECT * FROM tbl_document_images WHERE doc_id='$doc_id'");
+    while ($r = mysqli_fetch_assoc($qimgs)) {
+        $imgs[] = [
+            'img_id' => $r['img_id'],
+            'url' => '../uploads/' . $r['img_filename']
+        ];
+    }
+
+    echo json_encode([
+        'file_code' => $doc['file_code'] ?? '',
+        'particular' => $doc['particular'] ?? '',
+        'images' => $imgs
+    ]);
+    exit;
+}
+
+
 if(isset($_POST['get_acted_counter'])){
     $office_id = $_SESSION['officeid']; // e.g., Records Section (68)
 
@@ -127,7 +153,10 @@ $sql = "
                 <td>'.htmlspecialchars($r['doctype_desc']).'</td>
                 <td>'.htmlspecialchars($r['particular']).'</td>
                 <td class="text-center text-nowrap" width="1%">
-                  <button class="btn btn-info btn-sm" title="View Images" onclick="view_uploaded_images(\''.$r['doc_id'].'\')">
+                  <button class="btn btn-info btn-sm" title="Upload Image" onclick="upload_image_record(\''.$r['doc_id'].'\')">
+                    <i class="bi bi-upload"></i>
+                  </button>                
+                  <button class="btn btn-primary btn-sm" title="View Images" onclick="view_uploaded_images(\''.$r['doc_id'].'\')">
                     <i class="bi bi-images"></i>
                   </button>
                     <button class="btn btn-success btn-sm" 

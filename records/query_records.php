@@ -474,14 +474,14 @@ if (isset($_POST['generate_file_code'])) {
 
         if ($row) {
             $prefix = $row['series_prefix'];
-            $currentNum = $row['series_number'] + 1;
-            $nextCode = $prefix . '-' . str_pad($currentNum, 5, "0", STR_PAD_LEFT);
-            mysqli_query($conn, "UPDATE tbl_file_series SET series_number = $currentNum WHERE series_id = {$row['series_id']}");
+            $nextNum = str_pad((int)$row['series_number'] + 1, 5, "0", STR_PAD_LEFT);
+            $nextCode = $prefix . '-' . $nextNum;
+            mysqli_query($conn, "UPDATE tbl_file_series SET series_number = '$nextNum' WHERE series_id = {$row['series_id']}");
         } else {
             $prefix = date('y');
-            $currentNum = 1;
-            $nextCode = $prefix . '-' . str_pad($currentNum, 5, "0", STR_PAD_LEFT);
-            mysqli_query($conn, "INSERT INTO tbl_file_series (series_prefix, series_number) VALUES ('$prefix', $currentNum)");
+            $nextNum = str_pad(1, 5, "0", STR_PAD_LEFT);
+            $nextCode = $prefix . '-' . $nextNum;
+            mysqli_query($conn, "INSERT INTO tbl_file_series (series_prefix, series_number) VALUES ('$prefix', '$nextNum')");
         }
 
         mysqli_commit($conn);
@@ -550,11 +550,19 @@ if (isset($_POST['server_table'])) {
     $start = intval($_POST['start']);
     $length = intval($_POST['length']);
     $searchValue = mysqli_real_escape_string($conn, $_POST['search']['value']);
+    $office_id = $_SESSION['officeid'];
 
     // ✅ Build search condition
-    $where = "";
+    $where = "WHERE NOT EXISTS (
+                SELECT 1 
+                FROM tbl_document_actions a
+                WHERE a.doc_id = d.doc_id
+                  AND a.from_office_id = '$office_id'
+                  AND a.action_type IN ('Outgoing', 'Acted', 'Delivered')
+              )";
+              
     if (!empty($searchValue)) {
-        $where = "WHERE (
+        $where .= " AND (
             d.file_code LIKE '%$searchValue%' OR 
             d.received_by LIKE '%$searchValue%' OR 
             v.division_desc LIKE '%$searchValue%' OR 
@@ -563,20 +571,16 @@ if (isset($_POST['server_table'])) {
         )";
     }
 
-    // ✅ Total number of documents
-    $totalQuery = mysqli_query($conn, "SELECT COUNT(*) AS total FROM tbl_documents_registry");
+    // ✅ Total number of unprocessed documents
+    $totalQuery = mysqli_query($conn, "
+        SELECT COUNT(*) AS total
+        FROM tbl_documents_registry d
+        $where
+    ");
     $totalData = mysqli_fetch_assoc($totalQuery)['total'];
 
-    // ✅ Total number of filtered results
-    $countFiltered = "
-        SELECT COUNT(*) AS total 
-        FROM tbl_documents_registry d
-        LEFT JOIN tbldivisions v ON CAST(d.office_division AS UNSIGNED) = v.divisionid
-        LEFT JOIN tbltypeofdocuments t ON d.type_of_documents = t.docid
-        $where
-    ";
-    $queryFiltered = mysqli_query($conn, $countFiltered);
-    $totalFiltered = mysqli_fetch_assoc($queryFiltered)['total'];
+    // ✅ Total number of filtered results (same as above since filtering handled by $where)
+    $totalFiltered = $totalData;
 
     // ✅ Actual data query
     $query = "
@@ -599,50 +603,37 @@ if (isset($_POST['server_table'])) {
     $result = mysqli_query($conn, $query);
 
     $data = [];
-    $pendingCount = 0;
-
     while ($r = mysqli_fetch_assoc($result)) {
 
-        // ✅ Check if already processed
-        $check = "
-            SELECT action_id 
-            FROM tbl_document_actions 
-            WHERE doc_id = '{$r['doc_id']}' 
-              AND from_office_id = '{$_SESSION['officeid']}'
-              AND action_type IN ('Outgoing', 'Acted', 'Delivered')
-            LIMIT 1
+        // 🕓 Format date
+        $r['date_received'] = !empty($r['date_received'])
+            ? strtoupper(date("M d, Y h:i A", strtotime($r['date_received'])))
+            : "";
+
+        // 🧩 Escape document type safely for JS
+        $typeSafe = addslashes($r['type_of_documents']);
+
+        // 🧠 Actions buttons
+        $r['actions'] = "
+          <div class='d-grid gap-1' style='grid-template-columns: repeat(2, 1fr); display: grid;'>
+            <button class='btn btn-info btn-sm' onclick='other_info({$r['doc_id']}, \"{$typeSafe}\")' title='Related information'>
+              <i class='bi bi-person-lines-fill'></i>
+            </button>
+            <button class='btn btn-primary btn-sm' onclick='take_action({$r['doc_id']})' title='Take Action'>
+              <i class='bx bx-cog'></i>
+            </button>
+            <button class='btn btn-warning btn-sm' onclick='edit_record({$r['doc_id']})' title='Edit Record'>
+              <i class='bx bx-edit'></i>
+            </button>
+            <button class='btn btn-danger btn-sm' onclick='delete_record({$r['doc_id']})' title='Delete Record'>
+              <i class='bx bx-trash'></i>
+            </button>
+          </div>
         ";
-        $runcheck = mysqli_query($conn, $check);
 
-        if (mysqli_num_rows($runcheck) <= 0) {
-            $pendingCount++;
-
-            // 🕓 Format date
-            $r['date_received'] = !empty($r['date_received'])
-                ? strtoupper(date("M d, Y h:i A", strtotime($r['date_received'])))
-                : "";
-
-            // 🧩 Actions
-            $r['actions'] = "
-              <div class='d-grid gap-1' style='grid-template-columns: repeat(2, 1fr); display: grid;'>
-                <button class='btn btn-info btn-sm' onclick='other_info({$r['doc_id']})' title='Related information'>
-                  <i class='bi bi-person-lines-fill'></i>
-                </button>
-                <button class='btn btn-primary btn-sm' onclick='take_action({$r['doc_id']})' title='Take Action'>
-                  <i class='bx bx-cog'></i>
-                </button>
-                <button class='btn btn-warning btn-sm' onclick='edit_record({$r['doc_id']})' title='Edit Record'>
-                  <i class='bx bx-edit'></i>
-                </button>
-                <button class='btn btn-danger btn-sm' onclick='delete_record({$r['doc_id']})' title='Delete Record'>
-                  <i class='bx bx-trash'></i>
-                </button>
-              </div>
-            ";
-
-            $data[] = $r;
-        }
+        $data[] = $r;
     }
+
 
     // ✅ JSON response
     echo json_encode([
@@ -653,6 +644,7 @@ if (isset($_POST['server_table'])) {
     ]);
     exit;
 }
+
 
 
 

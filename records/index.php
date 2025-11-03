@@ -689,6 +689,123 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
   </div>
 </div>
 
+<div class="modal fade" id="travelOrderModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="travelOrderLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable modal-dialog-centered">
+    <div class="modal-content shadow-lg border-0 rounded-3">
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title fw-semibold" id="travelOrderLabel">
+          <i class="bi bi-airplane me-2"></i> Manage Travel Order
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+
+      <div class="modal-body">
+        <input type="hidden" id="travel_order_doc_id">
+
+        <div class="row g-3">
+
+          <!-- Multiple faculty -->
+          <div class="col-12">
+            <label class="form-label fw-semibold">Select Faculty / Personnel</label>
+            <select id="to_faculty" class="form-select" multiple></select>
+            <small class="text-muted">Select one or more names from the list.</small>
+          </div>
+
+          <!-- NEW: Campus selection -->
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">Campus</label>
+            <select id="to_campus" class="form-select">
+              <option value="">Select Campus</option>
+            </select>
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">Designation</label>
+            <input type="text" id="to_designation" class="form-control" placeholder="e.g., CCS, College Dean">
+          </div>
+
+<div class="col-md-4">
+  <label class="form-label fw-semibold">Region</label>
+  <select id="region" class="form-select">
+    <option value="">Select Region</option>
+  </select>
+</div>
+
+<div class="col-md-4">
+  <label class="form-label fw-semibold">Province</label>
+  <select id="province" class="form-select">
+    <option value="">Select Province</option>
+  </select>
+</div>
+
+<div class="col-md-4">
+  <label class="form-label fw-semibold">City / Municipality</label>
+  <select id="city" class="form-select">
+    <option value="">Select City</option>
+  </select>
+</div>
+
+
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">Purpose</label>
+            <textarea id="to_purpose" class="form-control" rows="1" placeholder="Enter purpose of travel"></textarea>
+          </div>
+
+          <div class="col-md-4">
+            <label class="form-label fw-semibold">Date</label>
+            <input type="date" id="to_date" class="form-control">
+          </div>
+
+          <div class="col-md-4">
+            <label class="form-label fw-semibold">Departure Date</label>
+            <input type="date" id="to_departure_date" class="form-control">
+          </div>
+
+          <div class="col-md-4">
+            <label class="form-label fw-semibold">Return Date</label>
+            <input type="date" id="to_return_date" class="form-control">
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">Type</label>
+            <select id="to_type" class="form-select">
+              <option value="">Select Type</option>
+              <option>Official Time</option>
+              <option>Official Business</option>
+            </select>
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">Vehicle Requirement</label>
+            <select id="to_vehicle" class="form-select">
+              <option value="">Select Option</option>
+              <option>Yes</option>
+              <option>Not Necessary</option>
+            </select>
+          </div>
+
+          <div class="col-12">
+            <label class="form-label fw-semibold">Remarks</label>
+            <textarea id="to_remarks" class="form-control" rows="2" placeholder="Additional remarks..."></textarea>
+          </div>
+        </div>
+
+        <div class="text-end mt-4">
+          <button type="button" class="btn btn-info px-4" onclick="save_travel_order()">
+            <i class="bi bi-save2 me-1"></i> Save Travel Order
+          </button>
+        </div>
+      </div>
+
+      <div class="modal-footer bg-light border-0">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+          <i class="bi bi-x-circle me-1"></i> Close
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
 
 
   <!-- ======= Footer ======= -->
@@ -715,6 +832,142 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
   <script src="../assets/js/main.js"></script>
 <script>
 
+$('#region, #province, #city').select2({
+  theme: 'bootstrap-5',
+  width: '100%',
+  dropdownParent: $('#travelOrderModal')
+});  
+
+//==================desitinations ========================================
+$(document).ready(function() {
+  // Load regions on page load
+  $.ajax({
+    url: "query_location.php",
+    type: "POST",
+    data: { load_regions: 1 },
+    success: function(resp) {
+      const regions = JSON.parse(resp || "[]");
+      $("#region").html('<option value="">Select Region</option>');
+      regions.forEach(r => {
+        $("#region").append(`<option value="${r.region_id}">${r.region_name}</option>`);
+      });
+    }
+  });
+
+  // 🔹 When Region changes
+  $("#region").on("change", function() {
+    const region_id = $(this).val();
+    $("#province").prop("disabled", true).html('<option value="">Loading provinces...</option>');
+    $("#city").prop("disabled", true).html('<option value="">Select City</option>');
+
+    if (!region_id) return;
+
+    $.ajax({
+      url: "query_location.php",
+      type: "POST",
+      data: { load_provinces: 1, region_id },
+      success: function(resp) {
+        const provinces = JSON.parse(resp || "[]");
+        $("#province").prop("disabled", false).html('<option value="">Select Province</option>');
+        provinces.forEach(p => {
+          $("#province").append(`<option value="${p.province_id}">${p.province_name}</option>`);
+        });
+      }
+    });
+  });
+
+  // 🔹 When Province changes
+  $("#province").on("change", function() {
+    const province_id = $(this).val();
+    $("#city").prop("disabled", true).html('<option value="">Loading cities...</option>');
+
+    if (!province_id) return;
+
+    $.ajax({
+      url: "query_location.php",
+      type: "POST",
+      data: { load_cities: 1, province_id },
+      success: function(resp) {
+        const cities = JSON.parse(resp || "[]");
+        $("#city").prop("disabled", false).html('<option value="">Select City</option>');
+        cities.forEach(c => {
+          $("#city").append(`<option value="${c.city_id}">${c.city_name}</option>`);
+        });
+      }
+    });
+  });
+});
+
+
+
+
+//========for travel order================================================
+$('#travelOrderModal').on('shown.bs.modal', function() {
+  // Load campus list once
+  if ($('#to_campus option').length <= 1) {
+    $.post('query_travel_order.php', { load_campus: 1 }, function(data) {
+      const campuses = JSON.parse(data);
+      campuses.forEach(c => {
+        $('#to_campus').append(`<option value="${c.campusid}">${c.campusname}</option>`);
+      });
+    });
+  }
+
+  // Initialize Select2 (faculty)
+  if (!$('#to_faculty').data('select2')) {
+    $('#to_faculty').select2({
+      theme: 'bootstrap-5',
+      width: '100%',
+      placeholder: 'Select one or more faculty',
+      closeOnSelect: false,
+      dropdownParent: $('#travelOrderModal'),
+      ajax: {
+        url: 'query_travel_order.php',
+        type: 'POST',
+        dataType: 'json',
+        delay: 250,
+        data: params => ({ search_faculty: 1, query: params.term || '' }),
+        processResults: data => ({
+          results: data.map(item => ({
+            id: item.acc_id,
+            text: item.acc_name
+          }))
+        }),
+        cache: true
+      }
+    });
+  }
+});
+
+
+function save_travel_order() {
+  const data = {
+    save_travel_order: 1,
+    doc_id: $('#travel_order_doc_id').val(),
+    faculty_ids: $('#to_faculty').val(), // array of acc_id
+    designation: $('#to_designation').val(),
+    station: $('#to_station').val(),
+    destination: $('#to_destination').val(),
+    purpose: $('#to_purpose').val(),
+    date: $('#to_date').val(),
+    departure_date: $('#to_departure_date').val(),
+    return_date: $('#to_return_date').val(),
+    type: $('#to_type').val(),
+    vehicle: $('#to_vehicle').val(),
+    remarks: $('#to_remarks').val()
+  };
+
+  $.post('query_travel_order.php', data, function(resp) {
+    if (resp.trim() === 'success') {
+      Swal.fire({ icon: 'success', title: 'Saved!', text: 'Travel Order saved successfully.' });
+      $('#travelOrderModal').modal('hide');
+    } else {
+      Swal.fire({ icon: 'error', title: 'Error', text: resp });
+    }
+  });
+}
+
+// ============================================================
 // ✅ Delete record from tblother_information
 function delete_other_info(other_info_id, doc_id) {
   Swal.fire({
@@ -843,24 +1096,46 @@ $(document).ready(function () {
 // ===========END OF OTHER IFNORMATION==================================
 //ADD OTHER INFORMATION LIKE NAMES RELATED TO THE RECORD
 
-function other_info(doc_id) {
-  $('#doc_id_selection').val(doc_id);       // store the current doc id
-  $('#otherInfoModal').modal('show');       // open the modal
+function other_info(doc_id, type_of_documents) {
 
-  // initialize select2 (safe reinit)
-  if ($.fn.select2 && $('#info_names').data('select2')) {
-    $('#info_names').select2('destroy');
+  // Normalize for consistency (remove spaces, case-insensitive)
+  const docType = type_of_documents.trim().toUpperCase();
+
+  // Common variable assignments
+  $('#doc_id_selection').val(doc_id);
+
+  // 🔹 Conditional modal logic
+  switch (docType) {
+    case 'TRAVEL ORDER':
+      // Open the specific Travel Order modal
+      $('#travelOrderModal').modal('show');
+      break;
+
+    case 'LOCAL COMMUNICATION':
+      // Open another modal type
+      $('#localCommModal').modal('show');
+      break;
+
+    default:
+      // Fallback: use the standard Other Info modal
+      $('#otherInfoModal').modal('show');
+
+      // Initialize Select2 (safe reinit)
+      if ($.fn.select2 && $('#info_names').data('select2')) {
+        $('#info_names').select2('destroy');
+      }
+      $('#info_names').select2({
+        theme: 'bootstrap-5',
+        width: '100%',
+        placeholder: 'Select one or more names',
+        closeOnSelect: false,
+        dropdownParent: $('#otherInfoModal')
+      });
+
+      // Load filtered names list
+      load_names_list(doc_id);
+      break;
   }
-  $('#info_names').select2({
-    theme: 'bootstrap-5',
-    width: '100%',
-    placeholder: 'Select one or more names',
-    closeOnSelect: false,
-    dropdownParent: $('#otherInfoModal')
-  });
-
-  // load filtered names list
-  load_names_list(doc_id);
 }
 
 
