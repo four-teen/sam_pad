@@ -242,7 +242,7 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
       }
       /* ✅ Beautiful multi-select chips */
       .select2-container--bootstrap-5 .select2-selection__choice {
-        background-color: #0d6efd;
+        background-color: lightgray;
         color: #fff;
         border: none;
         border-radius: .25rem;
@@ -711,44 +711,16 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
             <small class="text-muted">Select one or more names from the list.</small>
           </div>
 
-          <!-- NEW: Campus selection -->
-          <div class="col-md-6">
-            <label class="form-label fw-semibold">Campus</label>
-            <select id="to_campus" class="form-select">
-              <option value="">Select Campus</option>
-            </select>
+          <!-- Destination -->
+          <div class="col-md-12">
+            <label class="form-label fw-semibold">Destination</label>
+            <textarea id="to_destination" class="form-control" rows="2" placeholder="Enter destination"></textarea>
           </div>
 
-          <div class="col-md-6">
-            <label class="form-label fw-semibold">Designation</label>
-            <input type="text" id="to_designation" class="form-control" placeholder="e.g., CCS, College Dean">
-          </div>
-
-<div class="col-md-4">
-  <label class="form-label fw-semibold">Region</label>
-  <select id="region" class="form-select">
-    <option value="">Select Region</option>
-  </select>
-</div>
-
-<div class="col-md-4">
-  <label class="form-label fw-semibold">Province</label>
-  <select id="province" class="form-select">
-    <option value="">Select Province</option>
-  </select>
-</div>
-
-<div class="col-md-4">
-  <label class="form-label fw-semibold">City / Municipality</label>
-  <select id="city" class="form-select">
-    <option value="">Select City</option>
-  </select>
-</div>
-
-
-          <div class="col-md-6">
+          <!-- Purpose -->
+          <div class="col-md-12">
             <label class="form-label fw-semibold">Purpose</label>
-            <textarea id="to_purpose" class="form-control" rows="1" placeholder="Enter purpose of travel"></textarea>
+            <textarea id="to_purpose" class="form-control" rows="2" placeholder="Enter purpose of travel"></textarea>
           </div>
 
           <div class="col-md-4">
@@ -806,6 +778,94 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
   </div>
 </div>
 
+<div class="modal fade" id="travelOrderEditModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="travelOrderEditLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable modal-dialog-centered">
+    <div class="modal-content shadow-lg border-0 rounded-3">
+        <div class="modal-header bg-info text-white">
+          <h5 class="modal-title fw-semibold" id="travelOrderEditLabel">
+            <i class="bi bi-pencil-square me-2"></i> Edit Travel Order
+          </h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+
+      <div class="modal-body">
+        <input type="hidden" id="edit_travel_order_doc_id">
+
+        <div class="row g-3">
+          <div class="col-12">
+            <label class="form-label fw-semibold">Select Faculty / Personnel</label>
+            <select id="edit_to_faculty" class="form-select" multiple></select>
+          </div>
+
+          <div class="col-md-12">
+            <label class="form-label fw-semibold">Destination</label>
+            <textarea id="edit_to_destination" class="form-control" rows="2"></textarea>
+          </div>
+
+          <div class="col-md-12">
+            <label class="form-label fw-semibold">Purpose</label>
+            <textarea id="edit_to_purpose" class="form-control" rows="2"></textarea>
+          </div>
+
+          <div class="col-md-4">
+            <label class="form-label fw-semibold">Date</label>
+            <input type="date" id="edit_to_date" class="form-control">
+          </div>
+
+          <div class="col-md-4">
+            <label class="form-label fw-semibold">Departure Date</label>
+            <input type="date" id="edit_to_departure_date" class="form-control">
+          </div>
+
+          <div class="col-md-4">
+            <label class="form-label fw-semibold">Return Date</label>
+            <input type="date" id="edit_to_return_date" class="form-control">
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">Type</label>
+            <select id="edit_to_type" class="form-select">
+              <option value="">Select Type</option>
+              <option>Official Time</option>
+              <option>Official Business</option>
+            </select>
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">Vehicle Requirement</label>
+            <select id="edit_to_vehicle" class="form-select">
+              <option value="">Select Option</option>
+              <option>Yes</option>
+              <option>Not Necessary</option>
+            </select>
+          </div>
+
+          <div class="col-12">
+            <label class="form-label fw-semibold">Remarks</label>
+            <textarea id="edit_to_remarks" class="form-control" rows="2"></textarea>
+          </div>
+        </div>
+
+      <div class="text-end mt-4 d-flex justify-content-between align-items-center">
+        <button type="button" class="btn btn-danger px-4" onclick="delete_travel_order()">
+          <i class="bi bi-trash me-1"></i> Delete
+        </button>
+
+        <button type="button" class="btn btn-info px-4" onclick="update_travel_order()">
+          <i class="bi bi-save2 me-1"></i> Update Travel Order
+        </button>
+      </div>
+      </div>
+
+      <div class="modal-footer bg-light border-0">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+          <i class="bi bi-x-circle me-1"></i> Close
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
 
 
   <!-- ======= Footer ======= -->
@@ -832,74 +892,145 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
   <script src="../assets/js/main.js"></script>
 <script>
 
+function delete_travel_order() {
+  const doc_id = $('#edit_travel_order_doc_id').val();
+
+  Swal.fire({
+    icon: 'warning',
+    title: 'Are you sure?',
+    text: 'This will permanently delete this travel order and all assigned faculty.',
+    showCancelButton: true,
+    confirmButtonText: 'Yes, delete it!',
+    cancelButtonText: 'Cancel',
+    confirmButtonColor: '#d33',
+    cancelButtonColor: '#6c757d'
+  }).then(result => {
+    if (result.isConfirmed) {
+      $.post('query_travel_order.php', { delete_travel_order: 1, doc_id }, function(resp) {
+        if (resp.trim() === 'success') {
+          loadTable();
+          Swal.fire({
+            icon: 'success',
+            title: 'Deleted!',
+            text: 'Travel order has been removed.',
+            timer: 1500,
+            showConfirmButton: false
+          });
+          $('#travelOrderEditModal').modal('hide');
+        } else {
+          Swal.fire('Error', resp, 'error');
+        }
+      });
+    }
+  });
+}
+
+
+function update_travel_order() {
+  const data = {
+    update_travel_order: 1,
+    doc_id: $('#edit_travel_order_doc_id').val(),
+    faculty_ids: $('#edit_to_faculty').val(),
+    destination: $('#edit_to_destination').val(),
+    purpose: $('#edit_to_purpose').val(),
+    date: $('#edit_to_date').val(),
+    departure_date: $('#edit_to_departure_date').val(),
+    return_date: $('#edit_to_return_date').val(),
+    type: $('#edit_to_type').val(),
+    vehicle: $('#edit_to_vehicle').val(),
+    remarks: $('#edit_to_remarks').val()
+  };
+
+  $.post('query_travel_order.php', data, function(resp) {
+    if (resp.trim() === 'success') {
+      Swal.fire({
+        icon: 'success',
+        title: 'Updated!',
+        text: 'Travel Order updated successfully.',
+        timer: 1500,
+        showConfirmButton: false
+      });
+      $('#travelOrderEditModal').modal('hide');
+    } else {
+      Swal.fire('Error', resp, 'error');
+    }
+  });
+}
+
+
+function open_new_travel_order(doc_id) {
+  // reset modal fields
+  $('#travel_order_doc_id').val(doc_id);
+  $('#to_faculty').val(null).trigger('change');
+  $('#to_destination').val('');
+  $('#to_purpose').val('');
+  $('#to_date').val('');
+  $('#to_departure_date').val('');
+  $('#to_return_date').val('');
+  $('#to_type').val('');
+  $('#to_vehicle').val('');
+  $('#to_remarks').val('');
+
+  // open modal
+  $('#travelOrderModal').modal('show');
+}
+
+
+function open_existing_travel_order(doc_id) {
+  $.ajax({
+    url: "query_travel_order.php",
+    type: "POST",
+    data: { load_travel_order_by_doc: 1, doc_id },
+    success: function(resp) {
+      try {
+        const data = JSON.parse(resp);
+
+        // fill all fields in the edit modal
+        $('#edit_travel_order_doc_id').val(doc_id);
+        $('#edit_to_destination').val(data.to_destination);
+        $('#edit_to_purpose').val(data.to_purpose);
+        $('#edit_to_date').val(data.to_date);
+        $('#edit_to_departure_date').val(data.to_departure_date);
+        $('#edit_to_return_date').val(data.to_return_date);
+        $('#edit_to_type').val(data.to_type);
+        $('#edit_to_vehicle').val(data.to_vehicle);
+        $('#edit_to_remarks').val(data.to_remarks);
+
+        // rebuild faculty select
+        $('#edit_to_faculty').empty();
+        data.all_faculty.forEach(f => {
+          const selected = data.selected_faculty.includes(f.acc_id.toString()) ? 'selected' : '';
+          $('#edit_to_faculty').append(`<option value="${f.acc_id}" ${selected}>${f.acc_name}</option>`);
+        });
+
+        // init Select2
+        $('#edit_to_faculty').select2({
+          theme: 'bootstrap-5',
+          width: '100%',
+          placeholder: 'Select faculty',
+          closeOnSelect: false,
+          dropdownParent: $('#travelOrderEditModal')
+        });
+
+        // show modal
+        $('#travelOrderEditModal').modal('show');
+      } catch (e) {
+        Swal.fire('Error', 'Failed to load travel order details.', 'error');
+      }
+    },
+    error: function() {
+      Swal.fire('Error', 'Server not reachable.', 'error');
+    }
+  });
+}
+
+
+
 $('#region, #province, #city').select2({
   theme: 'bootstrap-5',
   width: '100%',
   dropdownParent: $('#travelOrderModal')
 });  
-
-//==================desitinations ========================================
-$(document).ready(function() {
-  // Load regions on page load
-  $.ajax({
-    url: "query_location.php",
-    type: "POST",
-    data: { load_regions: 1 },
-    success: function(resp) {
-      const regions = JSON.parse(resp || "[]");
-      $("#region").html('<option value="">Select Region</option>');
-      regions.forEach(r => {
-        $("#region").append(`<option value="${r.region_id}">${r.region_name}</option>`);
-      });
-    }
-  });
-
-  // 🔹 When Region changes
-  $("#region").on("change", function() {
-    const region_id = $(this).val();
-    $("#province").prop("disabled", true).html('<option value="">Loading provinces...</option>');
-    $("#city").prop("disabled", true).html('<option value="">Select City</option>');
-
-    if (!region_id) return;
-
-    $.ajax({
-      url: "query_location.php",
-      type: "POST",
-      data: { load_provinces: 1, region_id },
-      success: function(resp) {
-        const provinces = JSON.parse(resp || "[]");
-        $("#province").prop("disabled", false).html('<option value="">Select Province</option>');
-        provinces.forEach(p => {
-          $("#province").append(`<option value="${p.province_id}">${p.province_name}</option>`);
-        });
-      }
-    });
-  });
-
-  // 🔹 When Province changes
-  $("#province").on("change", function() {
-    const province_id = $(this).val();
-    $("#city").prop("disabled", true).html('<option value="">Loading cities...</option>');
-
-    if (!province_id) return;
-
-    $.ajax({
-      url: "query_location.php",
-      type: "POST",
-      data: { load_cities: 1, province_id },
-      success: function(resp) {
-        const cities = JSON.parse(resp || "[]");
-        $("#city").prop("disabled", false).html('<option value="">Select City</option>');
-        cities.forEach(c => {
-          $("#city").append(`<option value="${c.city_id}">${c.city_name}</option>`);
-        });
-      }
-    });
-  });
-});
-
-
-
 
 //========for travel order================================================
 $('#travelOrderModal').on('shown.bs.modal', function() {
@@ -944,9 +1075,7 @@ function save_travel_order() {
   const data = {
     save_travel_order: 1,
     doc_id: $('#travel_order_doc_id').val(),
-    faculty_ids: $('#to_faculty').val(), // array of acc_id
-    designation: $('#to_designation').val(),
-    station: $('#to_station').val(),
+    faculty_ids: $('#to_faculty').val(), // multiple select
     destination: $('#to_destination').val(),
     purpose: $('#to_purpose').val(),
     date: $('#to_date').val(),
@@ -959,10 +1088,21 @@ function save_travel_order() {
 
   $.post('query_travel_order.php', data, function(resp) {
     if (resp.trim() === 'success') {
-      Swal.fire({ icon: 'success', title: 'Saved!', text: 'Travel Order saved successfully.' });
+      loadTable();
+      Swal.fire({
+        icon: 'success',
+        title: 'Saved!',
+        text: 'Travel Order successfully saved.',
+        timer: 1500,
+        showConfirmButton: false
+      });
       $('#travelOrderModal').modal('hide');
     } else {
-      Swal.fire({ icon: 'error', title: 'Error', text: resp });
+      Swal.fire({
+        icon: 'error',
+        title: 'Error!',
+        text: resp
+      });
     }
   });
 }
@@ -1108,12 +1248,8 @@ function other_info(doc_id, type_of_documents) {
   switch (docType) {
     case 'TRAVEL ORDER':
       // Open the specific Travel Order modal
+      $('#travel_order_doc_id').val(doc_id);
       $('#travelOrderModal').modal('show');
-      break;
-
-    case 'LOCAL COMMUNICATION':
-      // Open another modal type
-      $('#localCommModal').modal('show');
       break;
 
     default:

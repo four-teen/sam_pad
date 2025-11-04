@@ -613,23 +613,44 @@ if (isset($_POST['server_table'])) {
         // 🧩 Escape document type safely for JS
         $typeSafe = addslashes($r['type_of_documents']);
 
-        // 🧠 Actions buttons
-        $r['actions'] = "
-          <div class='d-grid gap-1' style='grid-template-columns: repeat(2, 1fr); display: grid;'>
-            <button class='btn btn-info btn-sm' onclick='other_info({$r['doc_id']}, \"{$typeSafe}\")' title='Related information'>
-              <i class='bi bi-person-lines-fill'></i>
-            </button>
-            <button class='btn btn-primary btn-sm' onclick='take_action({$r['doc_id']})' title='Take Action'>
-              <i class='bx bx-cog'></i>
-            </button>
-            <button class='btn btn-warning btn-sm' onclick='edit_record({$r['doc_id']})' title='Edit Record'>
-              <i class='bx bx-edit'></i>
-            </button>
-            <button class='btn btn-danger btn-sm' onclick='delete_record({$r['doc_id']})' title='Delete Record'>
-              <i class='bx bx-trash'></i>
-            </button>
-          </div>
-        ";
+
+            // ✅ Check if travel order exists
+            $hasTO = mysqli_query($conn, "SELECT to_id FROM tbl_travel_order WHERE doc_id = '{$r['doc_id']}' LIMIT 1");
+            $travelExists = mysqli_num_rows($hasTO) > 0;
+
+            // ✅ Dynamic button
+            if ($travelExists) {
+                $travelButton = "
+                  <button class='btn btn-success btn-sm' 
+                          onclick='open_existing_travel_order({$r['doc_id']})' 
+                          title='View or Edit Travel Order'>
+                    <i class='bi bi-suitcase2'></i>
+                  </button>";
+            } else {
+                $travelButton = "
+                  <button class='btn btn-info btn-sm' 
+                          onclick='open_new_travel_order({$r['doc_id']})' 
+                          title='Create Travel Order'>
+                    <i class='bi bi-person-lines-fill'></i>
+                  </button>";
+            }
+
+
+            // 🧠 Actions buttons
+            $r['actions'] = "
+              <div class='d-grid gap-1' style='grid-template-columns: repeat(2, 1fr); display: grid;'>
+                {$travelButton}
+                <button class='btn btn-primary btn-sm' onclick='take_action({$r['doc_id']})' title='Take Action'>
+                  <i class='bx bx-cog'></i>
+                </button>
+                <button class='btn btn-warning btn-sm' onclick='edit_record({$r['doc_id']})' title='Edit Record'>
+                  <i class='bx bx-edit'></i>
+                </button>
+                <button class='btn btn-danger btn-sm' onclick='delete_record({$r['doc_id']})' title='Delete Record'>
+                  <i class='bx bx-trash'></i>
+                </button>
+              </div>
+            ";
 
         $data[] = $r;
     }
