@@ -540,7 +540,7 @@ if (isset($_POST['delete_record'])) {
     exit;
 }
 
-/* 🚀 SERVER-SIDE DATATABLES PROCESSING */
+
 /* 🚀 SERVER-SIDE DATATABLES PROCESSING */
 /* 🚀 SERVER-SIDE DATATABLES PROCESSING */
 if (isset($_POST['server_table'])) {
@@ -578,8 +578,6 @@ if (isset($_POST['server_table'])) {
         $where
     ");
     $totalData = mysqli_fetch_assoc($totalQuery)['total'];
-
-    // ✅ Total number of filtered results (same as above since filtering handled by $where)
     $totalFiltered = $totalData;
 
     // ✅ Actual data query
@@ -610,15 +608,50 @@ if (isset($_POST['server_table'])) {
             ? strtoupper(date("M d, Y h:i A", strtotime($r['date_received'])))
             : "";
 
-        // 🧩 Escape document type safely for JS
-        $typeSafe = addslashes($r['type_of_documents']);
+        // 🟩 Assign badge colors based on document type
+        $rawType = strtoupper(trim($r['type_of_documents'])); // store clean version
+        $badgeColor = 'secondary'; // default
 
+        switch ($rawType) {
+            case 'TRAVEL ORDER':
+                $badgeColor = 'info';
+                break;
+            case 'HAND CARRY':
+                $badgeColor = 'success';
+                break;
+            case 'EMAIL':
+                $badgeColor = 'primary';
+                break;
+            case 'LOCAL COMMUNICATION':
+                $badgeColor = 'warning';
+                break;
+            case 'OUTGOING COMMUNICATION':
+                $badgeColor = 'danger';
+                break;
+            case 'ACTIVITY DESIGN':
+                $badgeColor = 'dark';
+                break;
+            case 'PROJECT PROPOSAL':
+                $badgeColor = 'purple';
+                break;
+        }
 
-            // ✅ Check if travel order exists
-            $hasTO = mysqli_query($conn, "SELECT to_id FROM tbl_travel_order WHERE doc_id = '{$r['doc_id']}' LIMIT 1");
-            $travelExists = mysqli_num_rows($hasTO) > 0;
+        // 🟨 Wrap the document type text in a Bootstrap badge (for display only)
+        $r['type_of_documents'] = "
+            <span class='badge bg-$badgeColor px-3 py-2 shadow-sm'>
+                $rawType
+            </span>
+        ";
 
-            // ✅ Dynamic button
+        // 🟦 Determine if this doc is a Travel Order
+        $isTravelOrder = $rawType === 'TRAVEL ORDER';
+
+        // ✅ Check if travel order record already exists
+        $hasTO = mysqli_query($conn, "SELECT to_id FROM tbl_travel_order WHERE doc_id = '{$r['doc_id']}' LIMIT 1");
+        $travelExists = mysqli_num_rows($hasTO) > 0;
+
+        // ✅ Dynamic button based on document type
+        if ($isTravelOrder) {
             if ($travelExists) {
                 $travelButton = "
                   <button class='btn btn-success btn-sm' 
@@ -634,27 +667,35 @@ if (isset($_POST['server_table'])) {
                     <i class='bi bi-person-lines-fill'></i>
                   </button>";
             }
+        } else {
+            // 🟢 For non–Travel Order types, open Other Info modal instead
+            $cleanType = addslashes($rawType); // use clean text, not HTML
+            $travelButton = "
+              <button class='btn btn-secondary btn-sm' 
+                      onclick=\"other_info({$r['doc_id']}, '{$cleanType}')\" 
+                      title='Add Other Information'>
+                <i class='bi bi-people'></i>
+              </button>";
+        }
 
-
-            // 🧠 Actions buttons
-            $r['actions'] = "
-              <div class='d-grid gap-1' style='grid-template-columns: repeat(2, 1fr); display: grid;'>
-                {$travelButton}
-                <button class='btn btn-primary btn-sm' onclick='take_action({$r['doc_id']})' title='Take Action'>
-                  <i class='bx bx-cog'></i>
-                </button>
-                <button class='btn btn-warning btn-sm' onclick='edit_record({$r['doc_id']})' title='Edit Record'>
-                  <i class='bx bx-edit'></i>
-                </button>
-                <button class='btn btn-danger btn-sm' onclick='delete_record({$r['doc_id']})' title='Delete Record'>
-                  <i class='bx bx-trash'></i>
-                </button>
-              </div>
-            ";
+        // 🧠 Actions buttons
+        $r['actions'] = "
+          <div class='d-grid gap-1' style='grid-template-columns: repeat(2, 1fr); display: grid;'>
+            {$travelButton}
+            <button class='btn btn-primary btn-sm' onclick='take_action({$r['doc_id']})' title='Take Action'>
+              <i class='bx bx-cog'></i>
+            </button>
+            <button class='btn btn-warning btn-sm' onclick='edit_record({$r['doc_id']})' title='Edit Record'>
+              <i class='bx bx-edit'></i>
+            </button>
+            <button class='btn btn-danger btn-sm' onclick='delete_record({$r['doc_id']})' title='Delete Record'>
+              <i class='bx bx-trash'></i>
+            </button>
+          </div>
+        ";
 
         $data[] = $r;
     }
-
 
     // ✅ JSON response
     echo json_encode([
@@ -665,6 +706,14 @@ if (isset($_POST['server_table'])) {
     ]);
     exit;
 }
+
+/* 📝 CSS for purple badge:
+.badge.bg-purple {
+  background-color: #6f42c1 !important;
+  color: #fff !important;
+}
+*/
+
 
 
 
