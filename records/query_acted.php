@@ -4,6 +4,18 @@ session_start();         // Start session before anything else
 include '../db.php';     // Then include database or other files
 
 
+if (isset($_POST['get_office_list'])) {
+
+    $query = "SELECT office_id, office_name FROM tbl_office_heads ORDER BY office_name ASC";
+    $result = mysqli_query($conn, $query);
+
+    $options = "";
+    while ($row = mysqli_fetch_assoc($result)) {
+        $options .= "<option value='{$row['office_id']}'>{$row['office_name']}</option>";
+    }
+    echo $options;
+    exit();
+}
 
 if (isset($_POST['load_images_for_view'])) {
     $doc_id = intval($_POST['doc_id']);
@@ -61,21 +73,65 @@ if(isset($_POST['get_acted_counter'])){
 }
 
 
+// if (isset($_POST['deliver_document'])) {
+
+//     $doc_id = intval($_POST['doc_id']);
+//     $from_office_id = $_SESSION['officeid']; // current office (e.g., Records)
+//     $to_office_id = intval($_POST['to_office_id']); // selected office from SweetAlert
+//     $remarks = mysqli_real_escape_string($conn, $_POST['remarks']);
+
+//     // 1️⃣ Insert into tbl_document_actions
+//     $sql = "
+//         INSERT INTO tbl_document_actions 
+//         (doc_id, from_office_id, to_office_id, action_type, action_remarks, action_date)
+//         VALUES ('$doc_id', '$from_office_id', '$to_office_id', 'Delivered', '$remarks', NOW())
+//     ";
+
+//     if (mysqli_query($conn, $sql)) {
+
+//         // 2️⃣ Also insert into tblacted
+//         $insert_acted = "
+//             INSERT INTO tbl_acted_to_office (docid, officeid, date_acted)
+//             VALUES ('$doc_id', '$to_office_id', NOW())
+//         ";
+
+//         if (mysqli_query($conn, $insert_acted)) {
+//             echo 'success';
+//         } else {
+//             echo 'Error inserting into tblacted: ' . mysqli_error($conn);
+//         }
+
+//     } else {
+//         echo 'Error inserting into tbl_document_actions: ' . mysqli_error($conn);
+//     }
+
+//     exit;
+// }
+
 
 if (isset($_POST['deliver_document'])) {
 
     $doc_id = intval($_POST['doc_id']);
     $from_office_id = $_SESSION['officeid']; // always from Records Section
     $remarks = mysqli_real_escape_string($conn, $_POST['remarks']);
-
     // to_office_id = 0 since it's physically delivered to person
-    $to_office_id = 0;
+    $to_office_id = intval($_POST['to_office_id']);
 
     $sql = "
         INSERT INTO tbl_document_actions 
         (doc_id, from_office_id, to_office_id, action_type, action_remarks, action_date)
         VALUES ('$doc_id', '$from_office_id', '$to_office_id', 'Delivered', '$remarks', NOW())
     ";
+
+    if (mysqli_query($conn, $sql)) {
+
+        // 2️⃣ Also insert into tblacted
+        $insert_acted = "INSERT INTO tbl_acted_to_office (docid, officeid, date_acted)
+            VALUES ('$doc_id', '$to_office_id', NOW())";
+        $runinsert_acted = mysqli_query($conn, $insert_acted);
+
+    } 
+
 
     if (mysqli_query($conn, $sql)) {
         echo 'success';

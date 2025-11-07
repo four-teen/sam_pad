@@ -680,50 +680,79 @@ function delete_uploaded_image(img_id, doc_id) {
 
 
 function confirmDocumentRelease(doc_id, office_division) {
-  Swal.fire({
-    title: 'Deliver Document',
-    html: `
-      <textarea id="release_remarks" class="swal2-textarea" placeholder="Enter delivery remarks or recipient name..."></textarea>
-    `,
-    icon: 'question',
-    showCancelButton: true,
-    confirmButtonText: 'Deliver',
-    cancelButtonText: 'Cancel',
-    confirmButtonColor: '#198754',
-    cancelButtonColor: '#d33',
-    preConfirm: () => {
-      const remarks = $('#release_remarks').val().trim();
-      if (!remarks) {
-        Swal.showValidationMessage('Please add remarks before releasing.');
-        return false;
-      }
-      return remarks;
-    }
-  }).then((result) => {
-    if (result.isConfirmed) {
-      $.ajax({
-        url: 'query_acted.php', // 🔸 adjust to your actual query handler file
-        type: 'POST',
-        data: {
-          deliver_document: 1,
-          doc_id: doc_id,
-          from_office_id: office_division, // or from session if needed
-          remarks: result.value
+  $.ajax({
+    url: 'query_acted.php',
+    type: 'POST',
+    data: { get_office_list: 1 },
+    success: function (data) {
+      Swal.fire({
+        title: 'Deliver Document',
+        html: `
+          <select id="select_office" class="swal2-input select2_office" style="width:100%;">
+            <option value="">Select Office...</option>
+            ${data}
+          </select>
+          <textarea id="release_remarks" class="swal2-textarea" placeholder="Enter delivery remarks or recipient name..."></textarea>
+        `,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Deliver',
+        cancelButtonText: 'Cancel',
+        confirmButtonColor: '#198754',
+        cancelButtonColor: '#d33',
+        didOpen: () => {
+          // initialize select2 after SweetAlert renders
+          $('.select2_office').select2({
+            theme: 'bootstrap4',
+            dropdownParent: $('.swal2-container')
+          });
         },
-        success: function(response) {
-          if (response.trim() === 'success') {
-            Swal.fire('Delivered!', 'Document has been marked as delivered.', 'success');
-            loadTable(); // refresh your table
-            get_count_acted();
-            get_count_delivered();
-          } else {
-            Swal.fire('Error', response, 'error');
+        preConfirm: () => {
+          const office_id = $('#select_office').val();
+          const remarks = $('#release_remarks').val().trim();
+
+          if (!office_id) {
+            Swal.showValidationMessage('Please select an office.');
+            return false;
           }
-        },
-        error: function() {
-          Swal.fire('Error', 'Failed to deliver document.', 'error');
+          if (!remarks) {
+            Swal.showValidationMessage('Please add remarks before delivering.');
+            return false;
+          }
+
+          return { office_id, remarks };
+        }
+      }).then((result) => {
+        if (result.isConfirmed) {
+          $.ajax({
+            url: 'query_acted.php',
+            type: 'POST',
+            data: {
+              deliver_document: 1,
+              doc_id: doc_id,
+              from_office_id: office_division,
+              to_office_id: result.value.office_id,
+              remarks: result.value.remarks
+            },
+            success: function (response) {
+              if (response.trim() === 'success') {
+                Swal.fire('Delivered!', 'Document has been marked as delivered.', 'success');
+                loadTable();
+                get_count_acted();
+                get_count_delivered();
+              } else {
+                Swal.fire('Error', response, 'error');
+              }
+            },
+            error: function () {
+              Swal.fire('Error', 'Failed to deliver document.', 'error');
+            }
+          });
         }
       });
+    },
+    error: function () {
+      Swal.fire('Error', 'Failed to load office list.', 'error');
     }
   });
 }
