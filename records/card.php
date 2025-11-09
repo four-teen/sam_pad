@@ -6,7 +6,7 @@
   <div class="col-lg-2 col-md-6">
     <div class="card info-card border-0 shadow-sm" style="--start-color:#007bff;--end-color:#17a2b8;"  onclick="card_one()">
       <div class="card-body">
-        <h5 class="card-title">Received <span class="text-muted">| records</span></h5>
+        <h5 class="card-title">Received</h5>
         <div class="d-flex align-items-center">
           <div class="card-icon">
             <i class="bx bx-file"></i>
@@ -24,7 +24,7 @@
   <div class="col-lg-2 col-md-6">
     <div class="card info-card border-0 shadow-sm" style="--start-color:#198754;--end-color:#20c997;" onclick="card_two()">
       <div class="card-body">
-        <h5 class="card-title">Outgoing <span class="text-muted">| Documents</span></h5>
+        <h5 class="card-title">Outgoing</h5>
         <div class="d-flex align-items-center">
           <div class="card-icon">
             <i class='bx bx-archive-out'></i>
@@ -42,7 +42,7 @@
 <div class="col-lg-2 col-md-6">
   <div class="card info-card border-0 shadow-sm" style="--start-color:#dc3545;--end-color:#ff4136;" onclick="card_three()">
     <div class="card-body">
-      <h5 class="card-title">Returned <span class="text-muted">| Documents</span></h5>
+      <h5 class="card-title">Returned</h5>
       <div class="d-flex align-items-center">
         <div class="card-icon">
           <i class="bi bi-arrow-90deg-down"></i>
@@ -60,7 +60,7 @@
   <div class="col-lg-2 col-md-6">
     <div class="card info-card border-0 shadow-sm" style="--start-color:#ffc107;--end-color:#ffb347;" onclick="card_four()">
       <div class="card-body">
-        <h5 class="card-title">Acted <span class="text-muted">| Records</span></h5>
+        <h5 class="card-title">Acted</h5>
         <div class="d-flex align-items-center">
           <div class="card-icon">
             <i class="bi bi-folder-check"></i>
@@ -77,7 +77,7 @@
   <div class="col-lg-2 col-md-6">
     <div class="card info-card border-0 shadow-sm" style="--start-color:#007bff;--end-color:#17a2b8;"  onclick="card_five()">
       <div class="card-body">
-        <h5 class="card-title">Delivered <span class="text-muted">| records</span></h5>
+        <h5 class="card-title">Delivered</h5>
         <div class="d-flex align-items-center">
           <div class="card-icon">
             <i class="bi bi-person-walking"></i>

@@ -45,9 +45,7 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
 
   <!-- Template Main CSS File -->
   <link href="../assets/css/style.css" rel="stylesheet">
-  <link href="css_records.css" rel="stylesheet">
   <link href="css_index.css" rel="stylesheet">
-
 
 </head>
 
@@ -57,14 +55,13 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
   <?php include 'sidebar.php'; ?>
 
   <main id="main" class="main">
-  <!-- 🔹 Quick Dashboard Cards directly under navbar -->
-  <div class="dashboard-cards">
-    <?php include 'card.php'; ?>
-  </div>
-
     <section class="section dashboard">
       <div class="row">
     <!-- Improved Dashboard Cards -->
+    <?php 
+      include 'card.php';
+     ?>
+
 
 
         <!-- Reports -->
@@ -291,8 +288,7 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
         <div class="mb-3">
           <label class="form-label fw-semibold" for="action_type">Select Action</label>
           <select id="action_type" class="form-control">
-            <option value="">Select Action</option>
-            <option value="OUTGOING">OUTGOING</option>
+            <option value="FORWARDED">FORWARDED</option>
             <option value="ARCHIEVED">ARCHIEVED</option>
           </select>
         </div>
@@ -1662,9 +1658,6 @@ document.getElementById("btn_save_record").addEventListener("click", function() 
         $("#form_add_record")[0].reset();
         loadTable();
         get_count_outgoing();
-        get_count_returned();
-        get_count_acted();  
-        get_count_delivered();
         get_count_new_received();
         get_doc_count();
 
@@ -1854,52 +1847,10 @@ window.onload = function() {
   loadTable();
   get_doc_count(); // ✅ add this here
   get_count_outgoing();
-  get_count_returned();
-  get_count_acted();  
-  get_count_delivered();
   get_count_new_received();
 };
 
 // ===========COUNTS=====================================
-function get_count_delivered(){
-  $.ajax({
-    url: "query_delivered.php",
-    type: "POST",
-    data: { 
-      get_delivered_counter: 1 
-    },
-    success: function(response) {
-      $('#load_delivered_count').html(response);
-    }
-  });  
-}
-
-function get_count_acted(){
-  $.ajax({
-    url: "query_acted.php",
-    type: "POST",
-    data: { 
-      get_acted_counter: 1 
-    },
-    success: function(response) {
-      $('#load_acted_count').html(response);
-    }
-  });  
-}
-
-
-function get_count_returned(){
-  $.ajax({
-    url: "query_returned.php",
-    type: "POST",
-    data: { 
-      get_returned_counter: 1 
-    },
-    success: function(response) {
-      $('#load_returned_count').html(response);
-    }
-  });  
-}
 
 function get_count_outgoing(){
   $.ajax({
@@ -1953,17 +1904,6 @@ function get_count_new_received(){
     window.location = 'records_returned.php';
   }
 
-  function card_four(){
-    window.location = 'records_acted.php';
-  } 
-
-  function card_five(){
-    window.location = 'records_delivered.php';
-  } 
-
-  function card_six(){
-    window.location = 'all_docs.php';
-  }   
 
 </script>
 

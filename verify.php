@@ -70,7 +70,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 case '1':
                     writeLog("Redirecting to PAD dashboard...");
                     $redirect = "prfkwr5sfaes/index.php";
-                    break;                    
+                    break; 
+                case '9':
+                    writeLog("Redirecting to directors..."); //director dashboard
+                    $redirect = "dir3851ec51Wtor/index.php";
+                    break; 
+
                 default:
                     $_SESSION['status'] = "Unknown role.";
                     $redirect = "index.php";

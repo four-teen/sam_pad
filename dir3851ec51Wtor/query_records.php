@@ -3,7 +3,9 @@ ob_start();              // Optional but good for safety
 session_start();         // Start session before anything else
 include '../db.php';     // Then include database or other files
 
+
 $office_id = $_SESSION['officeid'];
+
 /* ================= SAVE OTHER INFO (normalized) ================= */
 if (isset($_POST['saving_other_info'])) {
     $doc_id = intval($_POST['doc_id']);
@@ -549,8 +551,6 @@ if (isset($_POST['delete_record'])) {
     exit;
 }
 
-
-/* 🚀 SERVER-SIDE DATATABLES PROCESSING */
 /* 🚀 SERVER-SIDE DATATABLES PROCESSING */
 if (isset($_POST['server_table'])) {
 
@@ -559,10 +559,11 @@ if (isset($_POST['server_table'])) {
     $start = intval($_POST['start']);
     $length = intval($_POST['length']);
     $searchValue = mysqli_real_escape_string($conn, $_POST['search']['value']);
-    $office_id = $_SESSION['officeid'];
 
-    // ✅ Build search condition
-    $where = "WHERE NOT EXISTS (
+    
+    // ✅ Build search condition — now includes uni_divisionid filter
+    $where = "WHERE d.uni_divisionid = '$office_id' 
+              AND NOT EXISTS (
                 SELECT 1 
                 FROM tbl_document_actions a
                 WHERE a.doc_id = d.doc_id

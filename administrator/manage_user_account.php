@@ -74,6 +74,7 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
       <div class="card mt-3">
         <div class="card-body">
           <h5 class="card-title">User Accounts</h5>
+          <button id="btnAddUser" class="btn btn-secondary">Add New User</button>
           <div id="main_data"></div>
         </div>
       </div>
@@ -161,24 +162,49 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
   <script src="counter.js"></script>
 
   <script>
+$(document).ready(function () {
+  // ✅ Create Bootstrap 5 modal instance
+  const userModal = new bootstrap.Modal(document.getElementById('userModal'));
 
-    $(document).ready(function() {
-      $('#userModal').on('show.bs.modal', function () {
-        // Prevent double initialization
-        if ($.fn.select2 && $('#acc_role').data('select2')) {
-          $('#acc_role').select2('destroy');
-        }
+  // 🟢 When clicking "Add New User"
+  $('#btnAddUser').on('click', function () {
+    // Reset form before opening
+    $('#userForm')[0].reset();
+    $('#acc_id').val('');
 
-        // Initialize before modal transition
-        $('#acc_role').select2({
-          theme: 'bootstrap4',
-          placeholder: 'Select Office / Division',
-          width: '100%',
-          allowClear: true,
-          dropdownParent: $('#userModal')
-        });
-      });
+    // 🧹 Destroy Select2 if already initialized (avoids duplication)
+    if ($.fn.select2 && $('#acc_role').data('select2')) {
+      $('#acc_role').select2('destroy');
+    }
+
+    // ✅ Initialize Select2 with Bootstrap 5 theme
+    $('#acc_role').select2({
+      theme: 'bootstrap-5', // 👈 use Bootstrap 5 styling
+      placeholder: 'Select Role / Office',
+      width: '100%',
+      allowClear: true,
+      dropdownParent: $('#userModal') // ensures dropdown appears inside modal
     });
+
+    // Show modal
+    userModal.show();
+  });
+
+  // 🟣 Re-init Select2 safely if modal reopened later
+  $('#userModal').on('shown.bs.modal', function () {
+    if (!$('#acc_role').data('select2')) {
+      $('#acc_role').select2({
+        theme: 'bootstrap-5',
+        placeholder: 'Select Role / Office',
+        width: '100%',
+        allowClear: true,
+        dropdownParent: $('#userModal')
+      });
+    }
+  });
+});
+
+
 
     // 🔹 Load all user accounts (already used by onload)
     function get_req() {
