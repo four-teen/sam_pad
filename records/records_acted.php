@@ -270,6 +270,45 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
         transform: scale(1.05);
       }
 
+/* SAM-style compact button group */
+.btn-group-sm > .btn {
+  border-radius: 6px !important;
+  padding: 4px 8px !important;
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease-in-out;
+}
+
+.btn-group-sm > .btn i {
+  font-size: 1rem;
+}
+
+.btn-group-sm > .btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+.btn-group-sm > .btn-warning {
+  background-color: #ffc107;
+  border-color: #ffc107;
+  color: #fff;
+}
+.btn-group-sm > .btn-warning:hover {
+  background-color: #e0a800;
+}
+
+.btn-group-sm > .btn-info {
+  background-color: #17a2b8;
+  border-color: #17a2b8;
+  color: #fff;
+}
+.btn-group-sm > .btn-info:hover {
+  background-color: #138496;
+}
+
+
   </style>
 </head>
 
@@ -279,16 +318,6 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
   <?php include 'sidebar.php'; ?>
 
   <main id="main" class="main">
-    <div class="pagetitle">
-      <h1>Dashboard</h1>
-      <nav>
-        <ol class="breadcrumb">
-          <li class="breadcrumb-item"><a href="index.php">Home</a></li>
-          <li class="breadcrumb-item active">Dashboard</li>
-        </ol>
-      </nav>
-    </div>
-
     <section class="section dashboard">
       <div class="row">
 

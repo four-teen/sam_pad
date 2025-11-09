@@ -43,214 +43,11 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
   <!-- ✅ Bootstrap 5 theme for Select2 -->
   <link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet">
 
-
   <!-- Template Main CSS File -->
   <link href="../assets/css/style.css" rel="stylesheet">
   <link href="css_records.css" rel="stylesheet">
+  <link href="css_index.css" rel="stylesheet">
 
-  <style>
-      /* Fix select2 alignment */
-      .select2-container .select2-selection--single {
-        height: 38px !important;
-        border: 1px solid #ced4da !important;
-        border-radius: 0.375rem !important;
-        padding: 4px 8px !important;
-      }
-
-      .select2-container--default .select2-selection__rendered {
-        line-height: 28px !important;
-        font-size: 0.95rem !important;
-        color: #495057 !important;
-      }
-
-      .select2-container--default .select2-selection__arrow {
-        height: 36px !important;
-        right: 8px !important;
-      }
-
-      /* Modern Card Styling */
-      .info-card {
-      position: relative;
-      border-radius: 1rem !important;
-      background: linear-gradient(145deg, #ffffff, #f8f9fa);
-      transition: all 0.3s ease;
-      cursor: pointer;
-      overflow: hidden;
-      }
-
-      .info-card::before {
-      content: "";
-      display: block;
-      height: 5px;
-      border-radius: 5px 5px 0 0;
-      background: linear-gradient(90deg, var(--start-color), var(--end-color));
-      }
-
-      .info-card:hover {
-      transform: translateY(-6px);
-      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
-      }
-
-      /* Icon Circle */
-      .info-card .card-icon {
-      width: 56px;
-      height: 56px;
-      border-radius: 50%;
-      background: linear-gradient(135deg, var(--start-color), var(--end-color));
-      color: #fff;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      margin-right: 1rem;
-      font-size: 1.75rem;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
-      transition: 0.3s ease;
-      }
-
-      .info-card:hover .card-icon {
-      transform: scale(1.1) rotate(10deg);
-      box-shadow: 0 6px 14px rgba(0, 0, 0, 0.2);
-      }
-
-      /* Title and Text */
-      .info-card .card-title {
-      font-weight: 600;
-      font-size: 1rem;
-      color: #343a40;
-      margin-bottom: 1rem;
-      }
-
-      .info-card small {
-      font-size: 0.85rem;
-      color: #6c757d;
-      }
-
-      .info-card h3 {
-      font-weight: 700;
-      font-size: 1.6rem;
-      color: #212529;
-      }
-
-      /* Animation for hover glow */
-      .info-card:hover::after {
-      content: "";
-      position: absolute;
-      inset: 0;
-      border-radius: 1rem;
-      background: radial-gradient(circle at top right, rgba(255,255,255,0.3), transparent 60%);
-      opacity: 0.8;
-      }
-
-
-      /* Make only the edit drawer wider */
-      .offcanvas-edit {
-        width: 40vw !important;          /* 60% of the viewport width */
-        max-width: 700px;                /* Don’t exceed 900px */
-        box-shadow: -6px 0 25px rgba(0,0,0,0.15); /* Soft depth shadow */
-        backdrop-filter: blur(8px);      /* Slight background blur */
-        transition: transform 0.35s ease, box-shadow 0.35s ease;
-        border-left: 2px solid rgba(0,0,0,0.05);
-      }
-
-      /* Subtle animation on show */
-      .offcanvas-edit.show {
-        box-shadow: -12px 0 35px rgba(0,0,0,0.25);
-      }
-
-      /* Responsive tweak for smaller screens */
-      @media (max-width: 768px) {
-        .offcanvas-edit {
-          width: 100% !important;
-          max-width: none;
-          border-left: none;
-        }
-      }
-
-      /* Smooth appearance for form elements */
-      .offcanvas-edit .form-control,
-      .offcanvas-edit .form-select,
-      .offcanvas-edit textarea {
-        border-radius: 0.4rem;
-        transition: all 0.2s ease;
-      }
-
-      .offcanvas-edit .form-control:focus,
-      .offcanvas-edit .form-select:focus,
-      .offcanvas-edit textarea:focus {
-        border-color: #0d6efd;
-        box-shadow: 0 0 0 0.15rem rgba(13,110,253,0.25);
-      }
-      .offcanvas-backdrop.show {
-        opacity: 0.25 !important;
-        background-color: #000 !important;
-        backdrop-filter: blur(3px);
-      }
-
-      .nowrap {
-        white-space: nowrap !important;
-      }
-
-      #preview_grid .thumb, #uploaded_grid .thumb {
-        position: relative;
-        border: 1px solid #e9ecef;
-        border-radius: 0.5rem;
-        overflow: hidden;
-        background: #fafafa;
-      }
-
-      #preview_grid img, #uploaded_grid img {
-        width: 100%;
-        height: 120px;
-        object-fit: cover;
-      }
-
-      .thumb .thumb-actions {
-        position: absolute;
-        inset: auto 6px 6px auto;
-        display: flex;
-        gap: .25rem;
-      }
-      /* --- Select2 Alignment Fix (Bootstrap 5 Friendly) --- */
-      .select2-container {
-        width: 100% !important;
-      }
-
-      .select2-container--bootstrap4 .select2-selection--single {
-        height: calc(2.35rem + 2px) !important; /* Match Bootstrap form height */
-        border: 1px solid #ced4da !important;
-        border-radius: 0.375rem !important;
-        padding: 0.375rem 0.75rem !important;
-        display: flex !important;
-        align-items: center !important;
-      }
-
-      .select2-container--bootstrap4 .select2-selection__rendered {
-        font-size: 0.95rem !important;
-        color: #495057 !important;
-        line-height: normal !important;
-      }
-
-      .select2-container--bootstrap4 .select2-selection__arrow {
-        height: 100% !important;
-        top: 0 !important;
-        right: 0.75rem !important;
-      }
-
-      /* Placeholder color consistency */
-      .select2-selection__placeholder {
-        color: #6c757d !important;
-      }
-      /* ✅ Beautiful multi-select chips */
-      .select2-container--bootstrap-5 .select2-selection__choice {
-        background-color: lightgray;
-        color: #fff;
-        border: none;
-        border-radius: .25rem;
-        padding: 2px 8px;
-        margin-top: 4px;
-      }
-
-  </style>
 </head>
 
 <body>
@@ -259,24 +56,12 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
   <?php include 'sidebar.php'; ?>
 
   <main id="main" class="main">
-    <div class="pagetitle">
-      <h1>Dashboard</h1>
-      <nav>
-        <ol class="breadcrumb">
-          <li class="breadcrumb-item"><a href="index.php">Home</a></li>
-          <li class="breadcrumb-item active">Dashboard</li>
-        </ol>
-      </nav>
-    </div>
-
-
-
     <section class="section dashboard">
       <div class="row">
-<!-- Improved Dashboard Cards -->
-<?php 
-  include 'card.php';
- ?>
+    <!-- Improved Dashboard Cards -->
+    <?php 
+      include 'card.php';
+     ?>
 
 
 
@@ -329,12 +114,21 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
 
             <!-- Row 2 -->
             <div class="col-md-6">
-              <label class="form-label fw-semibold">Office / Division</label>
+              <label class="form-label fw-semibold">Agency</label>
               <select class="js-example-basic-single" name="divisionid" id="divisionid" required>
-                <option value="">Select Division</option>
+                <option value="">Select Agency</option>
               </select>
             </div>
+
             <div class="col-md-6">
+              <label class="form-label fw-semibold">Division</label>
+              <select class="js-example-basic-single" name="uni_divisionid" id="uni_divisionid" required>
+                <option value="">Select Division</option>                
+              </select>
+            </div>
+
+
+            <div class="col-md-12">
               <label class="form-label fw-semibold">Type of Document</label>
               <select class="form-select shadow-sm" name="doctypeid" id="doctypeid" required>
                 <option value="">Select Type</option>
@@ -384,11 +178,18 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
       </div>
 
       <div class="mb-3">
-        <label class="form-label fw-semibold">Office / Division</label>
+        <label class="form-label fw-semibold">Agency</label>
         <select class="form-select" id="edit_divisionid" required>
-          <option value="">Select Division</option>
+          <option value="">Select Agency</option>
         </select>
       </div>
+
+      <div class="mb-3">
+        <label class="form-label fw-semibold">Division</label>
+        <select class="form-select" id="edit_uni_divisionid" required>
+          <option value="">Select Division</option>
+        </select>
+      </div>      
 
       <div class="mb-3">
         <label class="form-label fw-semibold">Type of Document</label>
@@ -725,7 +526,12 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
 
           <div class="col-md-4">
             <label class="form-label fw-semibold">Date</label>
-            <input type="date" id="to_date" class="form-control">
+            <input 
+              type="date" 
+              id="to_date" 
+              class="form-control" 
+              value="<?php echo date('Y-m-d'); ?>" 
+            >
           </div>
 
           <div class="col-md-4">
@@ -964,7 +770,7 @@ function open_new_travel_order(doc_id) {
   $('#to_faculty').val(null).trigger('change');
   $('#to_destination').val('');
   $('#to_purpose').val('');
-  $('#to_date').val('');
+  // $('#to_date').val('');
   $('#to_departure_date').val('');
   $('#to_return_date').val('');
   $('#to_type').val('');
@@ -1564,6 +1370,15 @@ $(document).ready(function() {
       allowClear: true,
       dropdownParent: $('#recordModal')
     });
+
+    // Initialize Select2 properly
+    $('#uni_divisionid').select2({
+      theme: 'bootstrap4',
+      placeholder: 'Select Division',
+      width: '100%',
+      allowClear: true,
+      dropdownParent: $('#recordModal')
+    });
   });
 });
 
@@ -1782,6 +1597,7 @@ function loadDropdowns() {
       const data = JSON.parse(response);
       $("#divisionid").html(data.divisions);
       $("#doctypeid").html(data.doctypes);
+      $("#uni_divisionid").html(data.uni_divisionid);      
     },
     error: function() {
       Swal.fire("Error", "Failed to load dropdown data.", "error");
@@ -1809,10 +1625,11 @@ document.getElementById("btn_save_record").addEventListener("click", function() 
   const date_received = $("input[name='date_received']").val();
   const file_code = $("#file_code").val();
   const divisionid = $("#divisionid").val();
+  const uni_divisionid = $("#uni_divisionid").val();  
   const doctypeid = $("#doctypeid").val();
   const particular = $("textarea[name='particular']").val();
 
-  if (!date_received || !divisionid || !doctypeid || !particular) {
+  if (!date_received || !divisionid || !doctypeid || !particular || !uni_divisionid) {
     Swal.fire("Missing Data", "Please fill out all required fields.", "warning");
     return;
   }
@@ -1825,6 +1642,7 @@ document.getElementById("btn_save_record").addEventListener("click", function() 
       date_received: date_received,
       file_code: file_code,
       divisionid: divisionid,
+      uni_divisionid: uni_divisionid,
       doctypeid: doctypeid,
       particular: particular
     },
@@ -1965,9 +1783,11 @@ function edit_record(id) {
           const opts = JSON.parse(response);
           $("#edit_divisionid").html(opts.divisions);
           $("#edit_doctypeid").html(opts.doctypes);
+          $("#edit_uni_divisionid").html(opts.uni_divisionid);          
 
           $("#edit_divisionid").val(data.office_division);
           $("#edit_doctypeid").val(data.type_of_documents);
+          $("#edit_uni_divisionid").val(data.uni_divisionid);          
         }
       });
 
@@ -1984,10 +1804,11 @@ document.getElementById("btn_update_record").addEventListener("click", function(
   const id = $("#edit_doc_id").val();
   const date_received = $("#edit_date_received").val();
   const divisionid = $("#edit_divisionid").val();
+  const uni_divisionid = $("#edit_uni_divisionid").val();
   const doctypeid = $("#edit_doctypeid").val();
   const particular = $("#edit_particular").val();
 
-  if (!date_received || !divisionid || !doctypeid || !particular) {
+  if (!date_received || !divisionid || !doctypeid || !particular || !uni_divisionid) {
     Swal.fire("Incomplete", "All fields are required.", "warning");
     return;
   }
@@ -2000,6 +1821,7 @@ document.getElementById("btn_update_record").addEventListener("click", function(
       doc_id: id,
       date_received: date_received,
       divisionid: divisionid,
+      uni_divisionid: uni_divisionid,
       doctypeid: doctypeid,
       particular: particular
     },

@@ -449,6 +449,7 @@ if (isset($_POST['update_record'])) {
   $id = $_POST['doc_id'];
   $date_received = mysqli_real_escape_string($conn, $_POST['date_received']);
   $divisionid = mysqli_real_escape_string($conn, $_POST['divisionid']);
+  $uni_divisionid = mysqli_real_escape_string($conn, $_POST['uni_divisionid']);  
   $doctypeid = mysqli_real_escape_string($conn, $_POST['doctypeid']);
   $particular = mysqli_real_escape_string($conn, $_POST['particular']);
 
@@ -456,6 +457,7 @@ if (isset($_POST['update_record'])) {
     UPDATE tbl_documents_registry 
     SET date_received='$date_received',
         office_division='$divisionid',
+        uni_divisionid='$uni_divisionid',
         type_of_documents='$doctypeid',
         particular='$particular'
     WHERE doc_id='$id'
@@ -507,7 +509,13 @@ if (isset($_POST['load_dropdowns'])) {
         $doctypes .= "<option value='{$t['docid']}'>{$t['doctype_desc']}</option>";
     }
 
-    echo json_encode(['divisions' => $divisions, 'doctypes' => $doctypes]);
+    $uni_divisionid = "";
+    $get_uni_divisionid = mysqli_query($conn, "SELECT * FROM `tbl_office_heads`");
+    while ($t = mysqli_fetch_assoc($get_uni_divisionid)) {
+        $uni_divisionid .= "<option value='{$t['office_id']}'>{$t['office_name']}</option>";
+    }
+
+    echo json_encode(['divisions' => $divisions, 'doctypes' => $doctypes, 'uni_divisionid' => $uni_divisionid]);
     exit;
 }
 
@@ -517,6 +525,7 @@ if (isset($_POST['add_record'])) {
     $received_by   = $_SESSION['officeid'];
     $file_code     = mysqli_real_escape_string($conn, $_POST['file_code']);
     $divisionid    = mysqli_real_escape_string($conn, $_POST['divisionid']);
+    $uni_divisionid    = mysqli_real_escape_string($conn, $_POST['uni_divisionid']);    
     $doctypeid     = mysqli_real_escape_string($conn, $_POST['doctypeid']);
     $particular    = mysqli_real_escape_string($conn, strtoupper($_POST['particular']));
     $date_received_op = isset($_POST['date_received_op']) ? mysqli_real_escape_string($conn, $_POST['date_received_op']) : NULL;
@@ -524,8 +533,8 @@ if (isset($_POST['add_record'])) {
 
     $insert = mysqli_query($conn, "
         INSERT INTO tbl_documents_registry 
-        (date_received, received_by, file_code, office_division, type_of_documents, particular)
-        VALUES ('$date_received', '$received_by', '$file_code', '$divisionid', '$doctypeid', '$particular')
+        (date_received, received_by, file_code, office_division, uni_divisionid, type_of_documents, particular)
+        VALUES ('$date_received', '$received_by', '$file_code', '$divisionid', '$uni_divisionid', '$doctypeid', '$particular')
     ");
 
     echo $insert ? "success" : "error";
@@ -626,13 +635,13 @@ if (isset($_POST['server_table'])) {
                 $badgeColor = 'warning';
                 break;
             case 'OUTGOING COMMUNICATION':
-                $badgeColor = 'danger';
+                $badgeColor = 'warning';
                 break;
             case 'ACTIVITY DESIGN':
                 $badgeColor = 'dark';
                 break;
             case 'PROJECT PROPOSAL':
-                $badgeColor = 'purple';
+                $badgeColor = 'danger';
                 break;
         }
 

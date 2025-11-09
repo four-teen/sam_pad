@@ -6,6 +6,32 @@ include '../db.php';     // Then include database or other files
 
 date_default_timezone_set('Asia/Manila');
 
+
+if (isset($_POST['load_images_for_view'])) {
+    $doc_id = intval($_POST['doc_id']);
+
+    // Get document info
+    $doc = mysqli_fetch_assoc(mysqli_query($conn, "SELECT file_code, particular FROM tbl_documents_registry WHERE doc_id='$doc_id'"));
+
+    // Get uploaded images
+    $imgs = [];
+    $qimgs = mysqli_query($conn, "SELECT * FROM tbl_document_images WHERE doc_id='$doc_id'");
+    while ($r = mysqli_fetch_assoc($qimgs)) {
+        $imgs[] = [
+            'img_id' => $r['img_id'],
+            'url' => '../uploads/' . $r['img_filename']
+        ];
+    }
+
+    echo json_encode([
+        'file_code' => $doc['file_code'] ?? '',
+        'particular' => $doc['particular'] ?? '',
+        'images' => $imgs
+    ]);
+    exit;
+}
+
+
 /* 🔹 Load timeline for a specific document */
 if (isset($_POST['load_timeline'])) {
     $doc_id = intval($_POST['doc_id']);
@@ -145,14 +171,18 @@ if (isset($_POST['server_table'])) {
                 $r['date_received'] = "";
             }
 
-            // 🟢 Action buttons (View Timeline + Take Action)
+            // 🟢 Action buttons (View Images + View Timeline)
             $r['actions'] = "
-              <div class='d-grid gap-1 text-center'>
-                <button class='btn btn-info btn-sm' title='View Timeline' onclick='viewTimeline({$r['doc_id']})'>
-                  <i class=\"bi bi-clock-history\"></i>
+              <div class='btn-group btn-group-sm' role='group' aria-label='Actions'>
+                <button class='btn btn-warning' title='View Images' onclick='view_uploaded_images({$r['doc_id']})'>
+                  <i class='bi bi-images'></i>
+                </button>
+                <button class='btn btn-info' title='View Timeline' onclick='viewTimeline({$r['doc_id']})'>
+                  <i class='bi bi-clock-history'></i>
                 </button>
               </div>
             ";
+
 
             $data[] = $r;
         }

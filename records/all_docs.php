@@ -296,6 +296,49 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
     width: 600px !important;   /* Default ~400px; adjust as needed */
     max-width: 90vw;           /* Responsive limit */
   }
+
+
+/*view image======================*/
+/* === Gallery Grid === */
+#view_images_grid .thumb {
+  position: relative;
+  overflow: hidden;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+#view_images_grid img {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+  border-radius: 8px;
+  transition: transform 0.3s ease;
+}
+
+#view_images_grid .thumb:hover img {
+  transform: scale(1.05);
+}
+
+#view_images_grid .thumb:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* === Lightbox Controls === */
+#imageLightbox .btn {
+  opacity: 0.7;
+  border-radius: 50%;
+  width: 45px;
+  height: 45px;
+}
+
+#imageLightbox .btn:hover {
+  opacity: 1;
+  background: #0d6efd;
+  color: white;
+}
+
+
   </style>
 </head>
 
@@ -305,16 +348,6 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
   <?php include 'sidebar.php'; ?>
 
   <main id="main" class="main">
-    <div class="pagetitle">
-      <h1>Dashboard</h1>
-      <nav>
-        <ol class="breadcrumb">
-          <li class="breadcrumb-item"><a href="index.php">Home</a></li>
-          <li class="breadcrumb-item active">Dashboard</li>
-        </ol>
-      </nav>
-    </div>
-
     <section class="section dashboard">
       <div class="row">
 <!-- Improved Dashboard Cards -->
@@ -361,6 +394,45 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
   </div>
 </div>
 
+<!-- View Uploaded Images Modal -->
+<div class="modal fade" id="viewImagesModal" tabindex="-1">
+  <div class="modal-dialog modal-xl modal-dialog-centered">
+    <div class="modal-content border-0 shadow-lg">
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title"><i class="bi bi-images me-2"></i>View Uploaded Images</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+
+      <div class="modal-body bg-light">
+        <div class="mb-3">
+          <h6 class="fw-semibold mb-1">File Code: <span id="view_file_code"></span></h6>
+          <p class="mb-0"><strong>Particular:</strong> <span id="view_particular"></span></p>
+        </div>
+
+        <!-- Gallery grid -->
+        <div id="view_images_grid" class="row g-3"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Lightbox Modal -->
+<div class="modal fade" id="imageLightbox" tabindex="-1">
+  <div class="modal-dialog modal-fullscreen">
+    <div class="modal-content bg-black d-flex align-items-center justify-content-center position-relative">
+      <button type="button" class="btn btn-light position-absolute top-0 end-0 m-3" data-bs-dismiss="modal">
+        <i class="bi bi-x-lg"></i>
+      </button>
+      <button id="prevImage" class="btn btn-dark position-absolute start-0 top-50 translate-middle-y ms-3">
+        <i class="bi bi-chevron-left fs-3"></i>
+      </button>
+      <button id="nextImage" class="btn btn-dark position-absolute end-0 top-50 translate-middle-y me-3">
+        <i class="bi bi-chevron-right fs-3"></i>
+      </button>
+      <img id="lightboxImage" src="" class="img-fluid rounded shadow" style="max-height: 90vh;">
+    </div>
+  </div>
+</div>
 
   <!-- ======= Footer ======= -->
   <footer id="footer" class="footer">
@@ -386,6 +458,82 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
   <script src="../assets/js/main.js"></script>
   <script src="functioned.js"></script>
 <script>
+
+
+let currentImageIndex = 0;
+let imageList = [];
+
+function view_uploaded_images(doc_id) {
+  $("#viewImagesModal").modal("show");
+  $("#view_images_grid").html(`
+    <div class='text-center p-3'>
+      <div class='spinner-border text-info'></div>
+      <p class='mt-2'>Loading images...</p>
+    </div>
+  `);
+
+  $.ajax({
+    url: "query_all_docs.php",
+    type: "POST",
+    data: { load_images_for_view: 1, doc_id },
+    success: function (resp) {
+      try {
+        const data = JSON.parse(resp);
+        $("#view_file_code").text(data.file_code);
+        $("#view_particular").text(data.particular);
+
+        imageList = data.images || [];
+        $("#view_images_grid").html("");
+
+        if (imageList.length === 0) {
+          $("#view_images_grid").html(`
+            <div class='text-center text-muted py-3'>
+              <i class='bi bi-exclamation-circle me-1'></i>No uploaded images found.
+            </div>
+          `);
+          return;
+        }
+
+        imageList.forEach((img, idx) => {
+          $("#view_images_grid").append(`
+            <div class="col-6 col-md-4 col-lg-3">
+              <div class="thumb" onclick="openLightbox(${idx})">
+                <img src="${img.url}" alt="Document Image ${idx + 1}">
+              </div>
+            </div>
+          `);
+        });
+      } catch (e) {
+        $("#view_images_grid").html("<div class='text-danger text-center'>Failed to load images.</div>");
+      }
+    },
+    error: function () {
+      $("#view_images_grid").html("<div class='text-danger text-center'>Server not reachable.</div>");
+    },
+  });
+}
+
+// Lightbox Logic
+function openLightbox(index) {
+  currentImageIndex = index;
+  $("#lightboxImage").attr("src", imageList[index].url);
+  $("#imageLightbox").modal("show");
+}
+
+// Navigate left/right
+$("#prevImage").on("click", function () {
+  if (imageList.length === 0) return;
+  currentImageIndex = (currentImageIndex - 1 + imageList.length) % imageList.length;
+  $("#lightboxImage").attr("src", imageList[currentImageIndex].url);
+});
+
+$("#nextImage").on("click", function () {
+  if (imageList.length === 0) return;
+  currentImageIndex = (currentImageIndex + 1) % imageList.length;
+  $("#lightboxImage").attr("src", imageList[currentImageIndex].url);
+});
+
+
 
 function viewTimeline(doc_id) {
   // Open the offcanvas drawer
