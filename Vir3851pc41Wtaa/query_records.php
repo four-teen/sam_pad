@@ -114,34 +114,28 @@ if(isset($_POST['saving_document_series'])){
     // echo $insert;
 }
 
+
 if (isset($_POST['get_received_counter'])) {
 
     $office_id = $_SESSION['officeid'];
 
     // ✅ Count records received by this office but not yet processed
     $sql = "
-        SELECT COUNT(*) AS our_records
-        FROM tbl_documents_registry d
-        WHERE d.received_by = '$office_id'
-          AND NOT EXISTS (
-              SELECT 1
-              FROM tbl_document_actions a
-              WHERE a.doc_id = d.doc_id
-                AND a.from_office_id = '$office_id'
-          )
+        SELECT COUNT(*) AS vpaa_records_received
+        FROM tbl_documents_registry
+        WHERE uni_divisionid = '$office_id'
     ";
 
     $run = mysqli_query($conn, $sql);
 
     if ($run) {
         $row = mysqli_fetch_assoc($run);
-        echo $row['our_records'];
+        echo $row['vpaa_records_received'];
     } else {
         error_log('SQL Error: ' . mysqli_error($conn)); // log any issue
         echo 0;
     }
 }
-
 
 
 /* 🧩 Check if record has uploaded images */
@@ -298,11 +292,6 @@ if (isset($_POST['saving_take_actions'])) {
                ('$take_action_doc_id', '$user_office_id', '$to_office_id', '$action_type', '$action_type_remarks', '$current_datetime')";
     
     $runinsert = mysqli_query($conn, $insert);
-
-
-    $update_records = "UPDATE `tbl_documents_registry` SET uni_divisionid = '$to_office_id' WHERE doc_id='$take_action_doc_id'";
-    $runupdate_records = mysqli_query($conn, $update_records);
-
 }
 
 
@@ -661,53 +650,15 @@ if (isset($_POST['server_table'])) {
             </span>
         ";
 
-        // 🟦 Determine if this doc is a Travel Order
-        $isTravelOrder = $rawType === 'TRAVEL ORDER';
-
-        // ✅ Check if travel order record already exists
-        $hasTO = mysqli_query($conn, "SELECT to_id FROM tbl_travel_order WHERE doc_id = '{$r['doc_id']}' LIMIT 1");
-        $travelExists = mysqli_num_rows($hasTO) > 0;
-
-        // ✅ Dynamic button based on document type
-        if ($isTravelOrder) {
-            if ($travelExists) {
-                $travelButton = "
-                  <button class='btn btn-success btn-sm' 
-                          onclick='open_existing_travel_order({$r['doc_id']})' 
-                          title='View or Edit Travel Order'>
-                    <i class='bi bi-suitcase2'></i>
-                  </button>";
-            } else {
-                $travelButton = "
-                  <button class='btn btn-info btn-sm' 
-                          onclick='open_new_travel_order({$r['doc_id']})' 
-                          title='Create Travel Order'>
-                    <i class='bi bi-person-lines-fill'></i>
-                  </button>";
-            }
-        } else {
-            // 🟢 For non–Travel Order types, open Other Info modal instead
-            $cleanType = addslashes($rawType); // use clean text, not HTML
-            $travelButton = "
-              <button class='btn btn-secondary btn-sm' 
-                      onclick=\"other_info({$r['doc_id']}, '{$cleanType}')\" 
-                      title='Add Other Information'>
-                <i class='bi bi-people'></i>
-              </button>";
-        }
 
         // 🧠 Actions buttons
         $r['actions'] = "
           <div class='d-grid gap-1' style='grid-template-columns: repeat(2, 1fr); display: grid;'>
-            {$travelButton}
             <button class='btn btn-primary btn-sm' onclick='take_action({$r['doc_id']})' title='Take Action'>
               <i class='bx bx-cog'></i>
             </button>
-            <button class='btn btn-warning btn-sm' onclick='edit_record({$r['doc_id']})' title='Edit Record'>
-              <i class='bx bx-edit'></i>
-            </button>
-            <button class='btn btn-danger btn-sm' onclick='delete_record({$r['doc_id']})' title='Delete Record'>
-              <i class='bx bx-trash'></i>
+            <button class='btn btn-success btn-sm' onclick='received_record({$r['doc_id']})' title='Received Record'>
+              <i class='bi bi-arrow-90deg-down'></i>
             </button>
           </div>
         ";
@@ -724,16 +675,5 @@ if (isset($_POST['server_table'])) {
     ]);
     exit;
 }
-
-/* 📝 CSS for purple badge:
-.badge.bg-purple {
-  background-color: #6f42c1 !important;
-  color: #fff !important;
-}
-*/
-
-
-
-
 
 ?>

@@ -75,6 +75,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     writeLog("Redirecting to directors..."); //director dashboard
                     $redirect = "dir3851ec51Wtor/index.php";
                     break; 
+                case '2':
+                    writeLog("Redirecting to directors..."); //VPAA
+                    $redirect = "Vir3851pc41Wtaa/index.php";
+                    break;                    
 
                 default:
                     $_SESSION['status'] = "Unknown role.";

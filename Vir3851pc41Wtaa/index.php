@@ -45,9 +45,7 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
 
   <!-- Template Main CSS File -->
   <link href="../assets/css/style.css" rel="stylesheet">
-  <link href="css_records.css" rel="stylesheet">
   <link href="css_index.css" rel="stylesheet">
-
 
 </head>
 
@@ -57,14 +55,13 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
   <?php include 'sidebar.php'; ?>
 
   <main id="main" class="main">
-  <!-- 🔹 Quick Dashboard Cards directly under navbar -->
-  <div class="dashboard-cards">
-    <?php include 'card.php'; ?>
-  </div>
-
     <section class="section dashboard">
       <div class="row">
     <!-- Improved Dashboard Cards -->
+    <?php 
+      include 'card.php';
+     ?>
+
 
 
         <!-- Reports -->
@@ -291,8 +288,7 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
         <div class="mb-3">
           <label class="form-label fw-semibold" for="action_type">Select Action</label>
           <select id="action_type" class="form-control">
-            <option value="">Select Action</option>
-            <option value="OUTGOING">OUTGOING</option>
+            <option value="REDIRECTED">FORWARDED</option>
             <option value="ARCHIEVED">ARCHIEVED</option>
           </select>
         </div>
@@ -316,364 +312,6 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
     </div>
   </div>
 </div>
-
-<div class="modal fade" id="officedivisionModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="uploadImagesLabel" aria-hidden="true">
-  <div class="modal-dialog modal-lg modal-dialog-scrollable modal-dialog-centered">
-    <div class="modal-content shadow-lg border-0 rounded-3">
-      <div class="modal-header bg-primary text-white">
-        <h5 class="modal-title fw-semibold" id="uploadImagesLabel">
-          <i class="bi bi-images me-2"></i> Add Office/Division
-        </h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-
-      <div class="modal-body">
-        <input type="hidden" id="divisions_id">
-        
-        <div class="mb-3">
-          <label class="form-label fw-semibold" for="officename">Add Remarks</label>
-          <input type="text" class="form-control" id="officename">
-        </div>
-        <div class="mb-3 py-2">
-            <button type="button" class="btn btn-info" onclick="saving_divisions()">
-          <i class="bi bi-save2"></i> Save
-        </button>
-        </div>        
-        <div class="mb-3">
-          <div id="load_division">loading divisions</div>
-        </div>
-      </div>
-
-      <div class="modal-footer bg-white border-0">
-        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
-          <i class="bi bi-x-circle me-1"></i> Close
-        </button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div class="modal fade" id="typeofDocumentModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="uploadImagesLabel" aria-hidden="true">
-  <div class="modal-dialog modal-lg modal-dialog-scrollable modal-dialog-centered">
-    <div class="modal-content shadow-lg border-0 rounded-3">
-      <div class="modal-header bg-primary text-white">
-        <h5 class="modal-title fw-semibold" id="uploadImagesLabel">
-          <i class="bi bi-images me-2"></i> Add new Document Type
-        </h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-
-      <div class="modal-body">
-        <input type="hidden" id="divisions_id">
-        
-        <div class="mb-3">
-          <label class="form-label fw-semibold" for="doc_name">New Document</label>
-          <input type="text" class="form-control" id="doc_name">
-        </div>
-        <div class="mb-3 py-2">
-            <button type="button" class="btn btn-info" onclick="saving_doc_type()">
-          <i class="bi bi-save2"></i> Save
-        </button>
-        </div>        
-        <div class="mb-3">
-          <div id="load_doc_type">loading document types</div>
-        </div>
-      </div>
-
-      <div class="modal-footer bg-white border-0">
-        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
-          <i class="bi bi-x-circle me-1"></i> Close
-        </button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div class="modal fade" id="DocumentNumberModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="uploadImagesLabel" aria-hidden="true">
-  <div class="modal-dialog modal-lg modal-dialog-scrollable modal-dialog-centered">
-    <div class="modal-content shadow-lg border-0 rounded-3">
-      <div class="modal-header bg-primary text-white">
-        <h5 class="modal-title fw-semibold" id="uploadImagesLabel">
-          <i class="bi bi-images me-2"></i> Update Document Code (Series)
-        </h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-
-      <div class="modal-body">
-
-        <div class="row">
-          <?php 
-            $get_series = "SELECT * FROM `tbl_file_series` LIMIT 1";
-            $runget_series = mysqli_query($conn, $get_series);
-            $rowseries = mysqli_fetch_assoc($runget_series);
-            echo
-            '
-            <div class="col-lg-3">
-              <div class="mb-3">
-                <label class="form-label fw-semibold" for="doc_prefix">Series Prefix</label>
-                <input type="text" class="form-control" id="doc_prefix" value="'.$rowseries['series_prefix'].'">
-              </div>
-            </div>
-            <div class="col-lg-9">
-              <div class="mb-3">
-                <label class="form-label fw-semibold" for="doc_number">Series Number</label>
-                <input type="text" class="form-control" id="doc_number" value="'.$rowseries['series_number'].'">
-              </div>            
-            </div>
-            ';
-          ?>
-        </div>
-        <div class="mb-3 py-2">
-            <button type="button" class="btn btn-info" onclick="saving_doc_series()">
-                <i class="bi bi-save2"></i> Update
-            </button>
-        </div>        
-      </div>
-      <div class="modal-footer bg-white border-0">
-        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
-          <i class="bi bi-x-circle me-1"></i> Close
-        </button>
-      </div>
-    </div>
-  </div>
-</div>
-
-
-<div class="modal fade" id="otherInfoModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="uploadImagesLabel" aria-hidden="true">
-  <div class="modal-dialog modal-lg modal-dialog-scrollable modal-dialog-centered">
-    <div class="modal-content shadow-lg border-0 rounded-3">
-      <div class="modal-header bg-primary text-white">
-        <h5 class="modal-title fw-semibold" id="uploadImagesLabel">
-          <i class="bi bi-images me-2"></i> Add other information
-        </h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-
-      <div class="modal-body">
-        <input type="hidden" id="doc_id_selection">
-        <div class="mb-3">
-          <label class="form-label fw-semibold" for="info_names">Select Name</label>
-          <select
-            id="info_names"
-            class="form-select js-example-basic-multiple"
-            name="info_names[]"
-            multiple
-          >
-            <?php 
-              $get_profile = "SELECT * FROM `tblprofiles`";
-              $runget_profiles = mysqli_query($conn, $get_profile);
-              while($r = mysqli_fetch_assoc($runget_profiles)){
-                echo
-                '
-                  <option value="'.$r['acc_id'].'">'.$r['acc_name'].'</option>
-                ';
-              }
-
-            ?>
-          </select>
-        </div>
-        <div class="mb-3">
-          <div id="show_names">Loading names list</div>
-        </div>
-
-        <div class="mb-3 py-2">
-            <button type="button" class="btn btn-info" onclick="saving_names()">
-          <i class="bi bi-save2"></i> Save
-        </button>
-        </div>        
-      </div>
-
-      <div class="modal-footer bg-white border-0">
-        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
-          <i class="bi bi-x-circle me-1"></i> Close
-        </button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div class="modal fade" id="travelOrderModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="travelOrderLabel" aria-hidden="true">
-  <div class="modal-dialog modal-lg modal-dialog-scrollable modal-dialog-centered">
-    <div class="modal-content shadow-lg border-0 rounded-3">
-      <div class="modal-header bg-primary text-white">
-        <h5 class="modal-title fw-semibold" id="travelOrderLabel">
-          <i class="bi bi-airplane me-2"></i> Manage Travel Order
-        </h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-      </div>
-
-      <div class="modal-body">
-        <input type="hidden" id="travel_order_doc_id">
-
-        <div class="row g-3">
-
-          <!-- Multiple faculty -->
-          <div class="col-12">
-            <label class="form-label fw-semibold">Select Faculty / Personnel</label>
-            <select id="to_faculty" class="form-select" multiple></select>
-            <small class="text-muted">Select one or more names from the list.</small>
-          </div>
-
-          <!-- Destination -->
-          <div class="col-md-12">
-            <label class="form-label fw-semibold">Destination</label>
-            <textarea id="to_destination" class="form-control" rows="2" placeholder="Enter destination"></textarea>
-          </div>
-
-          <!-- Purpose -->
-          <div class="col-md-12">
-            <label class="form-label fw-semibold">Purpose</label>
-            <textarea id="to_purpose" class="form-control" rows="2" placeholder="Enter purpose of travel"></textarea>
-          </div>
-
-          <div class="col-md-4">
-            <label class="form-label fw-semibold">Date</label>
-            <input 
-              type="date" 
-              id="to_date" 
-              class="form-control" 
-              value="<?php echo date('Y-m-d'); ?>" 
-            >
-          </div>
-
-          <div class="col-md-4">
-            <label class="form-label fw-semibold">Departure Date</label>
-            <input type="date" id="to_departure_date" class="form-control">
-          </div>
-
-          <div class="col-md-4">
-            <label class="form-label fw-semibold">Return Date</label>
-            <input type="date" id="to_return_date" class="form-control">
-          </div>
-
-          <div class="col-md-6">
-            <label class="form-label fw-semibold">Type</label>
-            <select id="to_type" class="form-select">
-              <option value="">Select Type</option>
-              <option>Official Time</option>
-              <option>Official Business</option>
-            </select>
-          </div>
-
-          <div class="col-md-6">
-            <label class="form-label fw-semibold">Vehicle Requirement</label>
-            <select id="to_vehicle" class="form-select">
-              <option value="">Select Option</option>
-              <option>Yes</option>
-              <option>Not Necessary</option>
-            </select>
-          </div>
-
-          <div class="col-12">
-            <label class="form-label fw-semibold">Remarks</label>
-            <textarea id="to_remarks" class="form-control" rows="2" placeholder="Additional remarks..."></textarea>
-          </div>
-        </div>
-
-        <div class="text-end mt-4">
-          <button type="button" class="btn btn-info px-4" onclick="save_travel_order()">
-            <i class="bi bi-save2 me-1"></i> Save Travel Order
-          </button>
-        </div>
-      </div>
-
-      <div class="modal-footer bg-light border-0">
-        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
-          <i class="bi bi-x-circle me-1"></i> Close
-        </button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div class="modal fade" id="travelOrderEditModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="travelOrderEditLabel" aria-hidden="true">
-  <div class="modal-dialog modal-lg modal-dialog-scrollable modal-dialog-centered">
-    <div class="modal-content shadow-lg border-0 rounded-3">
-        <div class="modal-header bg-info text-white">
-          <h5 class="modal-title fw-semibold" id="travelOrderEditLabel">
-            <i class="bi bi-pencil-square me-2"></i> Edit Travel Order
-          </h5>
-          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-        </div>
-
-      <div class="modal-body">
-        <input type="hidden" id="edit_travel_order_doc_id">
-
-        <div class="row g-3">
-          <div class="col-12">
-            <label class="form-label fw-semibold">Select Faculty / Personnel</label>
-            <select id="edit_to_faculty" class="form-select" multiple></select>
-          </div>
-
-          <div class="col-md-12">
-            <label class="form-label fw-semibold">Destination</label>
-            <textarea id="edit_to_destination" class="form-control" rows="2"></textarea>
-          </div>
-
-          <div class="col-md-12">
-            <label class="form-label fw-semibold">Purpose</label>
-            <textarea id="edit_to_purpose" class="form-control" rows="2"></textarea>
-          </div>
-
-          <div class="col-md-4">
-            <label class="form-label fw-semibold">Date</label>
-            <input type="date" id="edit_to_date" class="form-control">
-          </div>
-
-          <div class="col-md-4">
-            <label class="form-label fw-semibold">Departure Date</label>
-            <input type="date" id="edit_to_departure_date" class="form-control">
-          </div>
-
-          <div class="col-md-4">
-            <label class="form-label fw-semibold">Return Date</label>
-            <input type="date" id="edit_to_return_date" class="form-control">
-          </div>
-
-          <div class="col-md-6">
-            <label class="form-label fw-semibold">Type</label>
-            <select id="edit_to_type" class="form-select">
-              <option value="">Select Type</option>
-              <option>Official Time</option>
-              <option>Official Business</option>
-            </select>
-          </div>
-
-          <div class="col-md-6">
-            <label class="form-label fw-semibold">Vehicle Requirement</label>
-            <select id="edit_to_vehicle" class="form-select">
-              <option value="">Select Option</option>
-              <option>Yes</option>
-              <option>Not Necessary</option>
-            </select>
-          </div>
-
-          <div class="col-12">
-            <label class="form-label fw-semibold">Remarks</label>
-            <textarea id="edit_to_remarks" class="form-control" rows="2"></textarea>
-          </div>
-        </div>
-
-      <div class="text-end mt-4 d-flex justify-content-between align-items-center">
-        <button type="button" class="btn btn-danger px-4" onclick="delete_travel_order()">
-          <i class="bi bi-trash me-1"></i> Delete
-        </button>
-
-        <button type="button" class="btn btn-info px-4" onclick="update_travel_order()">
-          <i class="bi bi-save2 me-1"></i> Update Travel Order
-        </button>
-      </div>
-      </div>
-
-      <div class="modal-footer bg-light border-0">
-        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
-          <i class="bi bi-x-circle me-1"></i> Close
-        </button>
-      </div>
-    </div>
-  </div>
-</div>
-
 
 
   <!-- ======= Footer ======= -->
@@ -700,262 +338,6 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
   <script src="../assets/js/main.js"></script>
 <script>
 
-function delete_travel_order() {
-  const doc_id = $('#edit_travel_order_doc_id').val();
-
-  Swal.fire({
-    icon: 'warning',
-    title: 'Are you sure?',
-    text: 'This will permanently delete this travel order and all assigned faculty.',
-    showCancelButton: true,
-    confirmButtonText: 'Yes, delete it!',
-    cancelButtonText: 'Cancel',
-    confirmButtonColor: '#d33',
-    cancelButtonColor: '#6c757d'
-  }).then(result => {
-    if (result.isConfirmed) {
-      $.post('query_travel_order.php', { delete_travel_order: 1, doc_id }, function(resp) {
-        if (resp.trim() === 'success') {
-          loadTable();
-          Swal.fire({
-            icon: 'success',
-            title: 'Deleted!',
-            text: 'Travel order has been removed.',
-            timer: 1500,
-            showConfirmButton: false
-          });
-          $('#travelOrderEditModal').modal('hide');
-        } else {
-          Swal.fire('Error', resp, 'error');
-        }
-      });
-    }
-  });
-}
-
-
-function update_travel_order() {
-  const data = {
-    update_travel_order: 1,
-    doc_id: $('#edit_travel_order_doc_id').val(),
-    faculty_ids: $('#edit_to_faculty').val(),
-    destination: $('#edit_to_destination').val(),
-    purpose: $('#edit_to_purpose').val(),
-    date: $('#edit_to_date').val(),
-    departure_date: $('#edit_to_departure_date').val(),
-    return_date: $('#edit_to_return_date').val(),
-    type: $('#edit_to_type').val(),
-    vehicle: $('#edit_to_vehicle').val(),
-    remarks: $('#edit_to_remarks').val()
-  };
-
-  $.post('query_travel_order.php', data, function(resp) {
-    if (resp.trim() === 'success') {
-      Swal.fire({
-        icon: 'success',
-        title: 'Updated!',
-        text: 'Travel Order updated successfully.',
-        timer: 1500,
-        showConfirmButton: false
-      });
-      $('#travelOrderEditModal').modal('hide');
-    } else {
-      Swal.fire('Error', resp, 'error');
-    }
-  });
-}
-
-
-function open_new_travel_order(doc_id) {
-  // reset modal fields
-  $('#travel_order_doc_id').val(doc_id);
-  $('#to_faculty').val(null).trigger('change');
-  $('#to_destination').val('');
-  $('#to_purpose').val('');
-  // $('#to_date').val('');
-  $('#to_departure_date').val('');
-  $('#to_return_date').val('');
-  $('#to_type').val('');
-  $('#to_vehicle').val('');
-  $('#to_remarks').val('');
-
-  // open modal
-  $('#travelOrderModal').modal('show');
-}
-
-
-function open_existing_travel_order(doc_id) {
-  $.ajax({
-    url: "query_travel_order.php",
-    type: "POST",
-    data: { load_travel_order_by_doc: 1, doc_id },
-    success: function(resp) {
-      try {
-        const data = JSON.parse(resp);
-
-        // fill all fields in the edit modal
-        $('#edit_travel_order_doc_id').val(doc_id);
-        $('#edit_to_destination').val(data.to_destination);
-        $('#edit_to_purpose').val(data.to_purpose);
-        $('#edit_to_date').val(data.to_date);
-        $('#edit_to_departure_date').val(data.to_departure_date);
-        $('#edit_to_return_date').val(data.to_return_date);
-        $('#edit_to_type').val(data.to_type);
-        $('#edit_to_vehicle').val(data.to_vehicle);
-        $('#edit_to_remarks').val(data.to_remarks);
-
-        // rebuild faculty select
-        $('#edit_to_faculty').empty();
-        data.all_faculty.forEach(f => {
-          const selected = data.selected_faculty.includes(f.acc_id.toString()) ? 'selected' : '';
-          $('#edit_to_faculty').append(`<option value="${f.acc_id}" ${selected}>${f.acc_name}</option>`);
-        });
-
-        // init Select2
-        $('#edit_to_faculty').select2({
-          theme: 'bootstrap-5',
-          width: '100%',
-          placeholder: 'Select faculty',
-          closeOnSelect: false,
-          dropdownParent: $('#travelOrderEditModal')
-        });
-
-        // show modal
-        $('#travelOrderEditModal').modal('show');
-      } catch (e) {
-        Swal.fire('Error', 'Failed to load travel order details.', 'error');
-      }
-    },
-    error: function() {
-      Swal.fire('Error', 'Server not reachable.', 'error');
-    }
-  });
-}
-
-
-
-$('#region, #province, #city').select2({
-  theme: 'bootstrap-5',
-  width: '100%',
-  dropdownParent: $('#travelOrderModal')
-});  
-
-//========for travel order================================================
-$('#travelOrderModal').on('shown.bs.modal', function() {
-  // Load campus list once
-  if ($('#to_campus option').length <= 1) {
-    $.post('query_travel_order.php', { load_campus: 1 }, function(data) {
-      const campuses = JSON.parse(data);
-      campuses.forEach(c => {
-        $('#to_campus').append(`<option value="${c.campusid}">${c.campusname}</option>`);
-      });
-    });
-  }
-
-  // Initialize Select2 (faculty)
-  if (!$('#to_faculty').data('select2')) {
-    $('#to_faculty').select2({
-      theme: 'bootstrap-5',
-      width: '100%',
-      placeholder: 'Select one or more faculty',
-      closeOnSelect: false,
-      dropdownParent: $('#travelOrderModal'),
-      ajax: {
-        url: 'query_travel_order.php',
-        type: 'POST',
-        dataType: 'json',
-        delay: 250,
-        data: params => ({ search_faculty: 1, query: params.term || '' }),
-        processResults: data => ({
-          results: data.map(item => ({
-            id: item.acc_id,
-            text: item.acc_name
-          }))
-        }),
-        cache: true
-      }
-    });
-  }
-});
-
-
-function save_travel_order() {
-  const data = {
-    save_travel_order: 1,
-    doc_id: $('#travel_order_doc_id').val(),
-    faculty_ids: $('#to_faculty').val(), // multiple select
-    destination: $('#to_destination').val(),
-    purpose: $('#to_purpose').val(),
-    date: $('#to_date').val(),
-    departure_date: $('#to_departure_date').val(),
-    return_date: $('#to_return_date').val(),
-    type: $('#to_type').val(),
-    vehicle: $('#to_vehicle').val(),
-    remarks: $('#to_remarks').val()
-  };
-
-  $.post('query_travel_order.php', data, function(resp) {
-    if (resp.trim() === 'success') {
-      loadTable();
-      Swal.fire({
-        icon: 'success',
-        title: 'Saved!',
-        text: 'Travel Order successfully saved.',
-        timer: 1500,
-        showConfirmButton: false
-      });
-      $('#travelOrderModal').modal('hide');
-    } else {
-      Swal.fire({
-        icon: 'error',
-        title: 'Error!',
-        text: resp
-      });
-    }
-  });
-}
-
-// ============================================================
-// ✅ Delete record from tblother_information
-function delete_other_info(other_info_id, doc_id) {
-  Swal.fire({
-    title: "Are you sure?",
-    text: "This record will be permanently deleted.",
-    icon: "warning",
-    showCancelButton: true,
-    confirmButtonColor: "#d33",
-    cancelButtonColor: "#6c757d",
-    confirmButtonText: "Yes, delete it!"
-  }).then((result) => {
-    if (result.isConfirmed) {
-      $.ajax({
-        url: "query_records.php",
-        type: "POST",
-        data: {
-          delete_other_info: 1,
-          other_info_id: other_info_id
-        },
-        success: function(response) {
-          if (response.trim() === "deleted") {
-            Swal.fire({
-              title: "Deleted!",
-              text: "Record removed successfully.",
-              icon: "success",
-              timer: 1000,
-              showConfirmButton: false
-            });
-            load_names_list(doc_id);
-          } else {
-            Swal.fire("Error!", "Failed to delete record.", "error");
-          }
-        },
-        error: function() {
-          Swal.fire("Error!", "Server not reachable.", "error");
-        }
-      });
-    }
-  });
-}
 
 
 // ===============OTHER INFORMATION=======================================================
@@ -1662,9 +1044,6 @@ document.getElementById("btn_save_record").addEventListener("click", function() 
         $("#form_add_record")[0].reset();
         loadTable();
         get_count_outgoing();
-        get_count_returned();
-        get_count_acted();  
-        get_count_delivered();
         get_count_new_received();
         get_doc_count();
 
@@ -1707,7 +1086,7 @@ function loadTable() {
       processing: true,
       serverSide: true,
       ajax: {
-        url: "query_load_table.php",
+        url: "query_records.php",
         type: "POST",
         data: { server_table: 1 }
       },
@@ -1854,52 +1233,10 @@ window.onload = function() {
   loadTable();
   get_doc_count(); // ✅ add this here
   get_count_outgoing();
-  get_count_returned();
-  get_count_acted();  
-  get_count_delivered();
   get_count_new_received();
 };
 
 // ===========COUNTS=====================================
-function get_count_delivered(){
-  $.ajax({
-    url: "query_delivered.php",
-    type: "POST",
-    data: { 
-      get_delivered_counter: 1 
-    },
-    success: function(response) {
-      $('#load_delivered_count').html(response);
-    }
-  });  
-}
-
-function get_count_acted(){
-  $.ajax({
-    url: "query_acted.php",
-    type: "POST",
-    data: { 
-      get_acted_counter: 1 
-    },
-    success: function(response) {
-      $('#load_acted_count').html(response);
-    }
-  });  
-}
-
-
-function get_count_returned(){
-  $.ajax({
-    url: "query_returned.php",
-    type: "POST",
-    data: { 
-      get_returned_counter: 1 
-    },
-    success: function(response) {
-      $('#load_returned_count').html(response);
-    }
-  });  
-}
 
 function get_count_outgoing(){
   $.ajax({
@@ -1953,17 +1290,6 @@ function get_count_new_received(){
     window.location = 'records_returned.php';
   }
 
-  function card_four(){
-    window.location = 'records_acted.php';
-  } 
-
-  function card_five(){
-    window.location = 'records_delivered.php';
-  } 
-
-  function card_six(){
-    window.location = 'all_docs.php';
-  }   
 
 </script>
 
