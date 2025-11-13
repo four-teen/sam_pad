@@ -1,0 +1,37 @@
+
+
+>>> Script started at 2025-11-13 07:59:03
+2025-11-13 07:59:03 | server_table request received
+2025-11-13 07:59:03 | DocID=314 | recordOwner=9 | currentOffice=67 | isOwner=FALSE
+2025-11-13 07:59:03 | DocID=313 | recordOwner=67 | currentOffice=67 | isOwner=TRUE
+2025-11-13 07:59:03 | DocID=311 | recordOwner=9 | currentOffice=67 | isOwner=FALSE
+
+
+>>> Script started at 2025-11-13 08:30:57
+2025-11-13 08:30:57 | server_table request received
+2025-11-13 08:30:57 | DocID=315 | recordOwner=9 | currentOffice=67 | isOwner=FALSE
+2025-11-13 08:30:57 | DocID=314 | recordOwner=9 | currentOffice=67 | isOwner=FALSE
+2025-11-13 08:30:57 | DocID=313 | recordOwner=67 | currentOffice=67 | isOwner=TRUE
+2025-11-13 08:30:57 | DocID=311 | recordOwner=9 | currentOffice=67 | isOwner=FALSE
+
+
+>>> Script started at 2025-11-13 11:29:06
+2025-11-13 11:29:06 | server_table request received
+2025-11-13 11:29:06 | DocID=315 | recordOwner=9 | currentOffice=2 | isOwner=FALSE
+2025-11-13 11:29:06 | DocID=314 | recordOwner=9 | currentOffice=2 | isOwner=FALSE
+2025-11-13 11:29:06 | DocID=313 | recordOwner=67 | currentOffice=2 | isOwner=FALSE
+2025-11-13 11:29:06 | DocID=312 | recordOwner=9 | currentOffice=2 | isOwner=FALSE
+2025-11-13 11:29:06 | DocID=311 | recordOwner=9 | currentOffice=2 | isOwner=FALSE
+2025-11-13 11:29:06 | DocID=308 | recordOwner=67 | currentOffice=2 | isOwner=FALSE
+2025-11-13 11:29:06 | DocID=307 | recordOwner=67 | currentOffice=2 | isOwner=FALSE
+2025-11-13 11:29:06 | DocID=306 | recordOwner=67 | currentOffice=2 | isOwner=FALSE
+2025-11-13 11:29:06 | DocID=305 | recordOwner=67 | currentOffice=2 | isOwner=FALSE
+2025-11-13 11:29:06 | DocID=304 | recordOwner=67 | currentOffice=2 | isOwner=FALSE
+
+
+>>> Script started at 2025-11-13 11:29:17
+2025-11-13 11:29:17 | server_table request received
+2025-11-13 11:29:17 | DocID=315 | recordOwner=9 | currentOffice=67 | isOwner=FALSE
+2025-11-13 11:29:17 | DocID=314 | recordOwner=9 | currentOffice=67 | isOwner=FALSE
+2025-11-13 11:29:17 | DocID=313 | recordOwner=67 | currentOffice=67 | isOwner=TRUE
+2025-11-13 11:29:17 | DocID=311 | recordOwner=9 | currentOffice=67 | isOwner=FALSE

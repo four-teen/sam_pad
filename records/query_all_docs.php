@@ -56,6 +56,10 @@ if (isset($_POST['load_timeline'])) {
                 case 'Received':  $color = 'success'; $icon = 'bi-check-circle'; break;
                 case 'Returned':  $color = 'danger';  $icon = 'bi-arrow-counterclockwise'; break;
                 case 'Archived':  $color = 'secondary'; $icon = 'bi-archive'; break;
+                case 'Logged':  
+                    $color = 'primary';   
+                    $icon = 'bi-journal-text'; 
+                break;
                 default:          $color = 'info'; $icon = 'bi-archive'; break;
             }
 

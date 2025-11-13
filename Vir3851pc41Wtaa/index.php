@@ -339,6 +339,60 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
 <script>
 
 
+function confirmDocumentReceipt(doc_id) {
+  Swal.fire({
+    title: "Confirm Document Receipt?",
+    text: "Before proceeding, please verify that you have the physical document in your possession.",
+    icon: "info",
+    showCancelButton: true,
+    confirmButtonColor: "#28a745", // Green confirm
+    cancelButtonColor: "#6c757d",  // Grey cancel
+    confirmButtonText: "Yes, I have received it",
+    cancelButtonText: "Close",
+    reverseButtons: true
+  }).then((result) => {
+    if (result.isConfirmed) {
+
+      $.ajax({
+        url: "query_incoming_records.php",
+        type: "POST",
+        data: { 
+          take_action_received: 1,
+          doc_id: doc_id,
+          received_by: received_by,
+          office_division: office_division
+        },
+        success: function(response) {
+          $('#test').html(response);
+          if (response.trim() === "success") {
+            Swal.fire({
+              title: "Receipt Confirmed!",
+              text: "The document receipt has been successfully logged.",
+              icon: "success",
+              timer: 1500,
+              showConfirmButton: false
+            });
+            loadTable(); // Refresh table
+            get_doc_count(); // ✅ add this here
+            get_count_outgoing();
+            get_count_received();
+            
+          } else {
+            Swal.fire({
+              title: "Error",
+              text: "Unable to log document receipt.",
+              icon: "error"
+            });
+          }
+        },
+        error: function() {
+          Swal.fire("Error", "Server not reachable.", "error");
+        }
+      });
+
+    }
+  });
+}
 
 // ===============OTHER INFORMATION=======================================================
 

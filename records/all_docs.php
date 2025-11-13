@@ -338,7 +338,6 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
   color: white;
 }
 
-
   </style>
 </head>
 

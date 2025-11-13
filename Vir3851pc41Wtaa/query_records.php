@@ -657,9 +657,10 @@ if (isset($_POST['server_table'])) {
             <button class='btn btn-primary btn-sm' onclick='take_action({$r['doc_id']})' title='Take Action'>
               <i class='bx bx-cog'></i>
             </button>
-            <button class='btn btn-success btn-sm' onclick='received_record({$r['doc_id']})' title='Received Record'>
-              <i class='bi bi-arrow-90deg-down'></i>
-            </button>
+
+                    <button  onclick='confirmDocumentReceipt({$r['doc_id']})' class='btn btn-success' title='Recieved this document'>
+                      <i class='bi bi-arrow-90deg-right'></i>
+                    </button>
           </div>
         ";
 
