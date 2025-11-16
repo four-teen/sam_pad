@@ -1846,21 +1846,21 @@ document.getElementById("btn_update_record").addEventListener("click", function(
 window.onload = function() {
   loadTable();
   get_doc_count(); // ✅ add this here
-  get_count_outgoing();
+  get_count_received();
   get_count_new_received();
 };
 
 // ===========COUNTS=====================================
 
-function get_count_outgoing(){
+function get_count_received(){
   $.ajax({
     url: "query_records.php",
     type: "POST",
     data: { 
-      get_outgoing_counter: 1 
+      get_receiving_counter: 1 
     },
     success: function(response) {
-      $('#load_outgoing_count').html(response);
+      $('#load_received_count').html(response);
     }
   });  
 }

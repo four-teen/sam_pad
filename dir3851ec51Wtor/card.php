@@ -24,13 +24,13 @@
   <div class="col-lg-4 col-md-6">
     <div class="card info-card border-0 shadow-sm" style="--start-color:#198754;--end-color:#20c997;" onclick="card_two()">
       <div class="card-body">
-        <h5 class="card-title">Outgoing <span class="text-muted">| Documents</span></h5>
+        <h5 class="card-title">Received <span class="text-muted">| Documents</span></h5>
         <div class="d-flex align-items-center">
           <div class="card-icon">
             <i class='bx bx-archive-out'></i>
           </div>
           <div>
-            <h3 id="load_outgoing_count" class="mb-0">0</h3>
+            <h3 id="load_received_count" class="mb-0">0</h3>
             <small class="text-muted">Need Actions</small>
           </div>
         </div>
@@ -42,10 +42,10 @@
 <div class="col-lg-4 col-md-6">
   <div class="card info-card border-0 shadow-sm" style="--start-color:#dc3545;--end-color:#ff4136;" onclick="card_three()">
     <div class="card-body">
-      <h5 class="card-title">Returned <span class="text-muted">| Documents</span></h5>
+      <h5 class="card-title">All Documents <span class="text-muted">Monitoring</span></h5>
       <div class="d-flex align-items-center">
         <div class="card-icon">
-          <i class="bi bi-arrow-90deg-down"></i>
+          <i class="bi bi-alarm"></i>
         </div>
         <div>
           <h3 id="load_returned_count" class="mb-0">0</h3>

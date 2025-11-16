@@ -1,0 +1,12 @@
+📄 Starting send_back_with_selection
+doc_id = 311
+from_office_id = 68
+to_office_id = 67
+remarks = ok now
+INSERT QUERY: 
+            INSERT INTO tbl_document_actions 
+            (doc_id, from_office_id, to_office_id, action_type, action_remarks, action_date)
+            VALUES ('311', '68', '67', 'Acted', 'ok now', NOW())
+        
+✅ Insert successful
+ℹ️ No matching record in tblpresident_actions — skipping update

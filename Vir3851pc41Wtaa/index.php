@@ -70,7 +70,7 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
     <div class="card-body">
       <div class="d-flex justify-content-between align-items-center mb-3">
         <h5 class="card-title mb-0">
-          Received Documents <span class="text-muted">/ Processing...</span>
+          Delivered Documents <span class="text-muted">/ Processing...</span>
         </h5>
         <button id="btnAddRecord" class="btn btn-primary shadow-sm">
           <i class="bi bi-file-earmark-plus"></i> Add New Record
@@ -339,7 +339,8 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
 <script>
 
 
-function confirmDocumentReceipt(doc_id) {
+function confirmDocumentReceipt(doc_id, received_by, office_division) {
+
   Swal.fire({
     title: "Confirm Document Receipt?",
     text: "Before proceeding, please verify that you have the physical document in your possession.",
@@ -354,7 +355,7 @@ function confirmDocumentReceipt(doc_id) {
     if (result.isConfirmed) {
 
       $.ajax({
-        url: "query_incoming_records.php",
+        url: "query_records.php",
         type: "POST",
         data: { 
           take_action_received: 1,
@@ -1111,53 +1112,55 @@ document.getElementById("btn_save_record").addEventListener("click", function() 
   });
 });
 
-// 🚀 Optimized: Server-side DataTables for large datasets
-function loadTable() {
-  $("#main_data").html(`
-    <div class='text-center p-3'>
-      <div class='spinner-border text-info' role='status'></div>
-      <p class='text-muted mt-2 mb-0'>Loading records...</p>
-    </div>
-  `);
+  function loadTable() {
+      let progress = 0;
+      let interval;
 
-  setTimeout(() => {
-    $("#main_data").html(`
-      <table id="requestTable" class="table table-sm table-striped table-bordered w-100">
-        <thead class="table-light">
-          <tr>
-            <th>RECEIVED</th>
-            <th>CODE</th>
-            <th>DIVISION</th>
-            <th>TYPE</th>
-            <th>PARTICULAR</th>
-            <th class="text-center">Actions</th>
-          </tr>
-        </thead>
-      </table>
-    `);
+      $('#main_data').html(`
+        <div style="padding: 1rem;">
+          <div class="progress" style="height: 6px;">
+            <div id="progress-bar" class="progress-bar progress-bar-striped progress-bar-animated"
+              style="width: 0%; background: linear-gradient(90deg, #17a2b8, #0dcaf0);"></div>
+          </div>
+          <div id="progress-label" style="font-size: 11px; margin-top: 6px; color: #6c757d;">
+            Loading data... 0%
+          </div>
+        </div>`);
 
-    $('#requestTable').DataTable({
-      processing: true,
-      serverSide: true,
-      ajax: {
-        url: "query_records.php",
+      interval = setInterval(() => {
+        if (progress < 90) {
+          progress++;
+          $('#progress-bar').css('width', progress + '%');
+          $('#progress-label').text(`Loading data... ${progress}%`);
+        }
+      }, 20);
+
+      $.ajax({
         type: "POST",
-        data: { server_table: 1 }
-      },
-      columns: [
-        { data: "date_received" },
-        { data: "file_code", className: "nowrap" },
-        { data: "office_division" },
-        { data: "type_of_documents" },
-        { data: "particular" },
-        { data: "actions", orderable: false, searchable: false }
-      ],
-      pageLength: 10,
-      responsive: true,
-      order: [[0, "desc"]]
-    });
-  }, 300);
-}
+        url: "query_records.php",
+        data: { "loading_records": "1" },
+        success: function(response) {
+          clearInterval(interval);
+          $('#progress-bar').css('width', '100%');
+          $('#progress-label').html(`<i class="bx bx-check-circle text-success"></i> Load complete!`);
+
+          setTimeout(() => {
+            $('#main_data').html(response);
+            $('#docTable').DataTable({
+              paging: true,
+              pageLength: 10,
+              lengthChange: true,
+              searching: true,
+              ordering: true,
+              info: true,
+              autoWidth: false
+            });
+
+          }, 600);
+        }
+      });
+  }
+
 
 // Delete Record
 function delete_record(id) {
@@ -1294,33 +1297,34 @@ window.onload = function() {
 
 function get_count_outgoing(){
   $.ajax({
-    url: "query_records.php",
+    url: "counter.php",
     type: "POST",
     data: { 
       get_outgoing_counter: 1 
     },
     success: function(response) {
-      $('#load_outgoing_count').html(response);
+      $('#load_receiving_count').html(response);
     }
   });  
 }
 
+//get all timeline
 function get_doc_count(){
   $.ajax({
-    url: "query_records.php",
+    url: "counter.php",
     type: "POST",
     data: { 
       load_rec_count: 1 
     },
     success: function(response) {
-      $('#load_doc_count').html(response);
+      $('#load_returned_count').html(response);
     }
   });  
 }
 
 function get_count_new_received(){
   $.ajax({
-    url: "query_records.php",
+    url: "counter.php",
     type: "POST",
     data: { 
       get_received_counter: 1 
@@ -1337,11 +1341,11 @@ function get_count_new_received(){
   }
 
   function card_two(){
-    window.location = 'records_outgoing.php';
+    window.location = 'received_documents.php';
   }
 
   function card_three(){
-    window.location = 'records_returned.php';
+    window.location = 'records_timeline.php';
   }
 
 

@@ -156,6 +156,29 @@ if(isset($_POST['saving_document_series'])){
 }
 
 
+if (isset($_POST['get_received_counter'])) {
+
+    $office_id = $_SESSION['officeid'];
+
+    // ✅ Count records received by this office but not yet processed
+    $sql = "
+        SELECT COUNT(*) AS vpaa_records_received
+        FROM tbl_documents_registry
+        WHERE uni_divisionid = '$office_id'
+    ";
+
+    $run = mysqli_query($conn, $sql);
+
+    if ($run) {
+        $row = mysqli_fetch_assoc($run);
+        echo $row['vpaa_records_received'];
+    } else {
+        error_log('SQL Error: ' . mysqli_error($conn)); // log any issue
+        echo 0;
+    }
+}
+
+
 /* 🧩 Check if record has uploaded images */
 if (isset($_POST['check_images'])) {
     $doc_id = intval($_POST['doc_id']);
@@ -270,6 +293,26 @@ if(isset($_POST['saving_new_office'])){
     $officename = strtoupper(addslashes($_POST['officename']));
     $insert = "INSERT INTO `tbldivisions` (`division_desc`) VALUES ('$officename')";
     $runinsert = mysqli_query($conn, $insert);
+}
+
+if(isset($_POST['get_outgoing_counter'])){
+    $check = "
+        SELECT COUNT(*) AS outgoing_count
+        FROM (
+            SELECT doc_id, MAX(action_date) AS latest_date
+            FROM tbl_document_actions
+            GROUP BY doc_id
+        ) AS latest
+        INNER JOIN tbl_document_actions a 
+            ON a.doc_id = latest.doc_id AND a.action_date = latest.latest_date
+        WHERE a.action_type = 'Outgoing'
+    ";
+
+    $runcheck = mysqli_query($conn, $check);
+    if($runcheck){
+        $r = mysqli_fetch_assoc($runcheck);
+        echo $r['outgoing_count'];
+    }
 }
 
 
@@ -423,6 +466,15 @@ if (isset($_POST['load_images'])) {
 }
 
 
+if(isset($_POST['load_rec_count'])){
+    $select = "SELECT count(doc_id) as doc_count FROM `tbl_documents_registry`";
+    $runselect = mysqli_query($conn, $select);
+    if($runselect){
+        $r = mysqli_fetch_assoc($runselect);
+        echo $r['doc_count'];
+    }
+}
+
 /* 🔹 GET SINGLE RECORD */
 if (isset($_POST['get_record'])) {
   $id = $_POST['doc_id'];
@@ -537,60 +589,130 @@ if (isset($_POST['delete_record'])) {
     exit;
 }
 
-if (isset($_POST['loading_records'])) {
-   echo 
-   ''; ?>
-    <div class="table-responsive">
-      <table id="docTable" class="table table-hover table-sm">
-        <thead class="table-light">
-          <tr>
-            <th>#</th>
-            <th>CODE</th>
-            <th>PARICULAR</th>
-            <th></th>
-            <th>Action</th>
-          </tr>
-        </thead>
-        <tbody>
-            <?php 
-$sql = "
-    SELECT *
-    FROM tbl_documents_registry d
-    WHERE d.uni_divisionid = '{$_SESSION['officeid']}'
-      AND NOT EXISTS (
-            SELECT 1
-            FROM tbl_document_actions a
-            WHERE a.doc_id = d.doc_id
-              AND a.action_type = 'Received'
-        )
-";
-                $run = mysqli_query($conn, $sql);
-                $count = 1;
-                while ($r = mysqli_fetch_assoc($run)) {
-                    echo
-                    '
-                      <tr>
-                        <td width="1%" class="text-end align-middle">'.$count++.'.</td>
-                        <td class="text-nowrap align-middle">'.$r['file_code'].'</td>
-                        <td class="align-middle">'.$r['particular'].'</td>
-                        <td></td>
+/* 🚀 SERVER-SIDE DATATABLES PROCESSING */
+if (isset($_POST['server_table'])) {
 
-                        <td width="1%" class="text-center text-nowrap">
-                            <button  onclick="confirmDocumentReceipt(\''.$r['doc_id'].'\', \''.$r['received_by'].'\', \''.$r['office_division'].'\')" class="btn btn-success btn-sm" title="Recieved this document">
-                              <i class="bi bi-arrow-90deg-right"></i>
-                            </button>
+    $columns = ['date_received', 'received_by', 'file_code', 'office_division', 'type_of_documents', 'particular', 'created_at'];
 
-                        </td>
-                      </tr>
-                    ';
-                }
+    $start = intval($_POST['start']);
+    $length = intval($_POST['length']);
+    $searchValue = mysqli_real_escape_string($conn, $_POST['search']['value']);
 
-            ?>
-        </tbody>
-      </div>
-   <?php echo'';
+    
+    // ✅ Build search condition — now includes uni_divisionid filter
+    $where = "WHERE d.uni_divisionid = '$office_id' 
+              AND NOT EXISTS (
+                SELECT 1 
+                FROM tbl_document_actions a
+                WHERE a.doc_id = d.doc_id
+                  AND a.from_office_id = '$office_id'
+                  AND a.action_type IN ('Outgoing', 'Acted', 'Delivered')
+              )";
+              
+    if (!empty($searchValue)) {
+        $where .= " AND (
+            d.file_code LIKE '%$searchValue%' OR 
+            d.received_by LIKE '%$searchValue%' OR 
+            v.division_desc LIKE '%$searchValue%' OR 
+            t.doctype_desc LIKE '%$searchValue%' OR 
+            d.particular LIKE '%$searchValue%'
+        )";
+    }
+
+    // ✅ Total number of unprocessed documents
+    $totalQuery = mysqli_query($conn, "
+        SELECT COUNT(*) AS total
+        FROM tbl_documents_registry d
+        $where
+    ");
+    $totalData = mysqli_fetch_assoc($totalQuery)['total'];
+    $totalFiltered = $totalData;
+
+    // ✅ Actual data query
+    $query = "
+        SELECT 
+            d.doc_id,
+            d.date_received,
+            d.received_by,
+            d.file_code,
+            d.office_division AS office_division_id,   -- THIS IS THE REAL VALUE
+            IFNULL(v.division_desc, CONCAT('Unknown (ID: ', d.office_division, ')')) AS office_division,
+            IFNULL(t.doctype_desc, 'Unknown Type') AS type_of_documents,
+            d.particular,
+            d.created_at
+        FROM tbl_documents_registry d
+        LEFT JOIN tbldivisions v ON CAST(d.office_division AS UNSIGNED) = v.divisionid
+        LEFT JOIN tbltypeofdocuments t ON d.type_of_documents = t.docid
+        $where
+        ORDER BY d.doc_id DESC
+        LIMIT $start, $length
+    ";
+    $result = mysqli_query($conn, $query);
+
+    $data = [];
+    while ($r = mysqli_fetch_assoc($result)) {
+
+        // 🕓 Format date
+        $r['date_received'] = !empty($r['date_received'])
+            ? strtoupper(date("M d, Y h:i A", strtotime($r['date_received'])))
+            : "";
+
+        // 🟩 Assign badge colors based on document type
+        $rawType = strtoupper(trim($r['type_of_documents'])); // store clean version
+        $badgeColor = 'secondary'; // default
+
+        switch ($rawType) {
+            case 'TRAVEL ORDER':
+                $badgeColor = 'info';
+                break;
+            case 'HAND CARRY':
+                $badgeColor = 'success';
+                break;
+            case 'EMAIL':
+                $badgeColor = 'primary';
+                break;
+            case 'LOCAL COMMUNICATION':
+                $badgeColor = 'warning';
+                break;
+            case 'OUTGOING COMMUNICATION':
+                $badgeColor = 'warning';
+                break;
+            case 'ACTIVITY DESIGN':
+                $badgeColor = 'dark';
+                break;
+            case 'PROJECT PROPOSAL':
+                $badgeColor = 'danger';
+                break;
+        }
+
+        // 🟨 Wrap the document type text in a Bootstrap badge (for display only)
+        $r['type_of_documents'] = "
+            <span class='badge bg-$badgeColor px-3 py-2 shadow-sm'>
+                $rawType
+            </span>
+        ";
 
 
+        // 🧠 Actions buttons
+        $r['actions'] = "
+          <div class='d-grid gap-1' style='grid-template-columns: repeat(2, 1fr); display: grid;'>
+                    <button  onclick='confirmDocumentReceipt({$r['doc_id']}, {$r['received_by']}, {$r['office_division_id']})' class='btn btn-success' title='Recieved this document'>
+                      <i class='bi bi-arrow-90deg-right'></i>
+                    </button>
+          </div>
+        ";
+
+        $data[] = $r;
+    }
+
+    // ✅ JSON response
+    echo json_encode([
+        "draw" => intval($_POST['draw']),
+        "recordsTotal" => $totalData,
+        "recordsFiltered" => $totalFiltered,
+        "data" => $data
+    ]);
+    exit;
 }
 
 ?>

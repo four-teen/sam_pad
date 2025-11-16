@@ -347,3 +347,68 @@
 [2025-11-12 16:12:26] 🧩 Browser: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0
 [2025-11-12 16:12:26] 🔐 Fingerprint Hash: 8e9c326a7657f062289df4d1f12ed1f063701c7b4e93516802232bf9e1a59af0
 [2025-11-12 16:12:26] Redirecting to records dashboard...
+[2025-11-15 13:19:32] ---- Login attempt started | Request method: POST detected | Username received: isulan, Account found: ID=15 Role=9 ----
+[2025-11-15 13:19:32] ✅ Login successful | IP: ::1 | Device: Desktop | Lang: en-US,en;q=0.9
+[2025-11-15 13:19:32] 🧩 Browser: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0
+[2025-11-15 13:19:32] 🔐 Fingerprint Hash: 8e9c326a7657f062289df4d1f12ed1f063701c7b4e93516802232bf9e1a59af0
+[2025-11-15 13:19:32] Redirecting to directors...
+[2025-11-15 13:22:07] ---- Login attempt started | Request method: POST detected | Username received: vpaa, Account found: ID=16 Role=2 ----
+[2025-11-15 13:22:07] ✅ Login successful | IP: 192.168.1.234 | Device: Desktop | Lang: en-US,en;q=0.9
+[2025-11-15 13:22:07] 🧩 Browser: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0
+[2025-11-15 13:22:07] 🔐 Fingerprint Hash: de310327b40e0bca4859e12dcd197b6c6c183f0a44303f88dce02d4efd47d440
+[2025-11-15 13:22:07] Redirecting to directors...
+[2025-11-15 13:26:56] ---- Login attempt started | Request method: POST detected | Username received: records, Account found: ID=10 Role=67 ----
+[2025-11-15 13:26:56] ✅ Login successful | IP: 192.168.1.234 | Device: Desktop | Lang: en-US,en;q=0.9
+[2025-11-15 13:26:56] 🧩 Browser: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0
+[2025-11-15 13:26:56] 🔐 Fingerprint Hash: de310327b40e0bca4859e12dcd197b6c6c183f0a44303f88dce02d4efd47d440
+[2025-11-15 13:26:56] Redirecting to records dashboard...
+[2025-11-15 13:44:41] ---- Login attempt started | Request method: POST detected | Username received: vpaa, Account found: ID=16 Role=2 ----
+[2025-11-15 13:44:41] ✅ Login successful | IP: ::1 | Device: Desktop | Lang: en-US,en;q=0.9
+[2025-11-15 13:44:41] 🧩 Browser: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0
+[2025-11-15 13:44:41] 🔐 Fingerprint Hash: 8e9c326a7657f062289df4d1f12ed1f063701c7b4e93516802232bf9e1a59af0
+[2025-11-15 13:44:41] Redirecting to directors...
+[2025-11-15 19:01:30] ---- Login attempt started | Request method: POST detected | Username received: vpaa, Account found: ID=16 Role=2 ----
+[2025-11-15 19:01:30] ✅ Login successful | IP: ::1 | Device: Desktop | Lang: en-US,en;q=0.9
+[2025-11-15 19:01:30] 🧩 Browser: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0
+[2025-11-15 19:01:30] 🔐 Fingerprint Hash: 8e9c326a7657f062289df4d1f12ed1f063701c7b4e93516802232bf9e1a59af0
+[2025-11-15 19:01:30] Redirecting to directors...
+[2025-11-15 20:08:48] ---- Login attempt started | Request method: POST detected | Username received: records, Account found: ID=10 Role=67 ----
+[2025-11-15 20:08:48] ✅ Login successful | IP: ::1 | Device: Desktop | Lang: en-US,en;q=0.9
+[2025-11-15 20:08:48] 🧩 Browser: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0
+[2025-11-15 20:08:48] 🔐 Fingerprint Hash: 8e9c326a7657f062289df4d1f12ed1f063701c7b4e93516802232bf9e1a59af0
+[2025-11-15 20:08:48] Redirecting to records dashboard...
+[2025-11-15 20:15:41] ---- Login attempt started | Request method: POST detected | Username received: vpaa, Account found: ID=16 Role=2 ----
+[2025-11-15 20:15:41] ✅ Login successful | IP: ::1 | Device: Desktop | Lang: en-US,en;q=0.9
+[2025-11-15 20:15:41] 🧩 Browser: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0
+[2025-11-15 20:15:41] 🔐 Fingerprint Hash: 8e9c326a7657f062289df4d1f12ed1f063701c7b4e93516802232bf9e1a59af0
+[2025-11-15 20:15:41] Redirecting to directors...
+[2025-11-15 21:09:49] ---- Login attempt started | Request method: POST detected | Username received: records, Account found: ID=10 Role=67 ----
+[2025-11-15 21:09:49] ✅ Login successful | IP: ::1 | Device: Desktop | Lang: en-US,en;q=0.9
+[2025-11-15 21:09:49] 🧩 Browser: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0
+[2025-11-15 21:09:49] 🔐 Fingerprint Hash: 8e9c326a7657f062289df4d1f12ed1f063701c7b4e93516802232bf9e1a59af0
+[2025-11-15 21:09:49] Redirecting to records dashboard...
+[2025-11-15 21:12:52] ---- Login attempt started | Request method: POST detected | Username received: abas, Account found: ID=11 Role=68 ----
+[2025-11-15 21:12:52] ✅ Login successful | IP: ::1 | Device: Desktop | Lang: en-US,en;q=0.9
+[2025-11-15 21:12:52] 🧩 Browser: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0
+[2025-11-15 21:12:52] 🔐 Fingerprint Hash: 8e9c326a7657f062289df4d1f12ed1f063701c7b4e93516802232bf9e1a59af0
+[2025-11-15 21:12:52] Redirecting to PAD dashboard...
+[2025-11-15 21:14:30] ---- Login attempt started | Request method: POST detected | Username received: records, Account found: ID=10 Role=67 ----
+[2025-11-15 21:14:30] ✅ Login successful | IP: ::1 | Device: Desktop | Lang: en-US,en;q=0.9
+[2025-11-15 21:14:30] 🧩 Browser: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0
+[2025-11-15 21:14:30] 🔐 Fingerprint Hash: 8e9c326a7657f062289df4d1f12ed1f063701c7b4e93516802232bf9e1a59af0
+[2025-11-15 21:14:30] Redirecting to records dashboard...
+[2025-11-16 16:03:43] ---- Login attempt started | Request method: POST detected | Username received: samson, Account found: ID=13 Role=1 ----
+[2025-11-16 16:03:43] ✅ Login successful | IP: ::1 | Device: Desktop | Lang: en-US,en;q=0.9
+[2025-11-16 16:03:43] 🧩 Browser: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0
+[2025-11-16 16:03:43] 🔐 Fingerprint Hash: 8e9c326a7657f062289df4d1f12ed1f063701c7b4e93516802232bf9e1a59af0
+[2025-11-16 16:03:43] Redirecting to PAD dashboard...
+[2025-11-16 16:06:13] ---- Login attempt started | Request method: POST detected | Username received: samson, Account found: ID=13 Role=1 ----
+[2025-11-16 16:06:13] ✅ Login successful | IP: ::1 | Device: Desktop | Lang: en-US,en;q=0.9
+[2025-11-16 16:06:13] 🧩 Browser: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0
+[2025-11-16 16:06:13] 🔐 Fingerprint Hash: 8e9c326a7657f062289df4d1f12ed1f063701c7b4e93516802232bf9e1a59af0
+[2025-11-16 16:06:13] Redirecting to PAD dashboard...
+[2025-11-16 16:23:03] ---- Login attempt started | Request method: POST detected | Username received: Samson, Account found: ID=13 Role=1 ----
+[2025-11-16 16:23:03] ✅ Login successful | IP: 192.168.1.111 | Device: Mobile | Lang: en-AE,en-GB;q=0.9,en-US;q=0.8,en;q=0.7
+[2025-11-16 16:23:03] 🧩 Browser: Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36
+[2025-11-16 16:23:03] 🔐 Fingerprint Hash: bdf4c3537cdddc710dea7c7d2751bfc047bd6b1448a65e4266e7ee008c005973
+[2025-11-16 16:23:03] Redirecting to PAD dashboard...

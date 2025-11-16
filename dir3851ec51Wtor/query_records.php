@@ -260,23 +260,13 @@ if(isset($_POST['saving_new_office'])){
     $runinsert = mysqli_query($conn, $insert);
 }
 
-if(isset($_POST['get_outgoing_counter'])){
-    $check = "
-        SELECT COUNT(*) AS outgoing_count
-        FROM (
-            SELECT doc_id, MAX(action_date) AS latest_date
-            FROM tbl_document_actions
-            GROUP BY doc_id
-        ) AS latest
-        INNER JOIN tbl_document_actions a 
-            ON a.doc_id = latest.doc_id AND a.action_date = latest.latest_date
-        WHERE a.action_type = 'Outgoing'
-    ";
+if(isset($_POST['get_receiving_counter'])){
+    $check = "SELECT count(*) as receiving_count FROM `tbl_document_actions` WHERE `action_type` = 'Delivered' AND from_office_id='$_SESSION[officeid]'";
 
     $runcheck = mysqli_query($conn, $check);
     if($runcheck){
         $r = mysqli_fetch_assoc($runcheck);
-        echo $r['outgoing_count'];
+        echo $r['receiving_count'];
     }
 }
 

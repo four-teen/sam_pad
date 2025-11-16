@@ -112,9 +112,8 @@ if(isset($_POST['get_acted_counter'])){
 if (isset($_POST['deliver_document'])) {
 
     $doc_id = intval($_POST['doc_id']);
-    $from_office_id = $_SESSION['officeid']; // always from Records Section
+    $from_office_id = $_SESSION['officeid'];
     $remarks = mysqli_real_escape_string($conn, $_POST['remarks']);
-    // to_office_id = 0 since it's physically delivered to person
     $to_office_id = intval($_POST['to_office_id']);
 
     $sql = "
@@ -123,23 +122,24 @@ if (isset($_POST['deliver_document'])) {
         VALUES ('$doc_id', '$from_office_id', '$to_office_id', 'Delivered', '$remarks', NOW())
     ";
 
+    // Run only once
     if (mysqli_query($conn, $sql)) {
 
-        // 2️⃣ Also insert into tblacted
-        $insert_acted = "INSERT INTO tbl_acted_to_office (docid, officeid, date_acted)
-            VALUES ('$doc_id', '$to_office_id', NOW())";
-        $runinsert_acted = mysqli_query($conn, $insert_acted);
+        // Insert into acted table
+        $insert_acted = "
+            INSERT INTO tbl_acted_to_office (docid, officeid, date_acted)
+            VALUES ('$doc_id', '$to_office_id', NOW())
+        ";
+        mysqli_query($conn, $insert_acted);
 
-    } 
-
-
-    if (mysqli_query($conn, $sql)) {
         echo 'success';
     } else {
         echo 'Database error: ' . mysqli_error($conn);
     }
+
     exit;
 }
+
 
 
 

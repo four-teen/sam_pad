@@ -2,6 +2,38 @@
 ob_start();
 session_start();
 include '../db.php';
+include '../db2.php';
+
+
+
+if(isset($_POST['get_travel_counter'])){
+  $count = "SELECT count(doc_id) as travel_order FROM `tbl_documents_registry`
+  WHERE type_of_documents = 7";
+  $runcount = mysqli_query($conn, $count);
+  if($runcount){
+    $r = mysqli_fetch_assoc($runcount);
+    echo $r['travel_order'];
+  }
+}
+
+
+if(isset($_POST['get_registrar_counter'])){
+  $count = "SELECT count(req_id) as registar_count FROM `tbl_request_info`";
+  $runcount = mysqli_query($conn2, $count);
+  if($runcount){
+    $r = mysqli_fetch_assoc($runcount);
+    echo $r['registar_count'];
+  }
+}
+
+if(isset($_POST['get_pad_counter'])){
+  $count = "SELECT count(doc_id) as pad_count FROM `tbl_documents_registry`";
+  $runcount = mysqli_query($conn, $count);
+  if($runcount){
+    $r = mysqli_fetch_assoc($runcount);
+    echo $r['pad_count'];
+  }
+}
 
 if (isset($_POST['get_document_image_acted'])) {
   $doc_id = intval($_POST['doc_id']);
