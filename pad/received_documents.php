@@ -298,6 +298,54 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
 .fadeInDown {
   animation-name: fadeInDown;
 }
+
+/*===========================*/
+.doc-card {
+    background: #fff;
+    border: 1px solid #dadada;
+    padding: 15px 18px;
+    border-radius: 6px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+.doc-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: #333;
+    margin-bottom: 10px;
+}
+
+.doc-meta {
+    font-size: 13px;
+    color: #555;
+    line-height: 1.4;
+}
+
+.doc-actions-horizontal {
+    display: flex;
+    justify-content: flex-start;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.doc-actions-horizontal button {
+    width: 40px;
+    height: 32px;
+    text-align: center;
+    padding: 4px 0;
+    border-radius: 4px;
+}
+
+.pres-blink {
+    width: 40px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+
+
   </style>
 </head>
 
@@ -439,6 +487,38 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
   <script src="../assets/js/main.js"></script>
 
 <script>
+
+let offset = 0;
+let loading = false;
+
+function loadMore() {
+    if (loading) return;
+    loading = true;
+
+    $.post("query_received_documents.php", {
+        load_table_received: 1,
+        offset: offset
+    }, function(res) {
+        if (offset === 0) {
+            $("#main_data").html(res);
+        } else {
+            $("#cards_container").append(res);
+        }
+        offset += 20;
+        loading = false;
+    });
+}
+
+// first load
+loadMore();
+
+// detect scroll
+$(window).scroll(function () {
+    if ($(window).scrollTop() + $(window).height() >= $(document).height() - 200) {
+        loadMore();
+    }
+});
+
 
 // 🔔 Open notification modal
 function openNotifications() {
@@ -832,10 +912,8 @@ $(document).on('click', '.forward-records', function() {
       Swal.fire({
         title: 'Forward Document',
         html: `
-          <label class="swal2-label">Select Office to Send</label>
-          <select id="to_office_id" class="swal2-select" style="width:80%;">
-            ${response}
-          </select>
+          <span><b>to</b></span>
+          <p class="text-danger"><b>CENTRAL RECORDS OFFICE</b></p>
           <textarea id="remarks" class="swal2-textarea" placeholder="Enter remarks or reason..."></textarea>
         `,
         icon: 'question',
@@ -855,11 +933,6 @@ $(document).on('click', '.forward-records', function() {
         preConfirm: () => {
           const to_office_id = $('#to_office_id').val();
           const remarks = $('#remarks').val().trim();
-
-          if (!to_office_id) {
-            Swal.showValidationMessage('Please select a destination office!');
-            return false;
-          }
           if (!remarks) {
             Swal.showValidationMessage('Remarks are required before forwarding!');
             return false;
@@ -877,28 +950,27 @@ $(document).on('click', '.forward-records', function() {
               send_back_with_selection: 1,
               doc_id: doc_id,
               from_office_id: from_office_id,
-              to_office_id: result.value.to_office_id,
               remarks: result.value.remarks
             },
-success: function (res) {
-  console.log("🔍 DEBUG RESPONSE FROM SERVER:\n" + res);
+            success: function (res) {
+              console.log("🔍 DEBUG RESPONSE FROM SERVER:\n" + res);
 
-  if (res.trim().startsWith("success")) {
-    Swal.fire('Sent!', 'Document successfully forwarded.', 'success');
-    loadTable();
-    card_two();
-    get_doc_count();
-    get_count_outgoing();
-    get_count_received();
-  } else {
-    Swal.fire({
-      title: '⚠️ Error',
-      html: `<pre style="text-align:left;">${res}</pre>`,
-      icon: 'error',
-      width: 600,
-    });
-  }
-},
+              if (res.trim().startsWith("success")) {
+                Swal.fire('Sent!', 'Document successfully forwarded.', 'success');
+                loadTable();
+                card_two();
+                get_doc_count();
+                get_count_outgoing();
+                get_count_received();
+              } else {
+                Swal.fire({
+                  title: '⚠️ Error',
+                  html: `<pre style="text-align:left;">${res}</pre>`,
+                  icon: 'error',
+                  width: 600,
+                });
+              }
+            },
             error: function() {
               Swal.fire('Error', 'Unable to process the transaction.', 'error');
             }

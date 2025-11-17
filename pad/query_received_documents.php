@@ -6,6 +6,7 @@ include '../db.php';
 
 // ==========================================
 
+
 /* 🔹 UPLOAD IMAGES */
 if (isset($_POST['upload_images'])) {
     $doc_id = intval($_POST['doc_id']);
@@ -115,7 +116,7 @@ if (isset($_POST['load_offices'])) {
 if (isset($_POST['send_back_with_selection'])) {
     $doc_id = intval($_POST['doc_id']);
     $from_office_id = intval($_POST['from_office_id']);
-    $to_office_id = intval($_POST['to_office_id']);
+    $to_office_id = 67; //intval($_POST['to_office_id']);
     $remarks = trim(mysqli_real_escape_string($conn, $_POST['remarks']));
 
     // 🧾 Start debug log content
@@ -212,23 +213,8 @@ if (isset($_POST['send_back_with_selection'])) {
 
 /* 🔹 LOAD TABLE (RECEIVED) */
 if (isset($_POST['load_table_received'])) {
-    $output = '
-      <table id="receivedTable" class="table table-sm table-hover align-middle">
-        <thead>
-          <tr>
-            <th>#</th>
-            <th>RECEIVED</th>
-            <th>LAPSED</th>
-            <th>CODE</th>
-            <th>DIVISION</th>
-            <th>TYPE</th>
-            <th>PARTICULAR</th>
-            <th></th>
-            <th class="text-center">ACTIONS</th>
-          </tr>
-        </thead>
-        <tbody>
-    ';
+    $offset = isset($_POST['offset']) ? intval($_POST['offset']) : 0;
+$output = '<div id="cards_container">';
 
     // ✅ Get only documents whose latest action is "Received"
     $sql = "
@@ -288,50 +274,55 @@ if (isset($_POST['load_table_received'])) {
         }
 
         // ✅ Format table row
-        $output .= '
-          <tr>
-            <td class="text-end" width="1%">'.$count.'.</td>
-            <td>'.date("Y-m-d h:i:s", strtotime($r['action_date'])).'</td>
-            <td>'.$daysLapsed.'</td>
-            <td class="text-nowrap">'.$r['file_code'].'</td>
-            <td>'.$r['division_desc'].'</td>
-            <td>'.$r['doctype_desc'].'</td>
-            <td>'.$r['particular'].'</td>
-            <td>
-                '.$pres_status.'
-            </td>
-            <td class="text-nowrap text-center" width="1%">
-              <div style="
-                  display: grid; 
-                  grid-template-columns: repeat(2, 1fr); 
-                  gap: 4px; 
-                  justify-items: center;
-              ">   
-                <button class="btn btn-warning btn-sm" onclick="upload_image_record(\''.$r['doc_id'].'\')" title="Upload Image">
-                  <i class="bx bx-image"></i>
-                </button> 
+$output .= '
+<div class="doc-card mb-2">
 
-                <button class="btn btn-info btn-sm" title="View Images" onclick="view_uploaded_images(\''.$r['doc_id'].'\')">
-                    <i class="bi bi-images"></i>
-                </button>
-                <button onclick="confirmReturnDocument(\''.$r['doc_id'].'\')" class="btn btn-danger btn-sm" title="Return">
-                    <i class="bi bi-bootstrap-reboot"></i>
-                </button>
-                <button 
-                  class="btn btn-primary btn-sm forward-records"
-                  data-docid='.$r['doc_id'].'
-                  data-from='.$_SESSION['officeid'].'
-                  title="Forward to records">
-                  <i class="bi bi-fast-forward-circle"></i>
-                </button>
-              </div>
-            </td>
-          </tr>
-        ';
+    <div class="doc-title">
+        '.htmlspecialchars($r['particular']).'
+    </div>
+
+    <div class="doc-meta">
+        <div><i class="bi bi-building me-1"></i><b>Office:</b> '.htmlspecialchars($r['division_desc']).'</div>
+        <div><i class="bi bi-file-earmark me-1"></i><b>File Code:</b> '.$r['file_code'].'</div>
+        <div><i class="bi bi-clock me-1"></i><b>Date Received:</b> '.date("F d, Y h:i A", strtotime($r['action_date'])).'</div>
+        <div><i class="bi bi-clock-history me-1"></i><b>Lapsed:</b> '.$daysLapsed.'</div>
+    </div>
+
+    <div class="doc-actions-horizontal mt-3">
+
+        '.$pres_status.'
+
+        <button class="btn btn-warning btn-sm" onclick="upload_image_record(\''.$r['doc_id'].'\')" title="Upload Image">
+          <i class="bx bx-image"></i>
+        </button>
+
+        <button class="btn btn-info btn-sm" onclick="view_uploaded_images(\''.$r['doc_id'].'\')" title="View Images">
+          <i class="bi bi-images"></i>
+        </button>
+
+        <button class="btn btn-danger btn-sm" onclick="confirmReturnDocument(\''.$r['doc_id'].'\')" title="Return">
+          <i class="bi bi-bootstrap-reboot"></i>
+        </button>
+
+        <button 
+            class="btn btn-primary btn-sm forward-records"
+            data-docid="'.$r['doc_id'].'"
+            data-from="'.$_SESSION['officeid'].'"
+            title="Forward to records">
+            <i class="bi bi-fast-forward-circle"></i>
+        </button>
+
+    </div>
+
+</div>
+';
+
+
+
         $count++;
     }
 
-    $output .= "</tbody></table>";
+$output .= "</div>";
     echo $output;
     exit;
 }
