@@ -214,9 +214,16 @@ if (isset($_POST['send_back_with_selection'])) {
 /* 🔹 LOAD TABLE (RECEIVED) */
 if (isset($_POST['load_table_received'])) {
     $offset = isset($_POST['offset']) ? intval($_POST['offset']) : 0;
-$output = '<div id="cards_container">';
 
-    // ✅ Get only documents whose latest action is "Received"
+    // 🔍 Get search keyword
+    $search = "";
+    if (!empty($_POST['search'])) {
+        $search = mysqli_real_escape_string($conn, $_POST['search']);
+    }
+
+    $output = '<div id="cards_container">';
+
+    // BASE SQL
     $sql = "
         SELECT d.*, 
                v.division_desc, 
@@ -235,8 +242,19 @@ $output = '<div id="cards_container">';
         INNER JOIN tbl_document_actions a ON a.action_id = x.latest_action
         WHERE a.action_type = 'Received'
           AND a.to_office_id = '68'
-        ORDER BY d.doc_id DESC
     ";
+
+    // 🔍 ADD SEARCH FILTER
+    if (!empty($search)) {
+        $sql .= " AND (
+                    d.file_code LIKE '%$search%' 
+                    OR d.particular LIKE '%$search%' 
+                    OR v.division_desc LIKE '%$search%'
+                  )";
+    }
+
+    // ORDER + PAGINATION
+    $sql .= " ORDER BY d.doc_id DESC LIMIT 20 OFFSET $offset ";
 
     $run = mysqli_query($conn, $sql);
     $count = 1;
@@ -274,55 +292,53 @@ $output = '<div id="cards_container">';
         }
 
         // ✅ Format table row
-$output .= '
-<div class="doc-card mb-2">
+            $output .= '
+            <div class="doc-card mb-2">
 
-    <div class="doc-title">
-        '.htmlspecialchars($r['particular']).'
-    </div>
+                <div class="doc-title">
+                    '.htmlspecialchars($r['particular']).'
+                </div>
 
-    <div class="doc-meta">
-        <div><i class="bi bi-building me-1"></i><b>Office:</b> '.htmlspecialchars($r['division_desc']).'</div>
-        <div><i class="bi bi-file-earmark me-1"></i><b>File Code:</b> '.$r['file_code'].'</div>
-        <div><i class="bi bi-clock me-1"></i><b>Date Received:</b> '.date("F d, Y h:i A", strtotime($r['action_date'])).'</div>
-        <div><i class="bi bi-clock-history me-1"></i><b>Lapsed:</b> '.$daysLapsed.'</div>
-    </div>
+                <div class="doc-meta">
+                    <div><i class="bi bi-building me-1"></i><b>Office:</b> '.htmlspecialchars($r['division_desc']).'</div>
+                    <div><i class="bi bi-file-earmark me-1"></i><b>File Code:</b> '.$r['file_code'].'</div>
+                    <div><i class="bi bi-clock me-1"></i><b>Date Received:</b> '.date("F d, Y h:i A", strtotime($r['action_date'])).'</div>
+                    <div><i class="bi bi-clock-history me-1"></i><b>Lapsed:</b> '.$daysLapsed.'</div>
+                </div>
 
-    <div class="doc-actions-horizontal mt-3">
+                <div class="doc-actions-horizontal mt-3">
 
-        '.$pres_status.'
+                    '.$pres_status.'
 
-        <button class="btn btn-warning btn-sm" onclick="upload_image_record(\''.$r['doc_id'].'\')" title="Upload Image">
-          <i class="bx bx-image"></i>
-        </button>
+                    <button class="btn btn-warning btn-sm" onclick="upload_image_record(\''.$r['doc_id'].'\')" title="Upload Image">
+                      <i class="bx bx-image"></i>
+                    </button>
 
-        <button class="btn btn-info btn-sm" onclick="view_uploaded_images(\''.$r['doc_id'].'\')" title="View Images">
-          <i class="bi bi-images"></i>
-        </button>
+                    <button class="btn btn-info btn-sm" onclick="view_uploaded_images(\''.$r['doc_id'].'\')" title="View Images">
+                      <i class="bi bi-images"></i>
+                    </button>
 
-        <button class="btn btn-danger btn-sm" onclick="confirmReturnDocument(\''.$r['doc_id'].'\')" title="Return">
-          <i class="bi bi-bootstrap-reboot"></i>
-        </button>
+                    <button class="btn btn-danger btn-sm" onclick="confirmReturnDocument(\''.$r['doc_id'].'\')" title="Return">
+                      <i class="bi bi-bootstrap-reboot"></i>
+                    </button>
 
-        <button 
-            class="btn btn-primary btn-sm forward-records"
-            data-docid="'.$r['doc_id'].'"
-            data-from="'.$_SESSION['officeid'].'"
-            title="Forward to records">
-            <i class="bi bi-fast-forward-circle"></i>
-        </button>
+                    <button 
+                        class="btn btn-primary btn-sm forward-records"
+                        data-docid="'.$r['doc_id'].'"
+                        data-from="'.$_SESSION['officeid'].'"
+                        title="Forward to records">
+                        <i class="bi bi-fast-forward-circle"></i>
+                    </button>
 
-    </div>
+                </div>
 
-</div>
-';
-
-
+            </div>
+            ';
 
         $count++;
     }
 
-$output .= "</div>";
+    $output .= "</div>";
     echo $output;
     exit;
 }

@@ -5,6 +5,61 @@ include '../db.php';     // Then include database or other files
 
 $office_id = $_SESSION['officeid'];
 /* ================= SAVE OTHER INFO (normalized) ================= */
+
+if(isset($_POST['saving_employees'])){
+    $acc_name = strtoupper(addslashes($_POST['acc_name']));
+    $email_accname = $acc_name.'@sksu.edu.ph';
+
+    $emailed = str_replace(' ', '', $email_accname);
+
+    $insert = "INSERT INTO `tblprofiles` (`acc_name`, `acc_position`, `acc_email`, `acc_type`, `campus`) 
+            VALUES ( '$acc_name', 'faculty', '$emailed', 'user', 'unknown')";
+    $runinsert = mysqli_query($conn, $insert);
+}
+
+if(isset($_POST['delete_employees'])){
+    $delete = "DELETE FROM `tblprofiles` WHERE acc_id='$_POST[acc_id]'";
+    $rundelete = mysqli_query($conn, $delete);
+}
+
+if(isset($_POST['loading_employees'])){
+    echo 
+    ''; ?>
+        <table class="table table-hover table-sm" id="datatable">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Faculty Name</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php 
+                    $select = "SELECT * FROM `tblprofiles` ORDER BY acc_name ASC";
+                    $runselect = mysqli_query($conn, $select);
+                    $count=0;
+                    while($r = mysqli_fetch_assoc($runselect)){
+                        echo
+                        '
+                        <tr>
+                            <td width="1%">'.++$count.'.</td>
+                            <td>'.strtoupper($r['acc_name']).'</td>
+                            <td width="1%" class="text-center">
+                                <button class="btn btn-danger btn-sm" onclick="delete_emps(\''.$r['acc_id'].'\')" title="Delete Record">
+                                  <i class="bx bx-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        ';
+                    }
+                ?>
+            </tbody>
+        </table>
+
+    <?php echo'';
+}
+
+
 if (isset($_POST['saving_other_info'])) {
     $doc_id = intval($_POST['doc_id']);
     $acc_ids = $_POST['names_involve']; // array of acc_id

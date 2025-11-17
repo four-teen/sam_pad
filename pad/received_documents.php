@@ -374,7 +374,8 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
         <div class="col-12">
           <div class="card">
             <div class="card-body">
-              <h5 class="card-title"><i class='bx bxs-down-arrow text-success'></i> Incoming Documents <span class="text-muted">/ Processing...</span></h5>
+              <h5 class="card-title"><i class='bx bxs-down-arrow text-success'></i> Received Documents</h5>
+              <input type="text" id="searchFileCode" class="form-control mb-3" placeholder="Search File Code…" autocomplete="off">
               <div id="main_data"></div>
             </div>
           </div>
@@ -487,6 +488,24 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
   <script src="../assets/js/main.js"></script>
 
 <script>
+
+let typingTimer;
+$("#searchFileCode").on("keyup", function () {
+    clearTimeout(typingTimer);
+    typingTimer = setTimeout(() => {
+        loadSearch($(this).val());
+    }, 300); // delay
+});
+
+function loadSearch(keyword) {
+    $.post("query_received_documents.php", {
+        load_table_received: 1,
+        search: keyword
+    }, function(res) {
+        $("#cards_container").html(res);
+        offset = 20; // reset scroll pagination
+    });
+}
 
 let offset = 0;
 let loading = false;

@@ -338,6 +338,69 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
   color: white;
 }
 
+/*=================================*/
+/* Card container */
+.doc-card {
+    background: #ffffff;
+    border: 1px solid #e3e6ea;
+    border-radius: 8px;
+    padding: 15px 20px;
+    margin-bottom: 12px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.06);
+    transition: all 0.2s ease-in-out;
+}
+
+/* Hover effect */
+.doc-card:hover {
+    transform: scale(1.01);
+    box-shadow: 0 3px 10px rgba(0,0,0,0.12);
+}
+
+/* Title (Particular) */
+.doc-title {
+    font-size: 17px;
+    font-weight: 700;
+    color: #333;
+    margin-bottom: 12px;
+    line-height: 1.3;
+}
+
+/* Details */
+.doc-meta {
+    font-size: 14px;
+    color: #555;
+    line-height: 1.2;   /* 🔥 Make lines closer */
+    margin-bottom: 8px; /* 🔥 Reduce bottom space */
+}
+
+.doc-meta div {
+    margin-bottom: 2px; /* 🔥 Reduce spacing between each line */
+}
+
+/* Horizontal buttons */
+.doc-actions-horizontal {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+/* Buttons (uniform size) */
+.doc-actions-horizontal button {
+    width: 40px;
+    height: 36px;
+    text-align: center;
+    padding: 5px 0;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Icons inside buttons */
+.doc-actions-horizontal i {
+    font-size: 16px;
+}
+
   </style>
 </head>
 
@@ -359,11 +422,14 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
     <div class="card-body">
       <div class="d-flex justify-content-between align-items-center mb-3">
         <h5 class="card-title mb-0">
-          Received Documents <span class="text-muted">/ Processing...</span>
+          Review Timeline <span class="text-muted">/ Processing...</span>
         </h5>
 
       </div>
-
+<div class="mb-3">
+    <input type="text" id="searchDocs" class="form-control" 
+        placeholder="Search documents (file code, office, type, particular)...">
+</div>
       <div id="main_data"></div>
     </div>
   </div>
@@ -458,6 +524,69 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
   <script src="functioned.js"></script>
 <script>
 
+
+let offset = 0;
+let loading = false;
+let searchValue = "";
+
+function loadMore(reset = false) {
+    if (loading) return;
+    loading = true;
+
+    // Reset list when searching or initial load
+    if (reset) {
+        offset = 0;
+        $("#main_data").html(`
+            <div class='text-center p-3'>
+                <div class='spinner-border text-info'></div>
+                <p class='text-muted'>Loading...</p>
+            </div>
+        `);
+    }
+
+    $.ajax({
+        url: "query_all_docs.php",
+        type: "POST",
+        data: {
+            card_scroll: 1,
+            start: offset,
+            length: 20,
+            search_value: searchValue
+        },
+        success: function(response) {
+            if (reset) {
+                $("#main_data").html(`<div id="cards_container"></div>`);
+            }
+
+            $("#cards_container").append(response);
+            offset += 20;
+            loading = false;
+        },
+        error: function() {
+            Swal.fire("Error!", "Failed to load records.", "error");
+        }
+    });
+}
+
+// 🔍 search
+$("#searchDocs").on("keyup", function() {
+    searchValue = $(this).val();
+    loadMore(true);
+});
+
+// ♾ infinite scroll
+$(window).on("scroll", function() {
+    if ($(window).scrollTop() + $(window).height() >= $(document).height() - 200) {
+        loadMore(false);
+    }
+});
+
+// START
+loadMore(true);
+
+
+
+// ==========================================
 
 let currentImageIndex = 0;
 let imageList = [];
@@ -623,7 +752,8 @@ $(document).ready(function() {
 
 // Load data when page opens
 window.onload = function() {
-  loadTable();
+  //loadTable();
+  loadMore(true);
   get_doc_count(); // ✅ add this here
   get_count_outgoing();
   get_count_returned();

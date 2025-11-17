@@ -109,6 +109,90 @@ if (isset($_POST['load_timeline'])) {
 }
 
 
+/* ✅ CARD SCROLL API (keeps your query logic EXACTLY but outputs HTML) */
+if (isset($_POST['card_scroll'])) {
+
+    $start = intval($_POST['start']);
+    $length = intval($_POST['length']);
+    $searchValue = mysqli_real_escape_string($conn, $_POST['search_value']);
+
+    // 🔍 Build WHERE (your original)
+    $where = "";
+    if (!empty($searchValue)) {
+        $where = "WHERE 
+            d.file_code LIKE '%$searchValue%' OR 
+            d.received_by LIKE '%$searchValue%' OR 
+            v.division_desc LIKE '%$searchValue%' OR 
+            t.doctype_desc LIKE '%$searchValue%' OR 
+            d.particular LIKE '%$searchValue%'";
+    }
+
+    // 🔎 Query (same as original)
+    $query = "
+        SELECT d.doc_id, d.date_received, d.received_by, d.file_code, 
+               v.division_desc AS office_division, 
+               t.doctype_desc AS type_of_documents, 
+               d.particular, d.created_at
+        FROM tbl_documents_registry d
+        LEFT JOIN tbldivisions v ON d.office_division = v.divisionid
+        LEFT JOIN tbltypeofdocuments t ON d.type_of_documents = t.docid
+        $where
+        ORDER BY d.doc_id DESC
+        LIMIT $start, $length
+    ";
+
+    $result = mysqli_query($conn, $query);
+
+    // 🔥 Output HTML cards only
+    while ($r = mysqli_fetch_assoc($result)) {
+
+        // ✔ keep your outgoing check EXACTLY
+        $check = "
+            SELECT * FROM tbl_document_actions
+            WHERE doc_id = '{$r['doc_id']}'
+              AND from_office_id = '{$_SESSION['acc_id']}'
+            LIMIT 1
+        ";
+        $runcheck = mysqli_query($conn, $check);
+
+        // ✔ hide if already acted (your original behavior)
+        if (mysqli_num_rows($runcheck) > 0) {
+            continue;
+        }
+
+        // date formatting
+        $date = !empty($r['date_received']) 
+            ? date("F d, Y h:i A", strtotime($r['date_received']))
+            : "—";
+
+        // 🔥 card output
+        echo '
+        <div class="doc-card mb-2">
+            <div class="doc-title">'.htmlspecialchars($r['particular']).'</div>
+
+            <div class="doc-meta">
+                <div><b>Office:</b> '.$r['office_division'].'</div>
+                <div><b>Type:</b> '.$r['type_of_documents'].'</div>
+                <div><b>File Code:</b> '.$r['file_code'].'</div>
+                <div><b>Date Received:</b> '.$date.'</div>
+            </div>
+
+            <div class="doc-actions-horizontal mt-3">
+                <button class="btn btn-warning btn-sm" onclick="view_uploaded_images('.$r['doc_id'].')">
+                    <i class="bi bi-images"></i>
+                </button>
+                <button class="btn btn-info btn-sm" onclick="viewTimeline('.$r['doc_id'].')">
+                    <i class="bi bi-clock-history"></i>
+                </button>
+            </div>
+        </div>';
+    }
+
+    exit;
+}
+
+
+
 /* 🚀 SERVER-SIDE DATATABLES PROCESSING */
 if (isset($_POST['server_table'])) {
 
@@ -200,4 +284,6 @@ if (isset($_POST['server_table'])) {
     ]);
     exit;
 }
+
+
 ?>

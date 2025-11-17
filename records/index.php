@@ -675,6 +675,42 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
 </div>
 
 
+<!-- //manage employees -->
+<div class="modal fade" id="EmployeeModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="uploadImagesLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable modal-dialog-centered">
+    <div class="modal-content shadow-lg border-0 rounded-3">
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title fw-semibold" id="uploadImagesLabel">
+          <i class="bi bi-images me-2"></i> Manage Employee
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+
+      <div class="modal-body">
+        <div class="row">
+          <div class="col-lg-12">
+            <label for="acc_name">Employee Name</label>
+            <input type="text" class="form-control" id="acc_name">
+          </div>
+        </div>
+        <div class="mb-3 py-2">
+            <button type="button" class="btn btn-primary" onclick="saving_employees()">
+                <i class="bi bi-save2"></i> Add to list...
+            </button>
+        </div>  
+        <div class="mb-3 py-2">
+          <div id="emp_list">Loading list...</div>
+        </div>               
+      </div>
+      <div class="modal-footer bg-white border-0">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+          <i class="bi bi-x-circle me-1"></i> Close
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
 
   <!-- ======= Footer ======= -->
   <footer id="footer" class="footer">
@@ -699,6 +735,84 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
   <script src="../assets/sweetalert2.js"></script>
   <script src="../assets/js/main.js"></script>
 <script>
+
+  function saving_employees(){
+    var acc_name = $('#acc_name').val();
+    $.ajax({
+      url: "query_records.php",
+      type: "POST",
+      data: { 
+        saving_employees: 1,
+        acc_name: acc_name 
+      },
+      success: function(response) {
+        $('#acc_name').val('');
+        $('#acc_name').focus();
+        load_employees();
+      }
+    });
+  }
+
+function delete_emps(acc_id) {
+ 
+  Swal.fire({
+    icon: 'warning',
+    title: 'Are you sure?',
+    text: 'This will permanently delete the selected faculty.',
+    showCancelButton: true,
+    confirmButtonText: 'Yes, delete it!',
+    cancelButtonText: 'Cancel',
+    confirmButtonColor: '#d33',
+    cancelButtonColor: '#6c757d'
+  }).then(result => {
+    if (result.isConfirmed) {
+      $.ajax({
+        url: "query_records.php",
+        type: "POST",
+        data: { 
+          delete_employees: 1,
+          acc_id: acc_id 
+        },
+        success: function(response) {
+          load_employees();
+        }
+      });
+    }
+  });
+}
+
+function load_employees() {
+  $.ajax({
+    url: "query_records.php",
+    type: "POST",
+    data: { loading_employees: 1 },
+    success: function(response) {
+      $('#emp_list').html(response);
+
+      setTimeout(() => {
+        if ($.fn.DataTable.isDataTable('#datatable')) {
+            $('#datatable').DataTable().destroy();
+        }
+
+        $('#datatable').DataTable({
+          pageLength: 10,
+          lengthChange: true,
+          ordering: true,
+          searching: true,
+          autoWidth: false
+        });
+      }, 100);
+    }
+  });
+}
+
+
+  function manage_faculty(){
+    load_employees();
+    $('#EmployeeModal').modal('show');
+  }
+
+// =============================================================
 
 function delete_travel_order() {
   const doc_id = $('#edit_travel_order_doc_id').val();
