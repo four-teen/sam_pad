@@ -43,7 +43,6 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
 
   <!-- Template Main CSS File -->
   <link href="../assets/css/style.css" rel="stylesheet">
-  <link href="css_records.css" rel="stylesheet">
   <style>
       /* Fix select2 alignment */
       .select2-container .select2-selection--single {

@@ -47,6 +47,117 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
   <link href="../assets/css/style.css" rel="stylesheet">
   <link href="css_index.css" rel="stylesheet">
 
+<style>
+.doc-card {
+    border: 1px solid #c8e6c9;
+    background: #ffffff;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+    cursor: pointer;
+    position: relative;     /* ⭐ FIX: Anchor absolute children */
+    overflow: hidden;       /* prevents shifting during scale */
+}
+
+.doc-card:hover .action-buttons {
+    transform: none !important;
+}
+
+
+    .doc-title {
+        font-size: 1rem;
+        line-height: 1.2;
+        color: #212529;
+    }
+
+    .doc-info {
+        margin-top: 1px;         /* small space above info */
+        margin-bottom: 2px;      /* small space below info */
+    }
+
+    /* Mobile Adjustment */
+    @media (max-width: 576px) {
+        .doc-card {
+            padding: 1rem;
+        }
+        .doc-title {
+            font-size: 0.95rem;
+        }
+        .receive-btn {
+            width: 100%;     /* full button on mobile */
+            margin-top: 8px;
+        }
+    }
+      
+    /*=============================================*/
+    /* Floating Receive Button */
+    .receive-floating {
+        white-space: nowrap;
+    }
+
+    /* Make card responsive */
+    @media (max-width: 576px) {
+        .d-flex.justify-content-between {
+            flex-direction: column;
+            align-items: flex-start !important;
+            gap: 10px;
+        }
+
+        .receive-floating {
+            width: 100%;          /* full button on mobile */
+        }
+    }
+    /*====================================*/
+
+    .doc-info div i {
+        color: #4caf50 !important; /* green icons */
+    }
+
+    .doc-info div {
+        padding: 1px 0;
+        color: #555; /* darker gray for labels */
+    }
+
+    .doc-info span {
+        color: #1b5e20; /* dark green for values */
+        font-weight: 500;
+    }
+
+    /*===========================================*/
+.action-buttons {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    z-index: 5; /* ensures they stay on top */
+}
+
+    .action-buttons .action-btn {
+        width: 36px;
+        height: 36px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 0;
+        border-radius: 6px;
+    }
+
+    /* MOBILE FIX: Buttons move below title */
+    @media (max-width: 576px) {
+        .action-buttons {
+            position: static;
+            margin-top: 10px;
+            flex-direction: row !important;  
+        }
+
+        .action-buttons .action-btn {
+            width: auto;
+            padding: 4px 10px;
+        }
+    }
+
+</style>
+
 </head>
 
 <body>
@@ -76,7 +187,10 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
           <i class="bi bi-file-earmark-plus"></i> Add New Record
         </button>
       </div>
-
+      <div class="mb-3">
+        <input type="text" id="search_input" class="form-control shadow-sm"
+               placeholder="Search file code, particular, agency..." />
+      </div>
       <div id="main_data"></div>
     </div>
   </div>
@@ -338,6 +452,7 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
   <script src="../assets/js/main.js"></script>
 <script>
 
+let searchKeyword = "";  // ⭐ GLOBAL SEARCH TEXT
 
 function confirmDocumentReceipt(doc_id, received_by, office_division) {
 
@@ -1112,54 +1227,88 @@ document.getElementById("btn_save_record").addEventListener("click", function() 
   });
 });
 
-  function loadTable() {
-      let progress = 0;
-      let interval;
+// ================================
+$(document).ready(function () {
 
-      $('#main_data').html(`
-        <div style="padding: 1rem;">
-          <div class="progress" style="height: 6px;">
-            <div id="progress-bar" class="progress-bar progress-bar-striped progress-bar-animated"
-              style="width: 0%; background: linear-gradient(90deg, #17a2b8, #0dcaf0);"></div>
-          </div>
-          <div id="progress-label" style="font-size: 11px; margin-top: 6px; color: #6c757d;">
-            Loading data... 0%
-          </div>
-        </div>`);
+  $("#search_input").on("keyup", function () {
+    clearTimeout(window.searchTimer);
 
-      interval = setInterval(() => {
-        if (progress < 90) {
-          progress++;
-          $('#progress-bar').css('width', progress + '%');
-          $('#progress-label').text(`Loading data... ${progress}%`);
-        }
-      }, 20);
+    window.searchTimer = setTimeout(function () {
+      loadTable();
+    }, 300);  // ⭐ wait 300ms to reduce spam
+  });
 
-      $.ajax({
-        type: "POST",
-        url: "query_records.php",
-        data: { "loading_records": "1" },
-        success: function(response) {
-          clearInterval(interval);
-          $('#progress-bar').css('width', '100%');
-          $('#progress-label').html(`<i class="bx bx-check-circle text-success"></i> Load complete!`);
+});
 
-          setTimeout(() => {
-            $('#main_data').html(response);
-            $('#docTable').DataTable({
-              paging: true,
-              pageLength: 10,
-              lengthChange: true,
-              searching: true,
-              ordering: true,
-              info: true,
-              autoWidth: false
-            });
+function loadMoreRecords() {
+  isLoading = true;
 
-          }, 600);
-        }
-      });
-  }
+  $("#records_container").append(`
+    <div id="loading_more" class="text-center p-2">
+      <div class="spinner-border text-secondary spinner-sm"></div>
+    </div>
+  `);
+
+  $.ajax({
+    url: "query_records.php",
+    type: "POST",
+    data: {
+      load_records_scroll: 1,
+      start: start,
+      limit: limit,
+      search: searchKeyword  // ⭐ VERY IMPORTANT
+    },
+    success: function (response) {
+
+      $("#loading_more").remove();
+
+      if (start === 0) {
+        $("#main_data > div.text-center").remove();
+      }
+
+      if (response.trim() === "no more") {
+        stopLoading = true;
+        return;
+      }
+
+      $("#records_container").append(response);
+
+      start += limit;
+      isLoading = false;
+    }
+  });
+}
+
+
+function loadTable() {
+
+  // RESET variables
+  start = 0;
+  limit = 20;
+  isLoading = false;
+  stopLoading = false;
+
+  searchKeyword = $("#search_input").val().trim(); // ⭐ APPLY SEARCH
+
+  $("#main_data").html(`
+    <div class="text-center p-3">
+      <div class="spinner-border text-info" role="status"></div>
+      <p class="mt-2 text-muted" style="font-size: 12px;">Loading records...</p>
+    </div>
+    <div id="records_container"></div>
+  `);
+
+  loadMoreRecords();
+
+  $(window).off("scroll").on("scroll", function () {
+    if (stopLoading || isLoading) return;
+
+    if ($(window).scrollTop() + $(window).height() + 200 >= $(document).height()) {
+      loadMoreRecords();
+    }
+  });
+}
+
 
 
 // Delete Record

@@ -45,10 +45,14 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
 
   <!-- Template Main CSS File -->
   <link href="../assets/css/style.css" rel="stylesheet">
-  <link href="css_records.css" rel="stylesheet">
+  <!-- <link href="css_records.css" rel="stylesheet"> -->
   <link href="css_index.css" rel="stylesheet">
 
-
+<style>
+  .success-cell {
+      background-color: #d4edda !important;
+  }  
+</style>
 </head>
 
 <body>
@@ -1817,26 +1821,29 @@ function loadTable() {
       </table>
     `);
 
-    $('#requestTable').DataTable({
-      processing: true,
-      serverSide: true,
-      ajax: {
+$('#requestTable').DataTable({
+    processing: true,
+    serverSide: true,
+    ajax: {
         url: "query_load_table.php",
         type: "POST",
         data: { server_table: 1 }
-      },
-      columns: [
+    },
+    createdRow: function(row, data) {
+        if (data.row_class) {
+            $(row).addClass(data.row_class);
+        }
+    },
+    columns: [
         { data: "date_received" },
         { data: "file_code", className: "nowrap" },
         { data: "office_division" },
         { data: "type_of_documents" },
         { data: "particular" },
         { data: "actions", orderable: false, searchable: false }
-      ],
-      pageLength: 10,
-      responsive: true,
-      order: [[0, "desc"]]
-    });
+    ],
+});
+
   }, 300);
 }
 

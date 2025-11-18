@@ -40,10 +40,10 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
   <link href="../assets/vendor/simple-datatables/style.css" rel="stylesheet">
   <link href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-
-  <!-- Template Main CSS File -->
   <link href="../assets/css/style.css" rel="stylesheet">
-  <link href="css_records.css" rel="stylesheet">
+  <!-- Template Main CSS File
+
+  <link href="css_records.css" rel="stylesheet"> -->
 
   <style>
       /* Fix select2 alignment */

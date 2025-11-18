@@ -537,60 +537,126 @@ if (isset($_POST['delete_record'])) {
     exit;
 }
 
-if (isset($_POST['loading_records'])) {
-   echo 
-   ''; ?>
-    <div class="table-responsive">
-      <table id="docTable" class="table table-hover table-sm">
-        <thead class="table-light">
-          <tr>
-            <th>#</th>
-            <th>CODE</th>
-            <th>PARICULAR</th>
-            <th></th>
-            <th>Action</th>
-          </tr>
-        </thead>
-        <tbody>
-            <?php 
-$sql = "
-    SELECT *
-    FROM tbl_documents_registry d
-    WHERE d.uni_divisionid = '{$_SESSION['officeid']}'
-      AND NOT EXISTS (
+if (isset($_POST['load_records_scroll'])) {
+
+    $start = intval($_POST['start']);
+    $limit = intval($_POST['limit']);
+    $office_id = $_SESSION['officeid'];
+    $search = mysqli_real_escape_string($conn, $_POST['search'] ?? "");
+
+    $whereSearch = "";
+    if ($search != "") {
+        $whereSearch = "
+            AND (
+                d.file_code LIKE '%$search%' OR
+                d.particular LIKE '%$search%' OR
+                d.office_division LIKE '%$search%'
+            )
+        ";
+    }
+
+    $sql = "
+        SELECT *
+        FROM tbl_documents_registry d
+        WHERE d.uni_divisionid = '$office_id'
+        $whereSearch
+        AND NOT EXISTS (
             SELECT 1
             FROM tbl_document_actions a
             WHERE a.doc_id = d.doc_id
               AND a.action_type = 'Received'
         )
-";
-                $run = mysqli_query($conn, $sql);
-                $count = 1;
-                while ($r = mysqli_fetch_assoc($run)) {
-                    echo
-                    '
-                      <tr>
-                        <td width="1%" class="text-end align-middle">'.$count++.'.</td>
-                        <td class="text-nowrap align-middle">'.$r['file_code'].'</td>
-                        <td class="align-middle">'.$r['particular'].'</td>
-                        <td></td>
+        ORDER BY d.date_received DESC
+        LIMIT $start, $limit
+    ";
 
-                        <td width="1%" class="text-center text-nowrap">
-                            <button  onclick="confirmDocumentReceipt(\''.$r['doc_id'].'\', \''.$r['received_by'].'\', \''.$r['office_division'].'\')" class="btn btn-success btn-sm" title="Recieved this document">
-                              <i class="bi bi-arrow-90deg-right"></i>
-                            </button>
+    $run = mysqli_query($conn, $sql);
 
-                        </td>
-                      </tr>
-                    ';
-                }
+    if (mysqli_num_rows($run) == 0) {
+        echo "no more";
+        exit;
+    }
 
-            ?>
-        </tbody>
-      </div>
-   <?php echo'';
+    while ($r = mysqli_fetch_assoc($run)) {
+
+        // Calculate Lapsed Days
+        $date1 = new DateTime($r['date_received']);
+        $date2 = new DateTime();
+        $lapsed = $date1->diff($date2)->days . " days ago";
+
+echo '
+<div class="doc-card shadow-sm rounded" 
+     style="padding:10px 12px; margin-bottom:10px;">
+
+    <!-- Title -->
+    <div class="doc-title fw-bold"
+         style="font-size:14px; line-height:1.3; margin-bottom:4px;">
+        '.htmlspecialchars($r['particular']).'
+    </div>
+
+    <!-- Compact inline info -->
+    <div class="doc-info small text-muted"
+         style="display:flex; flex-wrap:wrap; column-gap:12px; row-gap:2px; line-height:1.2; margin-bottom:4px;">
+        <span style="white-space:nowrap;">
+            <i class="bi bi-building me-1"></i> Office: VPAA
+        </span>
+        <span style="white-space:nowrap;">
+            <i class="bi bi-upc-scan me-1"></i> File Code: '.$r['file_code'].'
+        </span>
+        <span style="white-space:nowrap;">
+            <i class="bi bi-calendar-event me-1"></i> '
+                .date('F d, Y H:i a', strtotime($r['date_received'])).'
+        </span>
+        <span style="white-space:nowrap;">
+            <i class="bi bi-clock-history me-1"></i> '.$lapsed.'
+        </span>
+    </div>
+
+    <!-- Buttons under info -->
+    <div class="mt-1">
+';
+?>
+
+<?php 
+
+    if ($r['received_by']===$_SESSION['officeid']) {
+        echo '
+            <button 
+                onclick="confirmDocumentReceipt(\''.$r['doc_id'].'\', \''.$r['received_by'].'\', \''.$r['office_division'].'\')" 
+                class="btn btn-success btn-sm">
+                <i class="bi bi-arrow-90deg-right me-1"></i> Receive
+            </button>
+        ';
+    } else {
+        echo '
+            <div style="display:flex; gap:6px;">
+                <button 
+                    onclick="delete_records(\''.$r['doc_id'].'\')" 
+                    class="btn btn-danger btn-sm">
+                    <i class="bi bi-trash"></i>
+                </button>
+
+                <button 
+                    onclick="edit_records(\''.$r['doc_id'].'\')" 
+                    class="btn btn-warning btn-sm">
+                    <i class="bi bi-pencil-square"></i>
+                </button>
+            </div>
+        ';
+    }
+?>
+
+<?php echo '
+    </div>
+</div>
+';
 
 
+
+    }
+
+    exit;
 }
+
 
 ?>
