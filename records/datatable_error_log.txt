@@ -211,3 +211,48 @@
 2025-11-17 21:42:54 | server_table request received
 2025-11-17 21:42:54 | DocID=314 | recordOwner=9 | currentOffice=67 | isOwner=FALSE
 2025-11-17 21:42:54 | DocID=313 | recordOwner=67 | currentOffice=67 | isOwner=TRUE
+
+
+>>> Script started at 2025-11-18 19:39:13
+2025-11-18 19:39:13 | server_table request received
+2025-11-18 19:39:13 | DocID=316 | recordOwner=9 | currentOffice=67 | isOwner=FALSE
+2025-11-18 19:39:13 | DocID=315 | recordOwner=9 | currentOffice=67 | isOwner=FALSE
+2025-11-18 19:39:13 | DocID=314 | recordOwner=9 | currentOffice=67 | isOwner=FALSE
+2025-11-18 19:39:13 | DocID=313 | recordOwner=67 | currentOffice=67 | isOwner=TRUE
+
+
+>>> Script started at 2025-11-18 19:42:11
+2025-11-18 19:42:11 | server_table request received
+
+
+>>> Script started at 2025-11-18 19:42:56
+2025-11-18 19:42:56 | server_table request received
+2025-11-18 19:42:56 | DocID=1 | recordOwner=9 | currentOffice=67 | isOwner=FALSE
+
+
+>>> Script started at 2025-11-18 20:15:53
+2025-11-18 20:15:53 | server_table request received
+2025-11-18 20:15:53 | DocID=4 | recordOwner=9 | currentOffice=67 | isOwner=FALSE
+2025-11-18 20:15:53 | DocID=3 | recordOwner=9 | currentOffice=67 | isOwner=FALSE
+2025-11-18 20:15:53 | DocID=2 | recordOwner=2 | currentOffice=67 | isOwner=FALSE
+2025-11-18 20:15:53 | DocID=1 | recordOwner=9 | currentOffice=67 | isOwner=FALSE
+
+
+>>> Script started at 2025-11-18 20:17:49
+2025-11-18 20:17:49 | server_table request received
+2025-11-18 20:17:49 | DocID=1 | recordOwner=9 | currentOffice=67 | isOwner=FALSE
+
+
+>>> Script started at 2025-11-18 20:18:21
+2025-11-18 20:18:21 | server_table request received
+2025-11-18 20:18:21 | DocID=1 | recordOwner=9 | currentOffice=67 | isOwner=FALSE
+
+
+>>> Script started at 2025-11-18 20:19:05
+2025-11-18 20:19:05 | server_table request received
+2025-11-18 20:19:05 | DocID=1 | recordOwner=9 | currentOffice=67 | isOwner=FALSE
+
+
+>>> Script started at 2025-11-18 20:19:39
+2025-11-18 20:19:39 | server_table request received
+2025-11-18 20:19:39 | DocID=1 | recordOwner=9 | currentOffice=67 | isOwner=FALSE

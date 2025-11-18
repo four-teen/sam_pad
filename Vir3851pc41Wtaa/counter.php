@@ -25,11 +25,30 @@ if(isset($_POST['load_rec_count'])){
 
 //received documents
 if(isset($_POST['get_outgoing_counter'])){
-    $check = "SELECT  count(tbl_documents_registry.doc_id) as received_counter
-                FROM `tbl_document_actions`
-                INNER JOIN tbl_documents_registry ON tbl_documents_registry.doc_id=tbl_document_actions.doc_id
-                WHERE action_type='Received' AND to_office_id='$_SESSION[officeid]'";
+    $office_id = mysqli_real_escape_string($conn, $_SESSION['officeid']);
+    
+    // Updated SQL query with NOT EXISTS filtering
+    $check = "SELECT
+                COUNT(tda.doc_id) as received_counter
+            FROM
+                `tbl_document_actions` tda
+            INNER JOIN
+                tbl_documents_registry tdr ON tdr.doc_id = tda.doc_id
+            WHERE
+                tda.action_type = 'Received'
+                AND tda.to_office_id = '$office_id'
+                AND NOT EXISTS (
+                    SELECT
+                        1
+                    FROM
+                        `tbl_document_actions` tda_newer
+                    WHERE
+                        tda_newer.doc_id = tda.doc_id
+                        AND tda_newer.action_date > tda.action_date
+                )";
+    
     $runcheck = mysqli_query($conn, $check);
+    
     if($runcheck){
         $r = mysqli_fetch_assoc($runcheck);
         echo $r['received_counter'];

@@ -524,7 +524,17 @@ if (isset($_POST['add_record'])) {
         (date_received, received_by, file_code, office_division, uni_divisionid, type_of_documents, particular)
         VALUES ('$date_received', '$received_by', '$file_code', '$divisionid', '$office_id', '$doctypeid', '$particular')
     ");
+    if($insert){
+        // 🔥 Get last inserted doc_id
+        $doc_id = mysqli_insert_id($conn);
 
+        // 🔥 Insert into actions table using the doc_id
+        $insert_actions = mysqli_query($conn, "
+            INSERT INTO tbl_document_actions 
+            (doc_id, from_office_id, to_office_id, action_type, action_remarks, action_date)
+            VALUES ('$doc_id', '$received_by', '$received_by', 'Logged', '', NOW())
+        ");
+    }
     echo $insert ? "success" : "error";
     exit;
 }
@@ -558,6 +568,7 @@ if (isset($_POST['load_records_scroll'])) {
     $sql = "
         SELECT *
         FROM tbl_documents_registry d
+        INNER JOIN tbl_office_heads ON tbl_office_heads.office_id=d.received_by
         WHERE d.uni_divisionid = '$office_id'
         $whereSearch
         AND NOT EXISTS (
@@ -598,14 +609,14 @@ echo '
     <div class="doc-info small text-muted"
          style="display:flex; flex-wrap:wrap; column-gap:12px; row-gap:2px; line-height:1.2; margin-bottom:4px;">
         <span style="white-space:nowrap;">
-            <i class="bi bi-building me-1"></i> Office: VPAA
+            <i class="bi bi-building me-1"></i> Office: <span class="text-danger">'.$r['office_name'].'</span>
         </span>
         <span style="white-space:nowrap;">
             <i class="bi bi-upc-scan me-1"></i> File Code: '.$r['file_code'].'
         </span>
         <span style="white-space:nowrap;">
             <i class="bi bi-calendar-event me-1"></i> '
-                .date('F d, Y H:i a', strtotime($r['date_received'])).'
+                .date('F d, Y h:i a', strtotime($r['date_received'])).'
         </span>
         <span style="white-space:nowrap;">
             <i class="bi bi-clock-history me-1"></i> '.$lapsed.'
@@ -621,14 +632,6 @@ echo '
 
     if ($r['received_by']===$_SESSION['officeid']) {
         echo '
-            <button 
-                onclick="confirmDocumentReceipt(\''.$r['doc_id'].'\', \''.$r['received_by'].'\', \''.$r['office_division'].'\')" 
-                class="btn btn-success btn-sm">
-                <i class="bi bi-arrow-90deg-right me-1"></i> Receive
-            </button>
-        ';
-    } else {
-        echo '
             <div style="display:flex; gap:6px;">
                 <button 
                     onclick="delete_records(\''.$r['doc_id'].'\')" 
@@ -641,7 +644,23 @@ echo '
                     class="btn btn-warning btn-sm">
                     <i class="bi bi-pencil-square"></i>
                 </button>
+
+                <button 
+                    onclick="take_action(\''.$r['doc_id'].'\')"
+                    class="btn btn-primary btn-sm"  
+                    title="Take Action">
+                    <i class="bx bx-cog"></i>
+                </button>
+
             </div>
+        ';
+    } else {
+        echo '
+            <button 
+                onclick="confirmDocumentReceipt(\''.$r['doc_id'].'\', \''.$r['received_by'].'\', \''.$r['office_division'].'\')" 
+                class="btn btn-success btn-sm">
+                <i class="bi bi-arrow-90deg-right me-1"></i> Receive
+            </button>
         ';
     }
 ?>

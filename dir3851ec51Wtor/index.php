@@ -288,7 +288,7 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
         <div class="mb-3">
           <label class="form-label fw-semibold" for="action_type">Select Action</label>
           <select id="action_type" class="form-control">
-            <option value="FORWARDED">FORWARDED</option>
+            <option value="FORWARDED">FORWARD</option>
             <option value="ARCHIEVED">ARCHIEVED</option>
           </select>
         </div>

@@ -59,10 +59,26 @@ if (isset($_POST['loading_records'])) {
         </thead>
         <tbody>
             <?php 
-                $sql = "SELECT  *
-                FROM `tbl_document_actions`
-                INNER JOIN tbl_documents_registry ON tbl_documents_registry.doc_id=tbl_document_actions.doc_id
-                WHERE action_type='Received' AND to_office_id='$_SESSION[officeid]'";
+                $sql = "SELECT
+    tda.*,
+    tdr.file_code,    -- **ADDED**
+    tdr.particular    -- **ADDED**
+FROM
+    `tbl_document_actions` tda
+INNER JOIN
+    tbl_documents_registry tdr ON tdr.doc_id = tda.doc_id -- tdr is the alias for registry table
+WHERE
+    tda.action_type = 'Received'
+    AND tda.to_office_id = '2'
+    AND NOT EXISTS (
+        SELECT
+            1
+        FROM
+            `tbl_document_actions` tda_newer
+        WHERE
+            tda_newer.doc_id = tda.doc_id
+            AND tda_newer.action_date > tda.action_date
+    )";
                 $run = mysqli_query($conn, $sql);
                 $count = 1;
                 while ($r = mysqli_fetch_assoc($run)) {
