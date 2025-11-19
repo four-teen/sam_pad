@@ -47,6 +47,68 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
   <link href="../assets/css/style.css" rel="stylesheet">
   <link href="css_index.css" rel="stylesheet">
 
+  <style>
+/* ====== Smooth Connected Timeline ====== */
+.timeline {
+  position: relative;
+  margin-left: 28px; /* spacing from icons */
+  padding-left: 20px;
+}
+
+.timeline::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 2px; /* aligns exactly with badge centers */
+  width: 3px;
+  height: 100%;
+  background: linear-gradient(to bottom, #f0f0f0, #ddd);
+  border-radius: 2px;
+}
+
+/* each timeline item */
+.timeline-item {
+  position: relative;
+  margin-bottom: 1.8rem;
+  padding-left: 10px;
+}
+
+/* the round icons */
+.timeline-item .timeline-icon {
+  position: absolute;
+  left: -28px;
+  top: 0;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 12px;
+  z-index: 2;
+}
+
+/* small connector between points */
+.timeline-item:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  left: -18px;
+  top: 22px;
+  width: 3px;
+  height: calc(100% - 22px);
+  background: #ddd;
+  border-radius: 2px;
+  z-index: 1;
+}
+
+  /* Make the timeline drawer wider */
+  #timelineDrawer.offcanvas-end {
+    width: 600px !important;   /* Default ~400px; adjust as needed */
+    max-width: 90vw;           /* Responsive limit */
+  }    
+  </style>
+
 </head>
 
 <body>
@@ -312,6 +374,21 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
   </div>
 </div>
 
+<!-- 🔹 Timeline Drawer -->
+<div class="offcanvas offcanvas-end shadow-lg" tabindex="-1" id="timelineDrawer" aria-labelledby="timelineDrawerLabel">
+  <div class="offcanvas-header bg-primary text-white">
+    <h5 class="offcanvas-title" id="timelineDrawerLabel">
+      <i class="bi bi-clock-history me-2"></i> Document Activity Timeline
+    </h5>
+    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+  </div>
+  <div class="offcanvas-body" id="timelineContent" style="max-height:80vh; overflow-y:auto;">
+    <div class="text-center text-muted mt-5">
+      <i class="bi bi-arrow-clockwise fs-2 d-block mb-2"></i>
+      <p>Loading timeline...</p>
+    </div>
+  </div>
+</div>
 
   <!-- ======= Footer ======= -->
   <footer id="footer" class="footer">
@@ -337,7 +414,43 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
   <script src="../assets/js/main.js"></script>
 <script>
 
+// =============================================================
+// time line
+// =============================================================
 
+  function viewTimeline(doc_id) {
+    // Open the offcanvas drawer
+    const drawer = new bootstrap.Offcanvas(document.getElementById('timelineDrawer'));
+    drawer.show();
+
+    // Show loading state
+    $('#timelineContent').html(`
+      <div class="text-center text-muted mt-5">
+        <i class="bi bi-arrow-clockwise fs-2 d-block mb-2"></i>
+        <p>Loading timeline...</p>
+      </div>
+    `);
+
+    // Fetch the timeline data
+    $.ajax({
+      url: "query_timeline.php",
+      type: "POST",
+      data: { load_timeline: 1, doc_id: doc_id },
+      success: function(response) {
+        $('#timelineContent').html(response);
+      },
+      error: function() {
+        $('#timelineContent').html(`
+          <div class="alert alert-danger text-center mt-5">
+            <i class="bi bi-exclamation-triangle me-2"></i>
+            Failed to load timeline.
+          </div>
+        `);
+      }
+    });
+  }
+
+// =============================================================
 
     function loadTable() {
       let progress = 0;

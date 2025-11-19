@@ -11,13 +11,20 @@ if (!isset($_SESSION['username']) || $_SESSION['username'] == '') {
 
 
 if(isset($_POST['load_rec_count'])){
-    $check = "SELECT  count(*) as all_docs
-                FROM `tbl_documents_registry`
-                WHERE uni_divisionid='$_SESSION[officeid]'";
+    $check = "SELECT COUNT(DISTINCT doc_id) AS vpaa_processed
+FROM tbl_document_actions
+WHERE 
+    -- VPAA created/encoded the document
+    (from_office_id = 2 AND action_type = 'Logged')
+
+    OR
+
+    -- VPAA already received the document
+    (to_office_id = 2 AND action_type = 'Received');";
     $runcheck = mysqli_query($conn, $check);
     if($runcheck){
         $r = mysqli_fetch_assoc($runcheck);
-        echo $r['all_docs'];
+        echo $r['vpaa_processed'];
     }
 }
 
@@ -56,29 +63,43 @@ if(isset($_POST['get_outgoing_counter'])){
 }
 
 
-//Delivered records
 if (isset($_POST['get_received_counter'])) {
 
     $office_id = $_SESSION['officeid'];
 
-    // Count documents for this office that do NOT have a 'Received' action
     $sql = "
-        SELECT COUNT(*) AS vpaa_records_received
-        FROM tbl_documents_registry d
-        WHERE d.uni_divisionid = '$office_id'
-          AND NOT EXISTS (
-                SELECT 1
-                FROM tbl_document_actions a
-                WHERE a.doc_id = d.doc_id
-                  AND a.action_type = 'Received'
-          )
+        SELECT COUNT(*) AS delivered_count
+        FROM (
+            SELECT a1.doc_id, a1.from_office_id, a1.to_office_id, a1.action_type
+            FROM tbl_document_actions a1
+            INNER JOIN (
+                SELECT doc_id, MAX(action_id) AS max_id
+                FROM tbl_document_actions
+                GROUP BY doc_id
+            ) a2 ON a1.doc_id = a2.doc_id AND a1.action_id = a2.max_id
+
+            WHERE 
+                (
+                    -- CASE 1: Own encoded documents still in office
+                    (a1.from_office_id = '$office_id'
+                     AND a1.to_office_id = '$office_id'
+                     AND a1.action_type = 'Logged')
+
+                    OR
+
+                    -- CASE 2: Incoming documents (not yet received)
+                    (a1.to_office_id = '$office_id'
+                     AND a1.from_office_id != '$office_id'
+                     AND a1.action_type = 'Forwarded')
+                )
+        ) AS x
     ";
 
     $run = mysqli_query($conn, $sql);
 
     if ($run) {
         $row = mysqli_fetch_assoc($run);
-        echo $row['vpaa_records_received'];
+        echo $row['delivered_count'];
     } else {
         error_log('SQL Error: ' . mysqli_error($conn));
         echo 0;

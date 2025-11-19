@@ -543,6 +543,10 @@ if (isset($_POST['add_record'])) {
 if (isset($_POST['delete_record'])) {
     $doc_id = mysqli_real_escape_string($conn, $_POST['doc_id']);
     $delete = mysqli_query($conn, "DELETE FROM tbl_documents_registry WHERE doc_id='$doc_id'");
+
+
+    $delete = mysqli_query($conn, "DELETE FROM tbl_document_actions WHERE doc_id='$doc_id'");
+
     echo $delete ? "deleted" : "error";
     exit;
 }
@@ -565,21 +569,40 @@ if (isset($_POST['load_records_scroll'])) {
         ";
     }
 
-    $sql = "
-        SELECT *
-        FROM tbl_documents_registry d
-        INNER JOIN tbl_office_heads ON tbl_office_heads.office_id=d.received_by
-        WHERE d.uni_divisionid = '$office_id'
-        $whereSearch
-        AND NOT EXISTS (
-            SELECT 1
-            FROM tbl_document_actions a
-            WHERE a.doc_id = d.doc_id
-              AND a.action_type = 'Received'
+    // 🚀 FIXED QUERY: Get only documents CURRENTLY in this office
+$sql = "
+    SELECT d.*, oh.office_name, la.from_office_id AS last_from, la.to_office_id AS last_to, la.action_type AS last_action
+    FROM tbl_documents_registry d
+
+    LEFT JOIN tbl_office_heads oh 
+        ON oh.office_id = d.received_by
+
+    LEFT JOIN (
+        SELECT a1.*
+        FROM tbl_document_actions a1
+        INNER JOIN (
+            SELECT doc_id, MAX(action_id) AS max_id
+            FROM tbl_document_actions
+            GROUP BY doc_id
+        ) a2 ON a1.doc_id = a2.doc_id AND a1.action_id = a2.max_id
+    ) la ON la.doc_id = d.doc_id
+
+    WHERE 
+        (
+            -- CASE 1: Own encoded documents still in office
+            (la.from_office_id = '$office_id' AND la.to_office_id = '$office_id' AND la.action_type = 'Logged')
+
+            OR
+
+            -- CASE 2: Incoming documents from other offices (not yet received)
+            (la.to_office_id = '$office_id' AND la.from_office_id != '$office_id' AND la.action_type = 'Forwarded')
         )
-        ORDER BY d.date_received DESC
-        LIMIT $start, $limit
-    ";
+
+        $whereSearch
+
+    ORDER BY d.date_received DESC
+    LIMIT $start, $limit
+";
 
     $run = mysqli_query($conn, $sql);
 
@@ -595,84 +618,79 @@ if (isset($_POST['load_records_scroll'])) {
         $date2 = new DateTime();
         $lapsed = $date1->diff($date2)->days . " days ago";
 
-echo '
-<div class="doc-card shadow-sm rounded" 
-     style="padding:10px 12px; margin-bottom:10px;">
-
-    <!-- Title -->
-    <div class="doc-title fw-bold"
-         style="font-size:14px; line-height:1.3; margin-bottom:4px;">
-        '.htmlspecialchars($r['particular']).'
-    </div>
-
-    <!-- Compact inline info -->
-    <div class="doc-info small text-muted"
-         style="display:flex; flex-wrap:wrap; column-gap:12px; row-gap:2px; line-height:1.2; margin-bottom:4px;">
-        <span style="white-space:nowrap;">
-            <i class="bi bi-building me-1"></i> Office: <span class="text-danger">'.$r['office_name'].'</span>
-        </span>
-        <span style="white-space:nowrap;">
-            <i class="bi bi-upc-scan me-1"></i> File Code: '.$r['file_code'].'
-        </span>
-        <span style="white-space:nowrap;">
-            <i class="bi bi-calendar-event me-1"></i> '
-                .date('F d, Y h:i a', strtotime($r['date_received'])).'
-        </span>
-        <span style="white-space:nowrap;">
-            <i class="bi bi-clock-history me-1"></i> '.$lapsed.'
-        </span>
-    </div>
-
-    <!-- Buttons under info -->
-    <div class="mt-1">
-';
-?>
-
-<?php 
-
-    if ($r['received_by']===$_SESSION['officeid']) {
         echo '
-            <div style="display:flex; gap:6px;">
-                <button 
-                    onclick="delete_records(\''.$r['doc_id'].'\')" 
-                    class="btn btn-danger btn-sm">
-                    <i class="bi bi-trash"></i>
-                </button>
+        <div class="doc-card shadow-sm rounded" 
+             style="padding:10px 12px; margin-bottom:10px;">
 
-                <button 
-                    onclick="edit_records(\''.$r['doc_id'].'\')" 
-                    class="btn btn-warning btn-sm">
-                    <i class="bi bi-pencil-square"></i>
-                </button>
-
-                <button 
-                    onclick="take_action(\''.$r['doc_id'].'\')"
-                    class="btn btn-primary btn-sm"  
-                    title="Take Action">
-                    <i class="bx bx-cog"></i>
-                </button>
-
+            <div class="doc-title fw-bold"
+                 style="font-size:14px; line-height:1.3; margin-bottom:4px;">
+                '.htmlspecialchars($r['particular']).'
             </div>
+
+            <div class="doc-info small text-muted"
+                 style="display:flex; flex-wrap:wrap; column-gap:12px; row-gap:2px; line-height:1.2; margin-bottom:4px;">
+                <span style="white-space:nowrap;">
+                    <i class="bi bi-building me-1"></i> Office: 
+                    <span class="text-danger">'.$r['office_name'].'</span>
+                </span>
+                <span style="white-space:nowrap;">
+                    <i class="bi bi-upc-scan me-1"></i> File Code: '.$r['file_code'].'
+                </span>
+                <span style="white-space:nowrap;">
+                    <i class="bi bi-calendar-event me-1"></i> '
+                        .date('F d, Y h:i a', strtotime($r['date_received'])).'
+                </span>
+                <span style="white-space:nowrap;">
+                    <i class="bi bi-clock-history me-1"></i> '.$lapsed.'
+                </span>
+            </div>
+
+            <div class="mt-1">
         ';
-    } else {
+
+        // 🧠 LOGIC: If last action FROM this office → own document → show edit/delete/actions
+        if ($r['last_from'] == $_SESSION['officeid']) {
+            echo '
+                <div style="display:flex; gap:6px;">
+                    <button 
+                        onclick="delete_record(\''.$r['doc_id'].'\')" 
+                        class="btn btn-danger btn-sm">
+                        <i class="bi bi-trash"></i>
+                    </button>
+
+                    <button 
+                        onclick="edit_record(\''.$r['doc_id'].'\')" 
+                        class="btn btn-warning btn-sm">
+                        <i class="bi bi-pencil-square"></i>
+                    </button>
+
+                    <button 
+                        onclick="take_action(\''.$r['doc_id'].'\')"
+                        class="btn btn-primary btn-sm"  
+                        title="Take Action">
+                        <i class="bx bx-cog"></i>
+                    </button>
+                </div>
+            ';
+        } 
+    
+        // 🧠 ELSE: Document came FROM another office → show Receive button
+        else {
+            echo '
+                <button 
+                    onclick="confirmDocumentReceipt(\''.$r['doc_id'].'\', \''.$r['received_by'].'\', \''.$r['office_division'].'\')" 
+                    class="btn btn-success btn-sm">
+                    <i class="bi bi-arrow-90deg-right me-1"></i> Receive
+                </button>
+            ';
+        }
+
         echo '
-            <button 
-                onclick="confirmDocumentReceipt(\''.$r['doc_id'].'\', \''.$r['received_by'].'\', \''.$r['office_division'].'\')" 
-                class="btn btn-success btn-sm">
-                <i class="bi bi-arrow-90deg-right me-1"></i> Receive
-            </button>
+            </div>
+        </div>
         ';
     }
-?>
 
-<?php echo '
-    </div>
-</div>
-';
-
-
-
-    }
 
     exit;
 }

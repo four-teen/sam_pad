@@ -1201,7 +1201,6 @@ document.getElementById("btn_save_record").addEventListener("click", function() 
       particular: particular
     },
     success: function(response) {
-      alert(response);
       if (response.trim() === "success") {
         generateFileCode();
         Swal.fire({

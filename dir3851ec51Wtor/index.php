@@ -1262,24 +1262,24 @@ function manage_division(){
   $('#officedivisionModal').modal('show');
 }
 
-$(document).ready(function() {
+// $(document).ready(function() {
 
-  // ✅ For Take Action Modal
-  $('#takeActionModal').on('shown.bs.modal', function () {
-    if ($.fn.select2 && $('#to_office_id').data('select2')) {
-      $('#to_office_id').select2('destroy');
-    }
+//   // ✅ For Take Action Modal
+//   $('#takeActionModal').on('shown.bs.modal', function () {
+//     if ($.fn.select2 && $('#to_office_id').data('select2')) {
+//       $('#to_office_id').select2('destroy');
+//     }
 
-    $('#to_office_id').select2({
-      theme: 'bootstrap-5',
-      placeholder: 'Select Office / Division',
-      width: '100%',
-      allowClear: true,
-      dropdownParent: $('#takeActionModal')
-    });
-  });
+//     $('#to_office_id').select2({
+//       theme: 'bootstrap-5',
+//       placeholder: 'Select Office / Division',
+//       width: '100%',
+//       allowClear: true,
+//       dropdownParent: $('#takeActionModal')
+//     });
+//   });
 
-});
+// });
 
 
 
@@ -1344,12 +1344,38 @@ function save_set_actions() {
 }
 
 
-function take_action(doc_id) {
-  // 🔍 Check if there are uploaded images for this record first
-    $('#take_action_doc_id').val(doc_id);
-    $('#takeActionModal').modal('show');  
+$(document).ready(function() {
 
+    // ✅ Initialize Select2 ONCE only (no more destroy/re-init)
+    $('#to_office_id').select2({
+        theme: 'bootstrap-5',
+        placeholder: 'Select Office / Division',
+        width: '100%',
+        allowClear: true,
+        dropdownParent: $('#takeActionModal') // ensures dropdown stays in modal
+    });
+
+});
+
+function take_action(doc_id) {
+
+    // Set the hidden input's value
+    $('#take_action_doc_id').val(doc_id);
+
+    // Clear previous selection every time modal opens
+    $('#to_office_id').val(null).trigger('change');
+
+    // Show modal
+    $('#takeActionModal').modal('show');
 }
+
+// function take_action(doc_id) {
+//   alert();
+//   // 🔍 Check if there are uploaded images for this record first
+//     $('#take_action_doc_id').val(doc_id);
+//     $('#takeActionModal').modal('show');  
+
+// }
 
 
 $(document).ready(function() {
