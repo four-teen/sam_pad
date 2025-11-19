@@ -76,9 +76,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     $redirect = "dir3851ec51Wtor/index.php";
                     break; 
                 case '2':
-                    writeLog("Redirecting to directors..."); //VPAA
+                    writeLog("Redirecting to VPAA..."); //VPAA
                     $redirect = "Vir3851pc41Wtaa/index.php";
-                    break;                    
+                    break;  
+                case '72':
+                    writeLog("Redirecting to motorpool..."); //motorpool
+                    $redirect = "motorpool/index.php";
+                    break; 
+
 
                 default:
                     $_SESSION['status'] = "Unknown role.";

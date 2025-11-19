@@ -83,8 +83,11 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
           <i class="bi bi-file-earmark-plus"></i> Add New Record
         </button>
       </div>
+<div class="table-responsive">
+      <div id="main_data"></div>  
+</div>
 
-      <div id="main_data"></div>
+
     </div>
   </div>
 </div>
@@ -722,7 +725,7 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
       &copy; <strong><span><?php echo $rowconfig['systemname']; ?></span></strong> All Rights Reserved
     </div>
     <div class="credits">
-      Powered by <a href="#"><?php echo $rowconfig['systemcopyright']; ?></a> | Managed by <a href="https://www.facebook.com/breeve.antonio/">EOA</a>
+      Powered by <a href="#"><?php echo $rowconfig['systemcopyright']; ?></a><br>Managed by <a href="https://www.facebook.com/breeve.antonio/">EOA</a>
     </div>
   </footer>
 
