@@ -45,18 +45,25 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
 
   <!-- Template Main CSS File -->
   <link href="../assets/css/style.css" rel="stylesheet">
-  <link href="css_index.css" rel="stylesheet">
 
-  <style>
+<style>
+.request-card {
+  border-left: 4px solid #a5d6a7 !important; /* Google Green */
+  border-radius: 10px;
+  transition: 0.2s;
+}
 
-/*      .card:hover {
-          transform: scale(1.01);
-          transition: 0.2s;
-      }*/
+.request-card .card-body {
+  padding: 1rem 1.2rem; /* cleaner margin inside */
+}
+
+.request-card:hover {
+  background: #f6fff8;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+</style>
 
 
-
-  </style>
 
 </head>
 
@@ -75,14 +82,11 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
             <div class="card-body">
               <div class="d-flex justify-content-between align-items-center mb-3">
                 <h5 class="card-title mb-0">
-                  Received Documents <span class="text-muted">/ Processing...</span>
+                  Request <span class="text-muted">/ listing...</span>
                 </h5>
-                <button id="btnAddRecord" class="btn btn-primary shadow-sm">
-                  <i class="bi bi-file-earmark-plus"></i> Add New Record
-                </button>
               </div>
 
-              <div id="main_data"></div>
+              <div id="request_list"></div>
             </div>
           </div>
         </div>
@@ -133,6 +137,241 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
   </div>
 </div>
 
+<!-- DRIVER MODAL -->
+<div class="modal fade" id="DriverModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable modal-dialog-centered">
+    <div class="modal-content shadow-lg border-0 rounded-3">
+
+      <div class="modal-header bg-success text-white">
+        <h5 class="modal-title">
+          <i class="bi bi-person-plus me-2"></i> Manage Drivers
+        </h5>
+        <button class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+
+      <div class="modal-body">
+
+        <div class="row g-2">
+
+          <div class="col-lg-12">
+            <label>Fullname</label>
+            <input type="text" id="drv_fullname" class="form-control">
+          </div>
+
+          <div class="col-lg-6">
+            <label>Mobile Number</label>
+            <input type="text" id="drv_mobile" class="form-control">
+          </div>
+
+          <div class="col-lg-6">
+            <label>Date of Birth</label>
+            <input type="date" id="drv_dob" class="form-control">
+          </div>
+
+          <div class="col-lg-12">
+            <label>Address</label>
+            <input type="text" id="drv_address" class="form-control">
+          </div>
+
+          <div class="col-lg-12">
+            <label>Gender</label>
+            <select id="drv_gender" class="form-select">
+              <option value="">Choose</option>
+              <option>Male</option>
+              <option>Female</option>
+            </select>
+          </div>
+
+        </div>
+
+        <div class="mt-3">
+          <button class="btn btn-success" onclick="save_driver()">
+            <i class="bi bi-save2"></i> Save Driver
+          </button>
+        </div>
+
+        <hr>
+
+        <div id="driver_list">Loading drivers...</div>
+
+      </div>
+
+    </div>
+  </div>
+</div>
+
+
+<!-- EDIT DRIVER MODAL -->
+<div class="modal fade" id="EditDriverModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content shadow border-0">
+
+      <div class="modal-header bg-warning">
+        <h5 class="modal-title text-dark fw-semibold">
+          <i class="bi bi-pencil-square me-2"></i> Edit Driver
+        </h5>
+        <button class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+
+      <div class="modal-body">
+        
+        <input type="hidden" id="edit_driverid">
+
+        <div class="row g-2">
+          <div class="col-lg-12">
+            <label>Fullname</label>
+            <input type="text" class="form-control" id="edit_fullname">
+          </div>
+
+          <div class="col-lg-6">
+            <label>Mobile</label>
+            <input type="text" class="form-control" id="edit_mobile">
+          </div>
+
+          <div class="col-lg-6">
+            <label>Date of Birth</label>
+            <input type="date" class="form-control" id="edit_dob">
+          </div>
+
+          <div class="col-lg-12">
+            <label>Address</label>
+            <input type="text" class="form-control" id="edit_address">
+          </div>
+
+          <div class="col-lg-12">
+            <label>Gender</label>
+            <select id="edit_gender" class="form-select">
+              <option>Male</option>
+              <option>Female</option>
+            </select>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-warning"  data-bs-dismiss="modal" onclick="update_driver()">
+          <i class="bi bi-save me-1"></i> Update Driver
+        </button>
+        <button class="btn btn-secondary" data-bs-dismiss="modal">
+          Close
+        </button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- REQUEST MODAL -->
+<div class="modal fade" id="RequestModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable modal-dialog-centered">
+    <div class="modal-content shadow-lg border-0 rounded-3">
+
+      <div class="modal-header bg-success text-white">
+        <h5 class="modal-title">
+          <i class="bi bi-truck me-2"></i> Vehicle Travel Request
+        </h5>
+        <button class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+
+      <div class="modal-body">
+
+        <input type="hidden" id="req_requestID">
+
+        <div class="row g-2">
+          <div class="col-lg-12">
+            <label>Date of Request</label>
+            <input type="date" id="req_daterequest" class="form-control">
+            <hr>
+          </div>
+        </div>
+
+        <div class="row g-2">
+          <div class="col-lg-6">
+            <label for="req_plateNumber">Vehicle / Plate Number</label>
+            <select class="form-control" id="req_plateNumber">
+              <option value="">Select Vehicle</option>
+              <?php 
+                $get_plates = "SELECT * FROM `tbl_vehicle`";
+                $run_getplates = mysqli_query($conn, $get_plates);
+                while($row_plates = mysqli_fetch_assoc($run_getplates)){
+                  echo'<option value="'.$row_plates['vehicleid'].'">'.$row_plates['vehicle_temp'].'</option>';
+                }
+              ?>
+            </select>
+          </div>
+
+          <div class="col-lg-6">
+            <label for="req_driver">Assigned Driver</label>
+            <select class="form-control" id="req_driver">
+              <option value="">Select Driver</option>
+              <?php 
+                $get_driver = "SELECT * FROM `tbl_driver`";
+                $run_getdriver = mysqli_query($conn, $get_driver);
+                while($row_driver = mysqli_fetch_assoc($run_getdriver)){
+                  echo'<option value="'.$row_driver['driverid'].'">'.$row_driver['fullname'].'</option>';
+                }
+              ?>
+            </select>
+          </div>
+        </div>
+
+        <div class="row g-2 mt-2">
+          <div class="col-lg-12">
+            <hr>
+            <label>Requesting Person (Requisitioner)</label>
+            <input type="text" id="req_fullname" class="form-control">
+          </div>
+
+          <div class="col-lg-6">
+            <label>Travel Date (From)</label>
+            <input type="date" id="req_dateFrom" class="form-control">
+          </div>
+
+          <div class="col-lg-6">
+            <label>Travel Date (To)</label>
+            <input type="date" id="req_dateTo" class="form-control">
+          </div>
+
+          <div class="col-lg-12">
+            <label>Purpose of Travel</label>
+            <input type="text" id="reg_purpose" class="form-control">
+          </div>
+
+          <div class="col-lg-4">
+            <label>Number of Passengers</label>
+            <input type="number" id="reg_numPass" class="form-control">
+          </div>
+
+          <div class="col-lg-8">
+            <label>List of Passengers</label>
+            <input type="text" id="reg_listPass" class="form-control">
+          </div>
+
+          <div class="col-lg-4">
+            <label>Departure Time</label>
+            <input type="time" id="reg_departure" class="form-control">
+          </div>
+
+          <div class="col-lg-8">
+            <label>Meeting / Assembly Point</label>
+            <input type="text" id="reg_meetingPlace" class="form-control">
+          </div>
+        </div>
+
+        <div class="mt-3">
+          <button class="btn btn-success" onclick="save_request()">
+            <i class="bi bi-save"></i> Save Request
+          </button>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+</div>
+
+
 
 
   <!-- ======= Footer ======= -->
@@ -159,8 +398,135 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
   <script src="../assets/js/main.js"></script>
 <script>
 
+// ===================================================================================
+// SECTION 4 REQUEST OF VEHICLE
+// ===================================================================================
+function load_request_list() {
+  $.post("query_vehicle_request.php", { load_request_list: 1 }, function (data) {
+    $("#request_list").html(data);
+  });
+}
+
+function save_request() {
+  let data = {
+    save_request: 1,
+    requestid: $("#req_requestID").val(),
+    daterequest: $("#req_daterequest").val(),
+    plateNumber: $("#req_plateNumber").val(),
+    driver: $("#req_driver").val(),
+    fullname: $("#req_fullname").val(),
+    dateFrom: $("#req_dateFrom").val(),
+    dateTo: $("#req_dateTo").val(),
+    purpose: $("#reg_purpose").val(),
+    numPass: $("#reg_numPass").val(),
+    listPass: $("#reg_listPass").val(),
+    departure: $("#reg_departure").val(),
+    meetingPlace: $("#reg_meetingPlace").val(),
+  };
+
+  $.post("query_vehicle_request.php", data, function (response) {
+    if (response.trim() === "success") {
+      Swal.fire("Success", "Request Saved!", "success");
+      load_request_list();
+    } else {
+      Swal.fire("Error", response, "error");
+    }
+  });
+}
+
+  function add_new_travel(){
+    $('#RequestModal').modal('show');
+  }
+
 // =============================================================================================
-// SECTION 2
+// SECTION 3 DRIVER
+// =============================================================================================
+function manage_driver() {
+    load_driver_list();
+    $('#DriverModal').modal('show');
+}
+
+function load_driver_list() {
+    $.post("query_records.php", { get_driver_list: 1 }, function(res){
+        $("#driver_list").html(res);
+    });
+}
+
+function save_driver() {
+    $.post("query_records.php", {
+        save_driver: 1,
+        fullname: $("#drv_fullname").val(),
+        mobile: $("#drv_mobile").val(),
+        address: $("#drv_address").val(),
+        dob: $("#drv_dob").val(),
+        gender: $("#drv_gender").val()
+    }, function(res){
+        if (res.trim() === "success") {
+            $("#drv_fullname, #drv_mobile, #drv_address, #drv_dob").val('');
+            load_driver_list();
+        }
+    });
+}
+
+function edit_driver(id) {
+
+    $.post("query_records.php", { get_driver: 1, id: id }, function(res){
+        console.log(res); // for debugging
+
+        let d = JSON.parse(res);
+
+        $("#edit_driverid").val(id);
+        $("#edit_fullname").val(d.fullname);
+        $("#edit_mobile").val(d.mobile);
+        $("#edit_address").val(d.address);
+        $("#edit_dob").val(d.dateofbirth);
+        $("#edit_gender").val(d.gender);
+
+        $("#EditDriverModal").modal("show");
+    });
+}
+
+
+
+function update_driver() {
+
+    $.post("query_records.php", {
+        update_driver: 1,
+        id: $("#edit_driverid").val(),
+        fullname: $("#edit_fullname").val(),
+        mobile: $("#edit_mobile").val(),
+        address: $("#edit_address").val(),
+        dob: $("#edit_dob").val(),
+        gender: $("#edit_gender").val()
+    }, function(res){
+        if(res.trim() == "success"){
+            load_driver_list();
+            Swal.fire("Updated!", "Driver information updated.", "success");
+        }
+    });
+}
+
+function delete_driver(id) {
+    Swal.fire({
+        title: "Delete driver?",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#dc3545"
+    }).then((res)=>{
+        if (res.isConfirmed){
+            $.post("query_records.php", { delete_driver: 1, id:id }, function(resp){
+                if (resp.trim() == "success") {
+                    load_driver_list();
+                }
+            });
+        }
+    });
+}
+
+
+
+// =============================================================================================
+// SECTION 2 VEHICLE
 // =============================================================================================
   function delete_vehicle(id) {
       Swal.fire({
@@ -244,7 +610,8 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
 // SECTION 2
 // =============================================================================================
 window.onload = function() {
-  loadingData();
+  // loadingData();
+  load_request_list();
 };
 
 

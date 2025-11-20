@@ -4,7 +4,106 @@ session_start();         // Start session before anything else
 include '../db.php';     // Then include database or other files
 
 
+
 $office_id = $_SESSION['officeid'];
+
+// ========================================================
+// DRIVER
+// ========================================================
+
+
+if (isset($_POST['delete_driver'])) {
+    mysqli_query($conn, "DELETE FROM tbl_driver WHERE driverid='$_POST[id]'");
+    echo "success";
+}
+
+
+if (isset($_POST['update_driver'])) {
+    $id = $_POST['id'];
+    $fullname = $_POST['fullname'];
+    $mobile = $_POST['mobile'];
+    $address = $_POST['address'];
+    $dob = $_POST['dob'];
+    $gender = $_POST['gender'];
+
+    $update = "UPDATE tbl_driver SET 
+               fullname='$fullname', mobile='$mobile', address='$address',
+               dateofbirth='$dob', gender='$gender'
+               WHERE driverid='$id'";
+    mysqli_query($conn, $update);
+    echo "success";
+}
+
+if (isset($_POST['get_driver'])) {
+    $id = $_POST['id'];
+    $q = mysqli_query($conn, "SELECT * FROM tbl_driver WHERE driverid='$id'");
+    echo json_encode(mysqli_fetch_assoc($q));
+}
+
+
+if (isset($_POST['save_driver'])) {
+    $fullname = $_POST['fullname'];
+    $mobile = $_POST['mobile'];
+    $address = $_POST['address'];
+    $dob = $_POST['dob'];
+    $gender = $_POST['gender'];
+
+    $insert = "INSERT INTO tbl_driver (fullname, mobile, address, dateofbirth, gender)
+               VALUES ('$fullname', '$mobile', '$address', '$dob', '$gender')";
+    mysqli_query($conn, $insert);
+    echo "success";
+}
+
+
+if (isset($_POST['get_driver_list'])) {
+
+    $select = "SELECT * FROM tbl_driver ORDER BY fullname ASC";
+    $run = mysqli_query($conn, $select);
+
+    echo '<div class="row g-2">';
+
+    while ($r = mysqli_fetch_assoc($run)) {
+
+        echo '
+        <div class="col-12">
+            <div class="card border-0 shadow-sm" style="border-left:4px solid #198754;">
+                <div class="card-body p-2">
+
+                    <div class="d-flex justify-content-between">
+
+                        <div>
+                            <h6 class="text-success fw-bold mb-1">'.htmlspecialchars($r['fullname']).'</h6>
+                            <small class="text-muted">
+                                📱 '.$r['mobile'].'<br>
+                                🎂 '.$r['dateofbirth'].'<br>
+                                🏡 '.$r['address'].'
+                            </small>
+                        </div>
+
+                        <div class="d-flex flex-column gap-1">
+                            <button class="btn btn-sm btn-warning" onclick="edit_driver('.$r['driverid'].')">
+                                <i class="bi bi-pencil-square"></i>
+                            </button>
+
+                            <button class="btn btn-sm btn-danger" onclick="delete_driver('.$r['driverid'].')">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+        ';
+    }
+
+    echo '</div>';
+}
+
+
+// ========================================================
+// VEHICLE
+// ========================================================
 
 if(isset($_POST['delete_vehicle'])){
     $delete = "DELETE FROM tbl_vehicle WHERE vehicleid ='$_POST[id]'";

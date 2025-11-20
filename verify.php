@@ -79,7 +79,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     writeLog("Redirecting to VPAA..."); //VPAA
                     $redirect = "Vir3851pc41Wtaa/index.php";
                     break;  
-                case '72':
+                case '75':
                     writeLog("Redirecting to motorpool..."); //motorpool
                     $redirect = "motorpool/index.php";
                     break; 

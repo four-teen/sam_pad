@@ -17,7 +17,7 @@
       <ul onclick="manage_vehicle()" id="management-nav" class="nav-content collapse" data-bs-parent="#sidebar-nav">
         <li><a href="#"><i class="bx bx-building fs-5"></i><span>Manage Vehicle</span></a></li>
       </ul>
-      <ul onclick="manage_drivers()" id="management-nav" class="nav-content collapse" data-bs-parent="#sidebar-nav">
+      <ul onclick="manage_driver()" id="management-nav" class="nav-content collapse" data-bs-parent="#sidebar-nav">
         <li><a href="#"><i class="bi bi-folder-plus fs-5"></i></i><span>Manage Drivers</span></a></li>
       </ul>
 

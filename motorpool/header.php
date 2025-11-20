@@ -19,6 +19,24 @@
     <nav class="header-nav ms-auto">
       <ul class="d-flex align-items-center">
 
+<!-- Add New Record Button -->
+<li class="nav-item d-none d-lg-block me-2">
+    <button class="btn btn-primary shadow-sm" onclick="add_new_travel()">
+        <i class="bi bi-plus-circle"></i> Add New Request
+    </button>
+</li>
+
+<!-- Mobile Floating Add Button -->
+<li class="nav-item d-lg-none me-2">
+    <button class="btn btn-primary shadow-sm rounded-circle d-flex 
+                   justify-content-center align-items-center"
+            style="width: 40px; height: 40px;"
+            onclick="add_new_travel()">
+        <i class="bi bi-plus fs-5"></i>
+    </button>
+</li>
+
+
         <li class="nav-item d-block d-lg-none">
           <a class="nav-link nav-icon search-bar-toggle " href="#">
             <i class="bi bi-search"></i>
