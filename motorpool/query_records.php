@@ -66,13 +66,13 @@ if (isset($_POST['get_driver_list'])) {
 
         echo '
         <div class="col-12">
-            <div class="card border-0 shadow-sm" style="border-left:4px solid #198754;">
+            <div class="card mb-3 request-card py-3 px-2" style="border-left:4px solid #198754;">
                 <div class="card-body p-2">
 
                     <div class="d-flex justify-content-between">
 
                         <div>
-                            <h6 class="text-success fw-bold mb-1">'.htmlspecialchars($r['fullname']).'</h6>
+                            <h6 class="text-success fw-bold mb-1">'.htmlspecialchars(strtoupper($r['fullname'])).'</h6>
                             <small class="text-muted">
                                 📱 '.$r['mobile'].'<br>
                                 🎂 '.$r['dateofbirth'].'<br>
@@ -131,13 +131,13 @@ if (isset($_POST['get_vehicle_records'])) {
 
         echo '
         <div class="col-12">
-            <div class="card shadow-sm border-0" style="border-left:4px solid #0d6efd;">
+            <div class="card mb-3 request-card py-3 px-2" style="border-left:4px solid #0d6efd;">
                 <div class="card-body p-1">
 
                     <div class="d-flex justify-content-between align-items-start">
                         <div>
-                            <h6 class="mb-1 text-primary fw-bold">' . htmlspecialchars($r['vehicle_temp']) . '</h6>
-                            <p class="mb-0 text-muted small">' . htmlspecialchars($r['vehicle_info']) . '</p>
+                            <h6 class="mb-1 text-primary fw-bold">' . htmlspecialchars(strtoupper($r['vehicle_temp'])) . '</h6>
+                            <p class="mb-0 text-muted small">' . htmlspecialchars(strtoupper($r['vehicle_info'])) . '</p>
                         </div>
 
                         <button class="btn btn-sm btn-danger" 

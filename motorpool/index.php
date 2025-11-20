@@ -186,7 +186,7 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
 
         <div class="mt-3">
           <button class="btn btn-success" onclick="save_driver()">
-            <i class="bi bi-save2"></i> Save Driver
+            <i class="bi bi-save2"></i> Add Driver
           </button>
         </div>
 
@@ -350,7 +350,7 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
 
           <div class="col-lg-4">
             <label>Departure Time</label>
-            <input type="time" id="reg_departure" class="form-control">
+            <input type="time" id="reg_departure" class="form-control" step="1">
           </div>
 
           <div class="col-lg-8">
@@ -399,6 +399,134 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
 <script>
 
 // ===================================================================================
+// SECTION 5 APPROVAL OF REQUEST VEHICLE
+// ===================================================================================
+function change_status(id, currentStatus) {
+
+    Swal.fire({
+        title: "Change Request Status",
+        input: 'select',
+        inputOptions: {
+            'Pending': 'Pending',
+            'Approved': 'Approved',
+            'Disapproved': 'Disapproved'
+        },
+        inputPlaceholder: 'Select new status',
+        inputValue: currentStatus,
+        showCancelButton: true,
+        confirmButtonText: "Update",
+        confirmButtonColor: "#0d6efd"
+    }).then((result) => {
+
+        if (result.isConfirmed) {
+
+            let newStatus = result.value;
+
+            $.post("query_vehicle_request.php",
+                { update_status: 1, id: id, status: newStatus },
+                function(res) {
+
+                    if (res.trim() === "success") {
+                    Swal.fire({
+                        title: "Updated!",
+                        text: "Status has been changed.",
+                        icon: "success",
+                        timer: 2000,
+                        timerProgressBar: true,
+                        showConfirmButton: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                        }
+                    });
+
+                        load_request_list();
+                    } else {
+                        Swal.fire("Error", res, "error");
+                    }
+
+                }
+            );
+
+        }
+
+    });
+
+}
+
+  function approve_request(id) {
+    Swal.fire({
+      title: "Approve this request?",
+      text: "Once approved, this request becomes valid for scheduling.",
+      icon: "question",
+      showCancelButton: true,
+      confirmButtonText: "Approve",
+      confirmButtonColor: "#28a745",
+      cancelButtonText: "Cancel"
+    }).then((result) => {
+      if (result.isConfirmed) {
+        $.post("query_vehicle_request.php", { approve_request: 1, id: id }, function(res) {
+          if (res.trim() === "success") {
+            Swal.fire("Approved!", "The request has been approved.", "success");
+            load_request_list();
+          } else {
+            Swal.fire("Error", res, "error");
+          }
+        });
+      }
+    });
+  }
+
+  function disapprove_request(id) {
+    Swal.fire({
+      title: "Disapprove this request?",
+      text: "Disapproved requests cannot be used unless approved again.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Disapprove",
+      confirmButtonColor: "#6c757d",
+      cancelButtonText: "Cancel"
+    }).then((result) => {
+      if (result.isConfirmed) {
+        $.post("query_vehicle_request.php", { disapprove_request: 1, id: id }, function(res) {
+          if (res.trim() === "success") {
+            Swal.fire("Disapproved!", "The request has been disapproved.", "success");
+            load_request_list();
+          } else {
+            Swal.fire("Error", res, "error");
+          }
+        });
+      }
+    });
+  }
+
+function edit_request(id) {
+
+    $.post("query_vehicle_request.php", 
+        { get_request: 1, id: id }, 
+        function(response) {
+
+            let r = JSON.parse(response);
+
+            $("#req_requestID").val(id);
+            $("#req_daterequest").val(r.daterequest);
+            $("#req_plateNumber").val(r.vehicleid);
+            $("#req_driver").val(r.driverid);
+            $("#req_fullname").val(r.requisitioner);
+            $("#req_dateFrom").val(r.date_from);
+            $("#req_dateTo").val(r.date_to);
+            $("#reg_purpose").val(r.purpose);
+            $("#reg_numPass").val(r.num_pass);
+            $("#reg_listPass").val(r.list_passenger);
+            $("#reg_departure").val(r.departure_time);
+            $("#reg_meetingPlace").val(r.meeting_place);
+
+            $("#RequestModal").modal("show");
+        }
+    );
+}
+
+
+// ===================================================================================
 // SECTION 4 REQUEST OF VEHICLE
 // ===================================================================================
 function load_request_list() {
@@ -426,8 +554,25 @@ function save_request() {
 
   $.post("query_vehicle_request.php", data, function (response) {
     if (response.trim() === "success") {
-      Swal.fire("Success", "Request Saved!", "success");
+
+      // ✅ CLOSE THE MODAL FIRST
+      $("#RequestModal").modal("hide");
+
+      // ✅ SHOW AUTO-CLOSING SUCCESS ALERT
+      Swal.fire({
+        title: "Success!",
+        text: "Request Saved!",
+        icon: "success",
+        timer: 3000,
+        timerProgressBar: true,
+        showConfirmButton: false,
+        didOpen: () => {
+          Swal.showLoading();
+        }
+      });
+
       load_request_list();
+
     } else {
       Swal.fire("Error", response, "error");
     }
@@ -500,8 +645,18 @@ function update_driver() {
         gender: $("#edit_gender").val()
     }, function(res){
         if(res.trim() == "success"){
+                    Swal.fire({
+                        title: "Updated!",
+                        text: "Status has been changed.",
+                        icon: "success",
+                        timer: 2000,
+                        timerProgressBar: true,
+                        showConfirmButton: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                        }
+                    });
             load_driver_list();
-            Swal.fire("Updated!", "Driver information updated.", "success");
         }
     });
 }
