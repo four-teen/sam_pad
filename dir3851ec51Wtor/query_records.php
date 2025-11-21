@@ -565,178 +565,156 @@ if (isset($_POST['delete_record'])) {
 /* 🚀 SERVER-SIDE DATATABLES PROCESSING */
 if (isset($_POST['server_table'])) {
 
-    $columns = ['date_received', 'received_by', 'file_code', 'office_division', 'type_of_documents', 'particular', 'created_at'];
-
-    $start = intval($_POST['start']);
-    $length = intval($_POST['length']);
-    $searchValue = mysqli_real_escape_string($conn, $_POST['search']['value']);
-
+    echo ''; 
     
-    // ✅ Build search condition — now includes uni_divisionid filter
-    $where = "WHERE d.uni_divisionid = '$office_id' 
-              AND NOT EXISTS (
+    $office_id = $_SESSION['officeid'];
+    $start     = intval($_POST['start'] ?? 0);
+    $limit     = intval($_POST['limit'] ?? 10);
+
+    // SAME QUERY FROM OLD SERVER CODE
+    $get_records = "
+        SELECT 
+            d.doc_id,
+            d.file_code,
+            d.particular,
+            IFNULL(v.division_desc, CONCAT('Unknown (ID: ', d.office_division, ')')) AS office_division,
+            IFNULL(t.doctype_desc, 'Unknown Type') AS type_of_documents,
+            d.date_received
+        FROM tbl_documents_registry d
+        LEFT JOIN tbldivisions v ON CAST(d.office_division AS UNSIGNED) = v.divisionid
+        LEFT JOIN tbltypeofdocuments t ON d.type_of_documents = t.docid
+        WHERE d.uni_divisionid = '$office_id'
+          AND NOT EXISTS (
                 SELECT 1 
                 FROM tbl_document_actions a
                 WHERE a.doc_id = d.doc_id
                   AND a.from_office_id = '$office_id'
                   AND a.action_type IN ('Outgoing', 'Acted', 'Delivered')
-              )";
-              
-    if (!empty($searchValue)) {
-        $where .= " AND (
-            d.file_code LIKE '%$searchValue%' OR 
-            d.received_by LIKE '%$searchValue%' OR 
-            v.division_desc LIKE '%$searchValue%' OR 
-            t.doctype_desc LIKE '%$searchValue%' OR 
-            d.particular LIKE '%$searchValue%'
-        )";
-    }
-
-    // ✅ Total number of unprocessed documents
-    $totalQuery = mysqli_query($conn, "
-        SELECT COUNT(*) AS total
-        FROM tbl_documents_registry d
-        $where
-    ");
-    $totalData = mysqli_fetch_assoc($totalQuery)['total'];
-    $totalFiltered = $totalData;
-
-    // ✅ Actual data query
-    $query = "
-        SELECT 
-            d.doc_id, 
-            d.date_received, 
-            d.received_by, 
-            d.file_code, 
-            IFNULL(v.division_desc, CONCAT('Unknown (ID: ', d.office_division, ')')) AS office_division,
-            IFNULL(t.doctype_desc, 'Unknown Type') AS type_of_documents, 
-            d.particular, 
-            d.created_at
-        FROM tbl_documents_registry d
-        LEFT JOIN tbldivisions v ON CAST(d.office_division AS UNSIGNED) = v.divisionid
-        LEFT JOIN tbltypeofdocuments t ON d.type_of_documents = t.docid
-        $where
+          )
         ORDER BY d.doc_id DESC
-        LIMIT $start, $length
+        LIMIT $start, $limit
     ";
-    $result = mysqli_query($conn, $query);
 
-    $data = [];
-    while ($r = mysqli_fetch_assoc($result)) {
+    $run = mysqli_query($conn, $get_records);
 
-        // 🕓 Format date
-        $r['date_received'] = !empty($r['date_received'])
+    while ($r = mysqli_fetch_assoc($run)) {
+
+        // Format date
+        $date_received = !empty($r['date_received'])
             ? strtoupper(date("M d, Y h:i A", strtotime($r['date_received'])))
             : "";
 
-        // 🟩 Assign badge colors based on document type
-        $rawType = strtoupper(trim($r['type_of_documents'])); // store clean version
-        $badgeColor = 'secondary'; // default
-
-        switch ($rawType) {
-            case 'TRAVEL ORDER':
-                $badgeColor = 'info';
-                break;
-            case 'HAND CARRY':
-                $badgeColor = 'success';
-                break;
-            case 'EMAIL':
-                $badgeColor = 'primary';
-                break;
-            case 'LOCAL COMMUNICATION':
-                $badgeColor = 'warning';
-                break;
-            case 'OUTGOING COMMUNICATION':
-                $badgeColor = 'warning';
-                break;
-            case 'ACTIVITY DESIGN':
-                $badgeColor = 'dark';
-                break;
-            case 'PROJECT PROPOSAL':
-                $badgeColor = 'danger';
-                break;
+        // Document type badge
+        $type = strtoupper(trim($r['type_of_documents']));
+        $badgeColor = 'secondary';
+        switch ($type) {
+            case 'TRAVEL ORDER': $badgeColor = 'info'; break;
+            case 'HAND CARRY': $badgeColor = 'success'; break;
+            case 'EMAIL': $badgeColor = 'primary'; break;
+            case 'LOCAL COMMUNICATION': 
+            case 'OUTGOING COMMUNICATION': $badgeColor = 'warning'; break;
+            case 'ACTIVITY DESIGN': $badgeColor = 'dark'; break;
+            case 'PROJECT PROPOSAL': $badgeColor = 'danger'; break;
         }
 
-        // 🟨 Wrap the document type text in a Bootstrap badge (for display only)
-        $r['type_of_documents'] = "
-            <span class='badge bg-$badgeColor px-3 py-2 shadow-sm'>
-                $rawType
-            </span>
-        ";
+        // Check travel order record
+        $cleanType = addslashes($type);
+        $travelExists = mysqli_num_rows(
+            mysqli_query($conn, "SELECT to_id FROM tbl_travel_order WHERE doc_id='{$r['doc_id']}' LIMIT 1")
+        ) > 0;
 
-        // 🟦 Determine if this doc is a Travel Order
-        $isTravelOrder = $rawType === 'TRAVEL ORDER';
-
-        // ✅ Check if travel order record already exists
-        $hasTO = mysqli_query($conn, "SELECT to_id FROM tbl_travel_order WHERE doc_id = '{$r['doc_id']}' LIMIT 1");
-        $travelExists = mysqli_num_rows($hasTO) > 0;
-
-        // ✅ Dynamic button based on document type
-        if ($isTravelOrder) {
+        // Travel order logic
+        if ($type === 'TRAVEL ORDER') {
             if ($travelExists) {
                 $travelButton = "
-                  <button class='btn btn-success btn-sm' 
-                          onclick='open_existing_travel_order({$r['doc_id']})' 
-                          title='View or Edit Travel Order'>
-                    <i class='bi bi-suitcase2'></i>
-                  </button>";
+                    <button class='btn btn-success btn-sm' 
+                            onclick='open_existing_travel_order(\"{$r['doc_id']}\")'
+                            title='View or Edit Travel Order'>
+                        <i class=\"bi bi-suitcase2\"></i>
+                    </button>";
             } else {
                 $travelButton = "
-                  <button class='btn btn-info btn-sm' 
-                          onclick='open_new_travel_order({$r['doc_id']})' 
-                          title='Create Travel Order'>
-                    <i class='bi bi-person-lines-fill'></i>
-                  </button>";
+                    <button class='btn btn-info btn-sm'
+                            onclick='open_new_travel_order(\"{$r['doc_id']}\")'
+                            title='Create Travel Order'>
+                        <i class=\"bi bi-person-lines-fill\"></i>
+                    </button>";
             }
         } else {
-            // 🟢 For non–Travel Order types, open Other Info modal instead
-            $cleanType = addslashes($rawType); // use clean text, not HTML
             $travelButton = "
-              <button class='btn btn-secondary btn-sm' 
-                      onclick=\"other_info({$r['doc_id']}, '{$cleanType}')\" 
-                      title='Add Other Information'>
-                <i class='bi bi-people'></i>
-              </button>";
+                <button class='btn btn-secondary btn-sm'
+                        onclick='other_info(\"{$r['doc_id']}\", \"{$cleanType}\")'
+                        title='Add Other Information'>
+                    <i class=\"bi bi-people\"></i>
+                </button>";
+        }
+        // Compute STAYED duration
+        $receivedDT = strtotime($r['date_received']);
+        $nowDT = time();
+        $diffSeconds = $nowDT - $receivedDT;
+
+        $days = floor($diffSeconds / 86400);
+        $hours = floor(($diffSeconds % 86400) / 3600);
+
+        if ($days > 0) {
+            $stayedText = "$days day(s) ago";
+        } elseif ($hours > 0) {
+            $stayedText = "$hours hour(s) ago";
+        } else {
+            $stayedText = "Just now";
         }
 
-        // 🧠 Actions buttons
-        $r['actions'] = "
-          <div class='d-grid gap-1' style='grid-template-columns: repeat(2, 1fr); display: grid;'>
-            {$travelButton}
-            <button class='btn btn-primary btn-sm' onclick='take_action({$r['doc_id']})' title='Take Action'>
-              <i class='bx bx-cog'></i>
-            </button>
-            <button class='btn btn-warning btn-sm' onclick='edit_record({$r['doc_id']})' title='Edit Record'>
-              <i class='bx bx-edit'></i>
-            </button>
-            <button class='btn btn-danger btn-sm' onclick='delete_record({$r['doc_id']})' title='Delete Record'>
-              <i class='bx bx-trash'></i>
-            </button>
-          </div>
+        // CARD VIEW OUTPUT
+        echo "
+        <div class='card request-card h-100'>
+            <div class='card-body'>
+                
+                <div class='d-flex justify-content-between'>
+                    <h6 class='fw-bold text-primary mb-2'>{$r['file_code']}</h6>
+                </div>
+
+                <p class='mb-1'><strong>{$r['particular']}</strong></p>
+                <span class='badge bg-{$badgeColor} px-3 py-2'>{$type}</span>
+                <p class='mb-1'><strong>Agency:</strong> {$r['office_division']}</p>
+
+                <p class='text-muted mb-1' style='font-size: 13px; font-style: italic;'>
+                    <i class='bi bi-calendar-event'></i> 
+                    Received: {$date_received}
+                </p>
+
+                <p class='text-muted mb-2' style='font-size: 13px; font-style: italic;'>
+                    <i class='bi bi-clock-history'></i> 
+                    Stayed: {$stayedText}
+                </p>
+
+                <div class='mt-3'>
+
+                    {$travelButton}
+
+                    <button class='btn btn-primary btn-sm'
+                        onclick='take_action(\"{$r['doc_id']}\")'>
+                        <i class=\"bx bx-cog\"></i>
+                    </button>
+
+                    <button class='btn btn-warning btn-sm'
+                        onclick='edit_record(\"{$r['doc_id']}\")'>
+                        <i class=\"bx bx-edit\"></i>
+                    </button>
+
+                    <button class='btn btn-danger btn-sm'
+                        onclick='delete_record(\"{$r['doc_id']}\")'>
+                        <i class=\"bx bx-trash\"></i>
+                    </button>
+
+                </div>
+
+            </div>
+        </div>
         ";
 
-        $data[] = $r;
     }
 
-    // ✅ JSON response
-    echo json_encode([
-        "draw" => intval($_POST['draw']),
-        "recordsTotal" => $totalData,
-        "recordsFiltered" => $totalFiltered,
-        "data" => $data
-    ]);
-    exit;
+    echo '';
 }
-
-/* 📝 CSS for purple badge:
-.badge.bg-purple {
-  background-color: #6f42c1 !important;
-  color: #fff !important;
-}
-*/
-
-
-
-
 
 ?>

@@ -47,20 +47,20 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
   <link href="../assets/css/style.css" rel="stylesheet">
 
 <style>
-.request-card {
-  border-left: 4px solid #a5d6a7 !important; /* Google Green */
-  border-radius: 10px;
-  transition: 0.2s;
-}
+  .request-card {
+    border-left: 4px solid #a5d6a7 !important; /* Google Green */
+    border-radius: 10px;
+    transition: 0.2s;
+  }
 
-.request-card .card-body {
-  padding: 1rem 1.2rem; /* cleaner margin inside */
-}
+  .request-card .card-body {
+    padding: 1rem 1.2rem; /* cleaner margin inside */
+  }
 
-.request-card:hover {
-  background: #f6fff8;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-}
+  .request-card:hover {
+    background: #f6fff8;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  }
 </style>
 
 

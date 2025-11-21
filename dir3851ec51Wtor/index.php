@@ -47,6 +47,22 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
   <link href="../assets/css/style.css" rel="stylesheet">
   <link href="css_index.css" rel="stylesheet">
 
+  <style>
+    .request-card {
+      border-left: 4px solid #a5d6a7 !important; /* Google Green */
+      border-radius: 10px;
+      transition: 0.2s;
+    }
+
+    .request-card .card-body {
+      padding: 1rem 1.2rem; /* cleaner margin inside */
+    }
+
+    .request-card:hover {
+      background: #f6fff8;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }    
+  </style>
 </head>
 
 <body>
@@ -696,6 +712,14 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
   <script src="../assets/js/main.js"></script>
 <script>
 
+function reloadTable() {
+  start = 0;
+  stopLoading = false;
+  isLoading = false;
+  $('#main_data').html('');  // clear all cards
+  loadTable();               // load first batch again
+}
+
 function delete_travel_order() {
   const doc_id = $('#edit_travel_order_doc_id').val();
 
@@ -712,7 +736,7 @@ function delete_travel_order() {
     if (result.isConfirmed) {
       $.post('query_travel_order.php', { delete_travel_order: 1, doc_id }, function(resp) {
         if (resp.trim() === 'success') {
-          loadTable();
+          reloadTable();
           Swal.fire({
             icon: 'success',
             title: 'Deleted!',
@@ -892,7 +916,7 @@ function save_travel_order() {
 
   $.post('query_travel_order.php', data, function(resp) {
     if (resp.trim() === 'success') {
-      loadTable();
+      reloadTable();
       Swal.fire({
         icon: 'success',
         title: 'Saved!',
@@ -1328,7 +1352,7 @@ function save_set_actions() {
       action_type_remarks
     },
     success: function () {
-      loadTable();
+      reloadTable();
       get_count_new_received();
       get_count_outgoing();
       Swal.fire({
@@ -1682,7 +1706,7 @@ document.getElementById("btn_save_record").addEventListener("click", function() 
         });
         recordModal.hide();
         $("#form_add_record")[0].reset();
-        loadTable();
+        reloadTable();
         get_count_outgoing();
         get_count_new_received();
         get_doc_count();
@@ -1697,52 +1721,45 @@ document.getElementById("btn_save_record").addEventListener("click", function() 
   });
 });
 
-// 🚀 Optimized: Server-side DataTables for large datasets
+// ==================================================
+// SECTION 1
+// ==================================================
+// function closeModal(id) {
+//   const modalEl = document.getElementById(id);
+//   const instance = bootstrap.Modal.getInstance(modalEl);
+//   if (instance) instance.hide();
+// }
+
+
+let start = 0;
+let limit = 10;
+let isLoading = false;
+let stopLoading = false;
+
 function loadTable() {
-  $("#main_data").html(`
-    <div class='text-center p-3'>
-      <div class='spinner-border text-info' role='status'></div>
-      <p class='text-muted mt-2 mb-0'>Loading records...</p>
-    </div>
-  `);
+  if (isLoading || stopLoading) return;
 
-  setTimeout(() => {
-    $("#main_data").html(`
-      <table id="requestTable" class="table table-sm table-striped table-bordered w-100">
-        <thead class="table-light">
-          <tr>
-            <th>RECEIVED</th>
-            <th>CODE</th>
-            <th>DIVISION</th>
-            <th>TYPE</th>
-            <th>PARTICULAR</th>
-            <th class="text-center">Actions</th>
-          </tr>
-        </thead>
-      </table>
-    `);
+  isLoading = true;
 
-    $('#requestTable').DataTable({
-      processing: true,
-      serverSide: true,
-      ajax: {
-        url: "query_records.php",
-        type: "POST",
-        data: { server_table: 1 }
-      },
-      columns: [
-        { data: "date_received" },
-        { data: "file_code", className: "nowrap" },
-        { data: "office_division" },
-        { data: "type_of_documents" },
-        { data: "particular" },
-        { data: "actions", orderable: false, searchable: false }
-      ],
-      pageLength: 10,
-      responsive: true,
-      order: [[0, "desc"]]
-    });
-  }, 300);
+  $.ajax({
+    url: "query_records.php",
+    type: "POST",
+    data: { 
+      server_table: 1,
+      start: start,
+      limit: limit,
+      search: $('#search_box').val()
+    },
+    success: function(response) {
+      if (response.trim() === "") {
+        stopLoading = true;
+      } else {
+        $('#main_data').append(response);
+        start += limit;
+      }
+      isLoading = false;
+    }
+  });
 }
 
 // Delete Record
@@ -1764,7 +1781,7 @@ function delete_record(id) {
         success: function(res) {
           if (res.trim() === "deleted") {
             Swal.fire("Deleted!", "The record has been removed.", "success");
-            loadTable();
+            reloadTable();
             get_count_new_received();
           } else {
             Swal.fire("Error", "Failed to delete record.", "error");
@@ -1856,7 +1873,7 @@ document.getElementById("btn_update_record").addEventListener("click", function(
           showConfirmButton: false
         });
         editDrawer.hide();
-        loadTable();
+        reloadTable();
       } else {
         Swal.fire("Error", "Failed to update record.", "error");
       }
@@ -1868,9 +1885,10 @@ document.getElementById("btn_update_record").addEventListener("click", function(
 });
 
 
+
 // Load data when page opens
 window.onload = function() {
-  loadTable();
+  reloadTable();
   get_doc_count(); // ✅ add this here
   get_count_received();
   get_count_new_received();
