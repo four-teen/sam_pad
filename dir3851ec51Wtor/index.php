@@ -1742,7 +1742,7 @@ function loadTable() {
   isLoading = true;
 
   $.ajax({
-    url: "query_records.php",
+    url: "query_received_records.php",
     type: "POST",
     data: { 
       server_table: 1,

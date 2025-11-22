@@ -75,6 +75,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     writeLog("Redirecting to directors..."); //director dashboard
                     $redirect = "dir3851ec51Wtor/index.php";
                     break; 
+                case '10':
+                    writeLog("Redirecting to directors..."); //director tacurong
+                    $redirect = "dir3851ec51Wtor/index.php";
+                    break; 
                 case '2':
                     writeLog("Redirecting to VPAA..."); //VPAA
                     $redirect = "Vir3851pc41Wtaa/index.php";
@@ -83,8 +87,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     writeLog("Redirecting to motorpool..."); //motorpool
                     $redirect = "motorpool/index.php";
                     break; 
-
-
                 default:
                     $_SESSION['status'] = "Unknown role.";
                     $redirect = "index.php";
