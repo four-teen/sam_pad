@@ -476,3 +476,43 @@
 [2025-11-20 20:11:42] 🧩 Browser: Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36
 [2025-11-20 20:11:42] 🔐 Fingerprint Hash: bdf4c3537cdddc710dea7c7d2751bfc047bd6b1448a65e4266e7ee008c005973
 [2025-11-20 20:11:42] Redirecting to motorpool...
+[2025-11-22 20:42:36] ---- Login attempt started | Request method: POST detected | Username received: isulan, Account found: ID=15 Role=9 ----
+[2025-11-22 20:42:36] ✅ Login successful | IP: ::1 | Device: Desktop | Lang: en-US,en;q=0.9
+[2025-11-22 20:42:36] 🧩 Browser: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0
+[2025-11-22 20:42:36] 🔐 Fingerprint Hash: 8e9c326a7657f062289df4d1f12ed1f063701c7b4e93516802232bf9e1a59af0
+[2025-11-22 20:42:36] Redirecting to directors...
+[2025-11-22 20:42:52] ---- Login attempt started | Request method: POST detected | Username received: admin, Account found: ID=8 Role=66 ----
+[2025-11-22 20:42:52] ✅ Login successful | IP: ::1 | Device: Desktop | Lang: en-US,en;q=0.9
+[2025-11-22 20:42:52] 🧩 Browser: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0
+[2025-11-22 20:42:52] 🔐 Fingerprint Hash: 8e9c326a7657f062289df4d1f12ed1f063701c7b4e93516802232bf9e1a59af0
+[2025-11-22 20:42:52] Redirecting to administrator dashboard...
+[2025-11-22 20:44:22] ---- Login attempt started | Request method: POST detected | Username received: tacurong, Account found: ID=18 Role=10 ----
+[2025-11-22 20:44:22] ✅ Login successful | IP: ::1 | Device: Desktop | Lang: en-US,en;q=0.9
+[2025-11-22 20:44:22] 🧩 Browser: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0
+[2025-11-22 20:44:22] 🔐 Fingerprint Hash: 8e9c326a7657f062289df4d1f12ed1f063701c7b4e93516802232bf9e1a59af0
+[2025-11-22 20:44:22] Redirecting to directors...
+[2025-11-22 20:44:44] ---- Login attempt started | Request method: POST detected | Username received: isulan, Account found: ID=15 Role=9 ----
+[2025-11-22 20:44:44] ✅ Login successful | IP: ::1 | Device: Desktop | Lang: en-US,en;q=0.9
+[2025-11-22 20:44:44] 🧩 Browser: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0
+[2025-11-22 20:44:44] 🔐 Fingerprint Hash: 8e9c326a7657f062289df4d1f12ed1f063701c7b4e93516802232bf9e1a59af0
+[2025-11-22 20:44:44] Redirecting to directors...
+[2025-11-23 12:04:05] ---- Login attempt started | Request method: POST detected | Username received: isulan, Account found: ID=15 Role=9 ----
+[2025-11-23 12:04:05] ✅ Login successful | IP: ::1 | Device: Desktop | Lang: en-US,en;q=0.9
+[2025-11-23 12:04:05] 🧩 Browser: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0
+[2025-11-23 12:04:05] 🔐 Fingerprint Hash: 8e9c326a7657f062289df4d1f12ed1f063701c7b4e93516802232bf9e1a59af0
+[2025-11-23 12:04:05] Redirecting to directors...
+[2025-11-23 12:49:32] ---- Login attempt started | Request method: POST detected | Username received: Isulan, Account found: ID=15 Role=9 ----
+[2025-11-23 12:49:32] ✅ Login successful | IP: 192.168.1.111 | Device: Mobile | Lang: en-AE,en-GB;q=0.9,en-US;q=0.8,en;q=0.7
+[2025-11-23 12:49:32] 🧩 Browser: Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36
+[2025-11-23 12:49:32] 🔐 Fingerprint Hash: bdf4c3537cdddc710dea7c7d2751bfc047bd6b1448a65e4266e7ee008c005973
+[2025-11-23 12:49:32] Redirecting to directors...
+[2025-11-23 13:05:00] ---- Login attempt started | Request method: POST detected | Username received: records, Account found: ID=10 Role=67 ----
+[2025-11-23 13:05:00] ✅ Login successful | IP: ::1 | Device: Desktop | Lang: en-US,en;q=0.9
+[2025-11-23 13:05:00] 🧩 Browser: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0
+[2025-11-23 13:05:00] 🔐 Fingerprint Hash: 8e9c326a7657f062289df4d1f12ed1f063701c7b4e93516802232bf9e1a59af0
+[2025-11-23 13:05:00] Redirecting to records dashboard...
+[2025-11-23 13:06:38] ---- Login attempt started | Request method: POST detected | Username received: isulan, Account found: ID=15 Role=9 ----
+[2025-11-23 13:06:38] ✅ Login successful | IP: ::1 | Device: Desktop | Lang: en-US,en;q=0.9
+[2025-11-23 13:06:38] 🧩 Browser: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0
+[2025-11-23 13:06:38] 🔐 Fingerprint Hash: 8e9c326a7657f062289df4d1f12ed1f063701c7b4e93516802232bf9e1a59af0
+[2025-11-23 13:06:38] Redirecting to directors...

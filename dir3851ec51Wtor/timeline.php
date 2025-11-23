@@ -45,32 +45,258 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
 
   <!-- Template Main CSS File -->
   <link href="../assets/css/style.css" rel="stylesheet">
-  <link href="css_index.css" rel="stylesheet">
+  <!-- <link href="css_index.css" rel="stylesheet"> -->
 
   <style>
-    .request-card {
-      border-left: 4px solid #a5d6a7 !important; /* Google Green */
-      border-radius: 10px;
-      transition: 0.2s;
-    }
+      /* Fix select2 alignment */
+      .select2-container .select2-selection--single {
+        height: 38px !important;
+        border: 1px solid #ced4da !important;
+        border-radius: 0.375rem !important;
+        padding: 4px 8px !important;
+      }
 
-    .request-card .card-body {
-      padding: 1rem 1.2rem; /* cleaner margin inside */
-    }
+      .select2-container--default .select2-selection__rendered {
+        line-height: 28px !important;
+        font-size: 0.95rem !important;
+        color: #495057 !important;
+      }
 
-    .request-card:hover {
-      background: #f6fff8;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-    }    
+      .select2-container--default .select2-selection__arrow {
+        height: 36px !important;
+        right: 8px !important;
+      }
 
-    /*HIDE CARDS ON MOBILE*/
-    @media (max-width: 768px) {
-        .dashboard-cards-wrapper {
-            display: none !important;
+      /* Modern Card Styling */
+      .info-card {
+      position: relative;
+      border-radius: 1rem !important;
+      background: linear-gradient(145deg, #ffffff, #f8f9fa);
+      transition: all 0.3s ease;
+      cursor: pointer;
+      overflow: hidden;
+      }
+
+      .info-card::before {
+      content: "";
+      display: block;
+      height: 5px;
+      border-radius: 5px 5px 0 0;
+      background: linear-gradient(90deg, var(--start-color), var(--end-color));
+      }
+
+      .info-card:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
+      }
+
+      /* Icon Circle */
+      .info-card .card-icon {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--start-color), var(--end-color));
+      color: #fff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-right: 1rem;
+      font-size: 1.75rem;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+      transition: 0.3s ease;
+      }
+
+      .info-card:hover .card-icon {
+      transform: scale(1.1) rotate(10deg);
+      box-shadow: 0 6px 14px rgba(0, 0, 0, 0.2);
+      }
+
+      /* Title and Text */
+      .info-card .card-title {
+      font-weight: 600;
+      font-size: 1rem;
+      color: #343a40;
+      margin-bottom: 1rem;
+      }
+
+      .info-card small {
+      font-size: 0.85rem;
+      color: #6c757d;
+      }
+
+      .info-card h3 {
+      font-weight: 700;
+      font-size: 1.6rem;
+      color: #212529;
+      }
+
+      /* Animation for hover glow */
+      .info-card:hover::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: 1rem;
+      background: radial-gradient(circle at top right, rgba(255,255,255,0.3), transparent 60%);
+      opacity: 0.8;
+      }
+
+
+      /* Make only the edit drawer wider */
+      .offcanvas-edit {
+        width: 40vw !important;          /* 60% of the viewport width */
+        max-width: 700px;                /* Don’t exceed 900px */
+        box-shadow: -6px 0 25px rgba(0,0,0,0.15); /* Soft depth shadow */
+        backdrop-filter: blur(8px);      /* Slight background blur */
+        transition: transform 0.35s ease, box-shadow 0.35s ease;
+        border-left: 2px solid rgba(0,0,0,0.05);
+      }
+
+      /* Subtle animation on show */
+      .offcanvas-edit.show {
+        box-shadow: -12px 0 35px rgba(0,0,0,0.25);
+      }
+
+      /* Responsive tweak for smaller screens */
+      @media (max-width: 768px) {
+        .offcanvas-edit {
+          width: 100% !important;
+          max-width: none;
+          border-left: none;
         }
-    }    
+      }
 
-    }
+      /* Smooth appearance for form elements */
+      .offcanvas-edit .form-control,
+      .offcanvas-edit .form-select,
+      .offcanvas-edit textarea {
+        border-radius: 0.4rem;
+        transition: all 0.2s ease;
+      }
+
+      .offcanvas-edit .form-control:focus,
+      .offcanvas-edit .form-select:focus,
+      .offcanvas-edit textarea:focus {
+        border-color: #0d6efd;
+        box-shadow: 0 0 0 0.15rem rgba(13,110,253,0.25);
+      }
+      .offcanvas-backdrop.show {
+        opacity: 0.25 !important;
+        background-color: #000 !important;
+        backdrop-filter: blur(3px);
+      }
+
+      .nowrap {
+        white-space: nowrap !important;
+      }
+
+      #preview_grid .thumb, #uploaded_grid .thumb {
+        position: relative;
+        border: 1px solid #e9ecef;
+        border-radius: 0.5rem;
+        overflow: hidden;
+        background: #fafafa;
+      }
+
+      #preview_grid img, #uploaded_grid img {
+        width: 100%;
+        height: 120px;
+        object-fit: cover;
+      }
+
+      .thumb .thumb-actions {
+        position: absolute;
+        inset: auto 6px 6px auto;
+        display: flex;
+        gap: .25rem;
+      }
+      /* --- Select2 Alignment Fix (Bootstrap 5 Friendly) --- */
+      .select2-container {
+        width: 100% !important;
+      }
+
+      .select2-container--bootstrap4 .select2-selection--single {
+        height: calc(2.35rem + 2px) !important; /* Match Bootstrap form height */
+        border: 1px solid #ced4da !important;
+        border-radius: 0.375rem !important;
+        padding: 0.375rem 0.75rem !important;
+        display: flex !important;
+        align-items: center !important;
+      }
+
+      .select2-container--bootstrap4 .select2-selection__rendered {
+        font-size: 0.95rem !important;
+        color: #495057 !important;
+        line-height: normal !important;
+      }
+
+      .select2-container--bootstrap4 .select2-selection__arrow {
+        height: 100% !important;
+        top: 0 !important;
+        right: 0.75rem !important;
+      }
+
+      /* Placeholder color consistency */
+      .select2-selection__placeholder {
+        color: #6c757d !important;
+      }
+
+/* ====== Smooth Connected Timeline ====== */
+.timeline {
+  position: relative;
+  margin-left: 28px; /* spacing from icons */
+  padding-left: 20px;
+}
+
+.timeline::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 2px; /* aligns exactly with badge centers */
+  width: 3px;
+  height: 100%;
+  background: linear-gradient(to bottom, #f0f0f0, #ddd);
+  border-radius: 2px;
+}
+
+/* each timeline item */
+.timeline-item {
+  position: relative;
+  margin-bottom: 1.8rem;
+  padding-left: 10px;
+}
+
+/* the round icons */
+.timeline-item .timeline-icon {
+  position: absolute;
+  left: -28px;
+  top: 0;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 12px;
+  z-index: 2;
+}
+
+/* small connector between points */
+.timeline-item:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  left: -18px;
+  top: 22px;
+  width: 3px;
+  height: calc(100% - 22px);
+  background: #ddd;
+  border-radius: 2px;
+  z-index: 1;
+}
+
+#timelineDrawer {
+    width: 750px !important;   /* adjust size */
+}
   </style>
 </head>
 
@@ -700,7 +926,21 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
   </div>
 </div>
 
-
+<!-- 🔹 Timeline Drawer -->
+<div class="offcanvas offcanvas-end shadow-lg" tabindex="-1" id="timelineDrawer" aria-labelledby="timelineDrawerLabel">
+  <div class="offcanvas-header bg-primary text-white">
+    <h5 class="offcanvas-title" id="timelineDrawerLabel">
+      <i class="bi bi-clock-history me-2"></i> Document Activity Timeline
+    </h5>
+    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+  </div>
+  <div class="offcanvas-body" id="timelineContent" style="max-height:80vh; overflow-y:auto;">
+    <div class="text-center text-muted mt-5">
+      <i class="bi bi-arrow-clockwise fs-2 d-block mb-2"></i>
+      <p>Loading timeline...</p>
+    </div>
+  </div>
+</div>
 
   <!-- ======= Footer ======= -->
   <footer id="footer" class="footer">
@@ -725,6 +965,38 @@ $_SESSION['systemcopyright'] = $rowconfig['systemcopyright'];
   <script src="../assets/sweetalert2.js"></script>
   <script src="../assets/js/main.js"></script>
 <script>
+
+function viewTimeline(doc_id) {
+  // Open the offcanvas drawer
+  const drawer = new bootstrap.Offcanvas(document.getElementById('timelineDrawer'));
+  drawer.show();
+
+  // Show loading state
+  $('#timelineContent').html(`
+    <div class="text-center text-muted mt-5">
+      <i class="bi bi-arrow-clockwise fs-2 d-block mb-2"></i>
+      <p>Loading timeline...</p>
+    </div>
+  `);
+
+  // Fetch the timeline data
+  $.ajax({
+    url: "query_timeline_records.php",
+    type: "POST",
+    data: { load_timeline: 1, doc_id: doc_id },
+    success: function(response) {
+      $('#timelineContent').html(response);
+    },
+    error: function() {
+      $('#timelineContent').html(`
+        <div class="alert alert-danger text-center mt-5">
+          <i class="bi bi-exclamation-triangle me-2"></i>
+          Failed to load timeline.
+        </div>
+      `);
+    }
+  });
+}
 
 function reloadTable() {
   // Abort ongoing request
@@ -1747,6 +2019,13 @@ document.getElementById("btn_save_record").addEventListener("click", function() 
 // SECTION 1
 // ==================================================
 
+$(window).on('scroll', function () {
+    if($(window).scrollTop() + $(window).height() + 200 >= $(document).height()) {
+        loadTable();
+    }
+});
+
+
 let currentRequest = null;
 let searchDelay;
 $('#search_box').on('keyup', function () {
@@ -1772,7 +2051,7 @@ function loadTable() {
   isLoading = true;
 
   currentRequest = $.ajax({
-    url: "query_received_records.php",
+    url: "query_timeline_records.php",
     type: "POST",
     data: { 
       server_table: 1,

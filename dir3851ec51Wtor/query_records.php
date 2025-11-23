@@ -114,31 +114,44 @@ if(isset($_POST['saving_document_series'])){
     // echo $insert;
 }
 
-if (isset($_POST['get_received_counter'])) {
+if(isset($_POST['get_all_timeline_counter'])){
+    $get_count = "
+    SELECT COUNT(DISTINCT a.doc_id) AS total_passed
+    FROM tbl_document_actions a
+    WHERE a.to_office_id = '$office_id'";
+        $runselect = mysqli_query($conn, $get_count);
 
-    $office_id = $_SESSION['officeid'];
+        if($runselect){
+            $r = mysqli_fetch_assoc($runselect);
+            echo $r['total_passed'];
+        }
+}
 
-    // ✅ Count records received by this office but not yet processed
-    $sql = "
-        SELECT COUNT(*) AS our_records
-        FROM tbl_documents_registry d
-        WHERE d.received_by = '$office_id'
-          AND NOT EXISTS (
-              SELECT 1
-              FROM tbl_document_actions a
-              WHERE a.doc_id = d.doc_id
-                AND a.from_office_id = '$office_id'
-          )
-    ";
 
-    $run = mysqli_query($conn, $sql);
+if (isset($_POST['get_incoming_counter'])) {
 
-    if ($run) {
-        $row = mysqli_fetch_assoc($run);
-        echo $row['our_records'];
-    } else {
-        error_log('SQL Error: ' . mysqli_error($conn)); // log any issue
-        echo 0;
+$get_count = "
+    SELECT 
+        COUNT(*) AS total_records
+    FROM tbl_documents_registry d
+    LEFT JOIN tbldivisions v 
+        ON CAST(d.office_division AS UNSIGNED) = v.divisionid
+    LEFT JOIN tbltypeofdocuments t 
+        ON d.type_of_documents = t.docid
+    WHERE d.uni_divisionid = '$office_id'
+      AND NOT EXISTS (
+            SELECT 1 
+            FROM tbl_document_actions a
+            WHERE a.doc_id = d.doc_id
+              AND a.from_office_id = '$office_id'
+              AND a.action_type IN ('Outgoing', 'Acted', 'Delivered')
+      )
+";
+    $runselect = mysqli_query($conn, $get_count);
+
+    if($runselect){
+        $r = mysqli_fetch_assoc($runselect);
+        echo $r['total_records'];
     }
 }
 
@@ -258,16 +271,6 @@ if(isset($_POST['saving_new_office'])){
     $officename = strtoupper(addslashes($_POST['officename']));
     $insert = "INSERT INTO `tbldivisions` (`division_desc`) VALUES ('$officename')";
     $runinsert = mysqli_query($conn, $insert);
-}
-
-if(isset($_POST['get_receiving_counter'])){
-    $check = "SELECT count(*) as receiving_count FROM `tbl_document_actions` WHERE `action_type` = 'Delivered' AND from_office_id='$_SESSION[officeid]'";
-
-    $runcheck = mysqli_query($conn, $check);
-    if($runcheck){
-        $r = mysqli_fetch_assoc($runcheck);
-        echo $r['receiving_count'];
-    }
 }
 
 
@@ -425,15 +428,6 @@ if (isset($_POST['load_images'])) {
     exit;
 }
 
-
-if(isset($_POST['load_rec_count'])){
-    $select = "SELECT count(doc_id) as doc_count FROM `tbl_documents_registry`";
-    $runselect = mysqli_query($conn, $select);
-    if($runselect){
-        $r = mysqli_fetch_assoc($runselect);
-        echo $r['doc_count'];
-    }
-}
 
 /* 🔹 GET SINGLE RECORD */
 if (isset($_POST['get_record'])) {

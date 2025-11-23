@@ -284,3 +284,31 @@
 2025-11-19 18:52:12 | DocID=11 | recordOwner=2 | currentOffice=67 | isOwner=FALSE
 2025-11-19 18:52:12 | DocID=10 | recordOwner=2 | currentOffice=67 | isOwner=FALSE
 2025-11-19 18:52:12 | DocID=9 | recordOwner=2 | currentOffice=67 | isOwner=FALSE
+
+
+>>> Script started at 2025-11-23 13:05:01
+2025-11-23 13:05:01 | server_table request received
+2025-11-23 13:05:01 | DocID=32 | recordOwner=9 | currentOffice=67 | isOwner=FALSE
+2025-11-23 13:05:01 | DocID=31 | recordOwner=10 | currentOffice=67 | isOwner=FALSE
+2025-11-23 13:05:01 | DocID=30 | recordOwner=9 | currentOffice=67 | isOwner=FALSE
+2025-11-23 13:05:01 | DocID=29 | recordOwner=9 | currentOffice=67 | isOwner=FALSE
+2025-11-23 13:05:01 | DocID=18 | recordOwner=67 | currentOffice=67 | isOwner=TRUE
+2025-11-23 13:05:01 | DocID=17 | recordOwner=2 | currentOffice=67 | isOwner=FALSE
+2025-11-23 13:05:01 | DocID=16 | recordOwner=2 | currentOffice=67 | isOwner=FALSE
+2025-11-23 13:05:01 | DocID=15 | recordOwner=2 | currentOffice=67 | isOwner=FALSE
+2025-11-23 13:05:01 | DocID=14 | recordOwner=2 | currentOffice=67 | isOwner=FALSE
+2025-11-23 13:05:01 | DocID=13 | recordOwner=2 | currentOffice=67 | isOwner=FALSE
+
+
+>>> Script started at 2025-11-23 13:06:31
+2025-11-23 13:06:31 | server_table request received
+2025-11-23 13:06:31 | DocID=32 | recordOwner=9 | currentOffice=67 | isOwner=FALSE
+2025-11-23 13:06:31 | DocID=31 | recordOwner=10 | currentOffice=67 | isOwner=FALSE
+2025-11-23 13:06:31 | DocID=30 | recordOwner=9 | currentOffice=67 | isOwner=FALSE
+2025-11-23 13:06:31 | DocID=29 | recordOwner=9 | currentOffice=67 | isOwner=FALSE
+2025-11-23 13:06:31 | DocID=18 | recordOwner=67 | currentOffice=67 | isOwner=TRUE
+2025-11-23 13:06:31 | DocID=17 | recordOwner=2 | currentOffice=67 | isOwner=FALSE
+2025-11-23 13:06:31 | DocID=16 | recordOwner=2 | currentOffice=67 | isOwner=FALSE
+2025-11-23 13:06:31 | DocID=15 | recordOwner=2 | currentOffice=67 | isOwner=FALSE
+2025-11-23 13:06:31 | DocID=14 | recordOwner=2 | currentOffice=67 | isOwner=FALSE
+2025-11-23 13:06:31 | DocID=13 | recordOwner=2 | currentOffice=67 | isOwner=FALSE

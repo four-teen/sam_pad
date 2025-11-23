@@ -16,7 +16,22 @@ if (isset($_POST['server_table'])) {
     $start     = intval($_POST['start'] ?? 0);
     $limit     = intval($_POST['limit'] ?? 10);
 
-    // SAME QUERY FROM OLD SERVER CODE
+    // 🔎 GET SEARCH TERM
+    $search = mysqli_real_escape_string($conn, $_POST['search'] ?? '');
+    $searchQuery = "";
+
+    if ($search !== "") {
+        $searchQuery = "
+            AND (
+                d.file_code LIKE '%$search%' OR
+                d.particular LIKE '%$search%' OR
+                v.division_desc LIKE '%$search%' OR
+                t.doctype_desc LIKE '%$search%'
+            )
+        ";
+    }
+
+    // ✅ UPDATED QUERY WITH SEARCH
     $get_records = "
         SELECT 
             d.doc_id,
@@ -29,6 +44,7 @@ if (isset($_POST['server_table'])) {
         LEFT JOIN tbldivisions v ON CAST(d.office_division AS UNSIGNED) = v.divisionid
         LEFT JOIN tbltypeofdocuments t ON d.type_of_documents = t.docid
         WHERE d.uni_divisionid = '$office_id'
+        $searchQuery
           AND NOT EXISTS (
                 SELECT 1 
                 FROM tbl_document_actions a
@@ -68,7 +84,6 @@ if (isset($_POST['server_table'])) {
             mysqli_query($conn, "SELECT to_id FROM tbl_travel_order WHERE doc_id='{$r['doc_id']}' LIMIT 1")
         ) > 0;
 
-        // Travel order logic
         if ($type === 'TRAVEL ORDER') {
             if ($travelExists) {
                 $travelButton = "
@@ -93,7 +108,8 @@ if (isset($_POST['server_table'])) {
                     <i class=\"bi bi-people\"></i>
                 </button>";
         }
-        // Compute STAYED duration
+
+        // Compute stayed duration
         $receivedDT = strtotime($r['date_received']);
         $nowDT = time();
         $diffSeconds = $nowDT - $receivedDT;
@@ -156,10 +172,10 @@ if (isset($_POST['server_table'])) {
             </div>
         </div>
         ";
-
     }
 
     echo '';
 }
+
 
 ?>
