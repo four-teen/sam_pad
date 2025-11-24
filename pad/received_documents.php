@@ -1234,7 +1234,7 @@ function get_doc_count(){
       load_rec_count: 1 
     },
     success: function(response) {
-      $('#load_doc_count').html(response);
+      $('#load_doc_count, #load_summary').html(response);
     }
   });  
 }
@@ -1250,7 +1250,11 @@ function get_doc_count(){
 
   function card_three(){
     window.location = 'all_docs.php';
-  }
+  } 
+
+  function documents_summary(){
+    window.location = 'documents_summary.php';
+  } 
 
 
 </script>

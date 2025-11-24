@@ -56,7 +56,7 @@
 
   <!-- Released Summary -->
   <div class="col-lg-3 col-md-6 d-flex">
-    <div class="card info-card border-0 shadow-sm flex-fill" style="--start-color:#ffc107;--end-color:#ffb347;" onclick="released_summary()">
+    <div class="card info-card border-0 shadow-sm flex-fill" style="--start-color:#ffc107;--end-color:#ffb347;" onclick="documents_summary()">
       <div class="card-body">
         <h5 class="card-title">Summary <span class="text-muted">| Released</span></h5>
         <div class="d-flex align-items-center">
