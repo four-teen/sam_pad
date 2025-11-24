@@ -68,22 +68,49 @@ $totalFiltered = $totalData;
 
 // data
 $query = "
-    SELECT 
-        d.doc_id, 
-        d.date_received, 
-        d.received_by, 
-        d.file_code, 
-        IFNULL(v.division_desc, CONCAT('Unknown (ID: ', d.office_division, ')')) AS office_division,
-        IFNULL(t.doctype_desc, 'Unknown Type') AS type_of_documents, 
-        d.particular, 
-        d.created_at
-    FROM tbl_documents_registry d
-    LEFT JOIN tbldivisions v ON CAST(d.office_division AS UNSIGNED) = v.divisionid
-    LEFT JOIN tbltypeofdocuments t ON d.type_of_documents = t.docid
-    $where
-    ORDER BY d.doc_id DESC
-    LIMIT $start, $length
+        SELECT 
+            d.doc_id, 
+            d.date_received, 
+            d.received_by, 
+            d.file_code, 
+            IFNULL(v.division_desc, CONCAT('Unknown (ID: ', d.office_division, ')')) AS office_division,
+            IFNULL(t.doctype_desc, 'Unknown Type') AS type_of_documents, 
+            d.particular, 
+            d.created_at
+        FROM tbl_documents_registry d
+        LEFT JOIN tbldivisions v 
+            ON CAST(d.office_division AS UNSIGNED) = v.divisionid
+        LEFT JOIN tbltypeofdocuments t 
+            ON d.type_of_documents = t.docid
+        WHERE 
+        (
+            /* CONDITION A — your original documents with no outgoing yet */
+            d.received_by = '$office_id'
+            AND NOT EXISTS (
+                SELECT 1 
+                FROM tbl_document_actions a1
+                WHERE a1.doc_id = d.doc_id
+                  AND a1.from_office_id = '$office_id'
+                  AND a1.action_type = 'Outgoing'
+            )
+        )
+        OR
+        (
+            /* CONDITION B — documents sent to you by other offices */
+            EXISTS (
+                SELECT 1 
+                FROM tbl_document_actions a2
+                WHERE a2.doc_id = d.doc_id
+                  AND a2.to_office_id = '$office_id'
+                  AND a2.action_type IN ('Forwarded', 'Redirected', 'Transmitted')
+            )
+        )
+        ORDER BY d.doc_id DESC
+        LIMIT $start, $length;
 ";
+
+
+
 $result = mysqli_query($conn, $query);
 if (!$result) log_issue("SQL error mainQuery: " . mysqli_error($conn));
 

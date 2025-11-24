@@ -171,16 +171,31 @@ if (isset($_POST['get_received_counter'])) {
 
     $office_id = $_SESSION['officeid'];
 
-    // ✅ Count documents that are received by this office but not yet processed
     $sql = "
         SELECT COUNT(*) AS pending_count
         FROM tbl_documents_registry d
-        WHERE NOT EXISTS (
-            SELECT 1 
-            FROM tbl_document_actions a
-            WHERE a.doc_id = d.doc_id
-              AND a.from_office_id = '$office_id'
-              AND a.action_type IN ('Outgoing', 'Acted', 'Delivered')
+        WHERE 
+        (
+            /* CONDITION A — your own documents with no outgoing yet */
+            d.received_by = '$office_id'
+            AND NOT EXISTS (
+                SELECT 1 
+                FROM tbl_document_actions a1
+                WHERE a1.doc_id = d.doc_id
+                  AND a1.from_office_id = '$office_id'
+                  AND a1.action_type = 'Outgoing'
+            )
+        )
+        OR
+        (
+            /* CONDITION B — documents redirected to you */
+            EXISTS (
+                SELECT 1
+                FROM tbl_document_actions a2
+                WHERE a2.doc_id = d.doc_id
+                  AND a2.to_office_id = '$office_id'
+                  AND a2.action_type = 'Redirected'
+            )
         )
     ";
 
@@ -192,6 +207,34 @@ if (isset($_POST['get_received_counter'])) {
         echo 0;
     }
 }
+
+
+
+// if (isset($_POST['get_received_counter'])) {
+
+//     $office_id = $_SESSION['officeid'];
+
+//     // ✅ Count documents that are received by this office but not yet processed
+//     $sql = "
+//         SELECT COUNT(*) AS pending_count
+//         FROM tbl_documents_registry d
+//         WHERE NOT EXISTS (
+//             SELECT 1 
+//             FROM tbl_document_actions a
+//             WHERE a.doc_id = d.doc_id
+//               AND a.from_office_id = '$office_id'
+//               AND a.action_type IN ('Outgoing', 'Acted', 'Delivered')
+//         )
+//     ";
+
+//     $run = mysqli_query($conn, $sql);
+//     if ($run) {
+//         $row = mysqli_fetch_assoc($run);
+//         echo $row['pending_count'];
+//     } else {
+//         echo 0;
+//     }
+// }
 
 
 /* 🧩 Check if record has uploaded images */
